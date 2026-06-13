@@ -1,0 +1,69 @@
+:host {
+  display: block;
+}
+
+.topbar-video-shell {
+  position: sticky;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.topbar-bg-video {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+  opacity: .46;
+  pointer-events: none;
+}
+
+.topbar-bg-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, .9) 0%, rgba(255, 255, 255, .78) 42%, rgba(255, 255, 255, .62) 100%),
+    linear-gradient(180deg, rgba(248, 250, 252, .48) 0%, rgba(255, 255, 255, .78) 100%);
+  pointer-events: none;
+}
+
+.topbar-content {
+  position: relative;
+  z-index: 1;
+}
+
+.notification-bell.has-finance-alert {
+  border-color: rgba(239, 68, 68, .42);
+  color: #dc2626;
+  animation: bell-pulse 1.7s ease-in-out infinite;
+}
+
+.notification-bell.has-finance-alert .material-icons {
+  animation: bell-ring .9s ease-in-out infinite;
+  transform-origin: 50% 10%;
+}
+
+.notification-count {
+  animation: badge-pop 1.7s ease-in-out infinite;
+}
+
+@keyframes bell-ring {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-13deg); }
+  40% { transform: rotate(11deg); }
+  60% { transform: rotate(-7deg); }
+  80% { transform: rotate(5deg); }
+}
+
+@keyframes bell-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, .22); }
+  50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+}
+
+@keyframes badge-pop {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}

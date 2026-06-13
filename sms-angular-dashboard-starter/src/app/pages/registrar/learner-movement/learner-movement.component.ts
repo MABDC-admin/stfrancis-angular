@@ -1,0 +1,42 @@
+import { Component } from '@angular/core';
+import { NgClass, NgFor } from '@angular/common';
+import { OnInit, inject, DestroyRef } from '@angular/core';
+import { switchMap, filter } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { RegistrarApiService } from '../../../core/services/registrar-api.service';
+import { LearnerMovement } from '../../../core/models/registrar.models';
+
+@Component({
+  selector: 'app-learner-movement',
+  standalone: true,
+  imports: [NgFor, NgClass],
+  templateUrl: './learner-movement.component.html',
+  styleUrl: './learner-movement.component.scss'
+})
+export class LearnerMovementComponent implements OnInit {
+  private api = inject(RegistrarApiService);
+  private destroyRef = inject(DestroyRef);
+  movements: LearnerMovement[] = [];
+
+  ngOnInit() {
+    this.api.activeAcademicYear$.pipe(
+      takeUntilDestroyed(this.destroyRef),
+      filter(ay => !!ay),
+      switchMap(ay => this.api.getLearnerMovements(ay.id))
+    ).subscribe({
+      next: (data) => this.movements = data,
+      error: (err) => console.error('Failed to load data', err)
+    });
+  }
+
+  statusClass(status: string): string {
+    if (status === 'Approved') return 'bg-emerald-50 text-emerald-700';
+    if (status.includes('Approval')) return 'bg-blue-50 text-blue-700';
+    if (status.includes('Pending')) return 'bg-amber-50 text-amber-700';
+    return 'bg-slate-100 text-slate-700';
+  }
+
+  trackMovement(_: number, item: LearnerMovement): string {
+    return item.id;
+  }
+}

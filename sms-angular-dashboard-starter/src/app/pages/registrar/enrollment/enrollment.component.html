@@ -1,0 +1,267 @@
+<section class="page-shell">
+  <div class="border-b border-violet-100/60 bg-white px-6 py-4 shrink-0 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between z-10 rounded-2xl shadow-card">
+    <div>
+      <p class="text-[10px] font-extrabold uppercase tracking-widest text-violet-500 mb-0.5">Registrar Module</p>
+      <h1 class="text-xl font-extrabold tracking-tight text-slate-900">📥 Enrollment Applications</h1>
+      <p class="text-xs font-semibold text-slate-500 mt-0.5">
+        Review applications, validate requirements, approve enrollment, and send cleared learners to Finance Assessment.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap gap-2 relative">
+      <button class="action-secondary !py-2 !px-3 !text-xs"><span class="material-icons text-[16px]">filter_list</span> Filter</button>
+      <button class="action-primary !py-2 !px-3 !text-xs"><span class="material-icons text-[16px]">playlist_add_check</span> Approve Selected</button>
+
+      <!-- Toast Notification (PrimeNG Style) -->
+      <div class="absolute -bottom-24 right-0 z-[100] transition-all duration-300 transform flex w-80 overflow-hidden rounded-lg bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] border border-slate-100 min-w-max"
+           [class.translate-y-0]="toast.show"
+           [class.opacity-100]="toast.show"
+           [class.-translate-y-4]="!toast.show"
+           [class.opacity-0]="!toast.show"
+           [class.pointer-events-none]="!toast.show">
+        
+        <!-- Colored Border Strip -->
+        <div class="w-1.5 shrink-0" 
+             [ngClass]="{
+               'bg-emerald-500': toast.type === 'success',
+               'bg-red-500': toast.type === 'error',
+               'bg-amber-500': toast.type === 'warning',
+               'bg-blue-500': toast.type === 'info'
+             }"></div>
+        
+        <!-- Content Area -->
+        <div class="flex items-start gap-3 p-4 w-full">
+          <span class="material-icons text-2xl mt-0.5 drop-shadow-sm" 
+                [ngClass]="{
+                  'text-emerald-500': toast.type === 'success',
+                  'text-red-500': toast.type === 'error',
+                  'text-amber-500': toast.type === 'warning',
+                  'text-blue-500': toast.type === 'info'
+                }">
+            {{ toast.type === 'success' ? 'check_circle' : toast.type === 'error' ? 'error' : toast.type === 'warning' ? 'warning' : 'info' }}
+          </span>
+          <div class="flex-1">
+            <h5 class="text-sm font-extrabold text-slate-800">{{ toast.title }}</h5>
+            <p class="mt-0.5 text-[13px] font-medium text-slate-500 leading-snug">{{ toast.message }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <article *ngFor="let kpi of kpis" class="rounded-2xl border border-violet-100/60 bg-white p-5 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="grid h-12 w-12 place-items-center rounded-xl" [ngClass]="toneClass(kpi.tone)">
+          <span class="material-icons text-[24px]">{{ kpi.icon }}</span>
+        </div>
+        <div>
+          <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">{{ kpi.label }}</p>
+          <h3 class="mt-0.5 text-2xl font-extrabold text-slate-800">{{ kpi.value }}</h3>
+          <p class="mt-0.5 text-[11px] font-bold text-slate-500">{{ kpi.helper }}</p>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <section class="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_20rem]">
+    <div class="table-card border border-violet-100/60 rounded-2xl shadow-sm bg-white overflow-hidden flex flex-col">
+      <div class="table-header flex flex-col gap-3 md:flex-row md:items-center md:justify-between p-5 border-b border-violet-50">
+        <div>
+          <h2 class="text-base font-extrabold text-slate-900">Enrollment Queue</h2>
+          <p class="mt-0.5 text-xs font-semibold text-slate-500">Applications for {{ (api.activeAcademicYear$ | async)?.code || 'Selected SY' }}</p>
+        </div>
+        <label class="flex h-9 items-center gap-2 rounded-xl border border-violet-100 bg-violet-50/50 px-3 shadow-sm focus-within:border-violet-300 focus-within:bg-white focus-within:ring-2 focus-within:ring-violet-100 transition-all">
+          <span class="material-icons text-violet-400 text-[18px]">search</span>
+          <input
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="onSearchQueryChange($event)"
+            class="w-56 bg-transparent text-[13px] font-semibold outline-none placeholder:text-slate-400 text-slate-800"
+            placeholder="Search application..."
+          />
+        </label>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-violet-100/60">
+          <thead class="bg-violet-50/30">
+            <tr>
+              <th class="table-th !text-slate-600">Application</th>
+              <th class="table-th !text-slate-600">Learner</th>
+              <th class="table-th !text-slate-600">Grade</th>
+              <th class="table-th !text-slate-600">Enrollment</th>
+              <th class="table-th !text-slate-600">Documents</th>
+              <th class="table-th !text-slate-600">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-violet-100/60 bg-white">
+            <tr *ngFor="let app of filteredApplications; trackBy: trackApplication" class="hover:bg-violet-50/50 transition-colors">
+              <td class="table-td">
+                <p class="font-extrabold text-slate-800">{{ app.applicationNo }}</p>
+                <p class="mt-0.5 text-[10px] font-bold tracking-wide text-slate-400">{{ app.submittedAt | date:'MMM d, y, h:mm a' }}</p>
+              </td>
+              <td class="table-td">
+                <p class="font-extrabold text-slate-800">{{ app.studentName }}</p>
+                <p class="mt-0.5 text-[10px] font-bold tracking-wide text-slate-400">{{ app.studentType }}</p>
+              </td>
+              <td class="table-td text-slate-600 text-[13px] font-semibold">{{ app.gradeLevel }}</td>
+              <td class="table-td"><span class="status-pill" [ngClass]="statusClass(app.status)">{{ app.status }}</span></td>
+              <td class="table-td"><span class="status-pill" [ngClass]="statusClass(app.documentStatus)">{{ app.documentStatus }}</span></td>
+              <td class="table-td">
+                <div class="flex min-w-[14rem] flex-col items-start gap-2">
+                  <div
+                    *ngIf="blockedReviewNotice?.applicationId === app.id"
+                    class="flex w-full items-start gap-2 rounded-lg border border-red-200 bg-red-600 px-3 py-2 text-white shadow-sm">
+                    <span class="material-icons mt-0.5 text-[17px] text-white">warning</span>
+                    <div class="min-w-0">
+                      <p class="text-xs font-extrabold leading-tight">{{ blockedReviewNotice?.title }}</p>
+                      <p class="mt-0.5 text-[11px] font-semibold leading-snug text-red-50">{{ blockedReviewNotice?.message }}</p>
+                    </div>
+                  </div>
+                  <button (click)="reviewApplication(app)" class="rounded-lg border border-violet-200 bg-white px-3 py-1.5 text-xs font-extrabold text-violet-600 shadow-sm hover:bg-violet-50 transition-colors">Review</button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="filteredApplications.length === 0">
+              <td colspan="6" class="px-6 py-10 text-center">
+                <div class="mx-auto flex max-w-sm flex-col items-center rounded-2xl border border-violet-100 bg-violet-50/40 px-6 py-5">
+                  <span class="material-icons text-3xl text-violet-400">manage_search</span>
+                  <p class="mt-2 text-sm font-extrabold text-slate-800">No enrollment applications found</p>
+                  <p class="mt-1 text-xs font-semibold text-slate-500">Try another learner name, application number, grade, or status.</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <aside class="rounded-2xl border border-violet-100/60 bg-white p-5 shadow-sm">
+      <h2 class="text-base font-extrabold text-slate-900">Enrollment Flow</h2>
+      <p class="mt-0.5 text-xs font-semibold text-slate-500">Operational status path.</p>
+      <div class="mt-4 space-y-2">
+        <div *ngFor="let step of ['Draft', 'Submitted', 'For Review', 'Approved', 'Officially Enrolled']" class="flex items-center gap-3 rounded-xl border border-violet-50 bg-violet-50/30 px-3 py-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-full bg-violet-100 text-violet-600">
+            <span class="material-icons text-[18px]">check_circle</span>
+          </span>
+          <span class="text-[13px] font-extrabold text-slate-700">{{ step }}</span>
+        </div>
+      </div>
+    </aside>
+  </section>
+</section>
+
+<!-- Review Modal Overlay -->
+<div *ngIf="selectedAppForReview as app" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+  <!-- Backdrop -->
+  <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" (click)="closeModal()"></div>
+  
+  <!-- Modal Card -->
+  <div class="relative w-full max-w-lg transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all">
+    
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-violet-50 px-5 py-4 bg-violet-50/30">
+      <div class="flex items-center gap-3">
+        <div class="grid h-10 w-10 place-items-center rounded-xl bg-violet-100 text-violet-600">
+          <span class="material-icons text-[20px]">assignment_ind</span>
+        </div>
+        <div>
+          <h3 class="text-base font-extrabold text-slate-800">Review Application</h3>
+          <p class="text-[11px] font-bold text-slate-500">{{ app.applicationNo }}</p>
+        </div>
+      </div>
+      <button (click)="closeModal()" class="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
+        <span class="material-icons text-[20px] block">close</span>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="px-5 py-5">
+      
+      <div class="rounded-xl border border-violet-100/60 bg-white p-4 shadow-sm">
+        <div class="flex items-center justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold text-slate-800">{{ app.studentName }}</h4>
+            <div class="mt-1 flex items-center gap-2">
+              <span class="rounded-md bg-slate-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-slate-600 shadow-sm border border-slate-200">{{ app.gradeLevel }}</span>
+              <span class="rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-emerald-700 border border-emerald-100">{{ app.studentType }}</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Submitted</p>
+            <p class="mt-0.5 text-[13px] font-bold text-slate-700">{{ app.submittedAt | date:'mediumDate' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Learner Details Section -->
+      <div class="mt-5" *ngIf="isLoadingStudent || selectedStudent">
+        <h5 class="text-[13px] font-extrabold text-slate-800">Learner Details</h5>
+        <div *ngIf="isLoadingStudent" class="mt-2 flex items-center justify-center p-4 border border-violet-100/60 rounded-xl bg-violet-50/30">
+          <span class="material-icons animate-spin text-violet-400">autorenew</span>
+          <span class="ml-2 text-xs text-slate-500 font-bold">Loading details...</span>
+        </div>
+        <div *ngIf="!isLoadingStudent && selectedStudent" class="mt-2 rounded-xl border border-violet-100/60 bg-white p-4 shadow-sm">
+          <div class="grid grid-cols-2 gap-y-3 gap-x-5">
+            <div>
+              <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-0.5">LRN / Student No</p>
+              <p class="text-[13px] font-bold text-slate-800">{{ selectedStudent.lrn }} • {{ selectedStudent.studentNo }}</p>
+            </div>
+            <div>
+              <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-0.5">Contact No</p>
+              <p class="text-[13px] font-bold text-slate-800">{{ selectedStudent.contactNo || 'N/A' }}</p>
+            </div>
+            <div class="col-span-2">
+              <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-0.5">Address</p>
+              <p class="text-[13px] font-bold text-slate-800">{{ selectedStudent.address || 'N/A' }}</p>
+            </div>
+            <div class="col-span-2">
+              <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-0.5">Guardian</p>
+              <p class="text-[13px] font-bold text-slate-800">{{ selectedStudent.guardian || 'N/A' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5">
+        <h5 class="text-[13px] font-extrabold text-slate-800">Current Status & Requirements</h5>
+        <div class="mt-2 grid grid-cols-1 gap-3">
+          <div class="rounded-xl border border-violet-100/60 bg-white p-3 shadow-sm flex items-center justify-between">
+            <p class="text-xs font-bold text-slate-500">Document Assessment</p>
+            <span class="status-pill" [ngClass]="statusClass(app.documentStatus)">{{ app.documentStatus }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Registration Checklist Section -->
+      <div class="mt-4">
+        <h5 class="text-[13px] font-extrabold text-slate-800 flex items-center gap-2 mb-2">✅ Registration Checklist</h5>
+        <div class="p-3 space-y-1.5 rounded-xl border border-violet-100/60 bg-white shadow-sm">
+          <label *ngFor="let doc of requiredDocuments" class="group flex items-center gap-2.5 rounded-lg border border-transparent px-2 py-1.5 hover:bg-violet-50/50 transition-all cursor-pointer">
+            <input type="checkbox" [checked]="app.documentStatus === 'Complete'" class="h-4 w-4 rounded border-violet-300 text-violet-600 focus:ring-violet-500 cursor-pointer" />
+            <span class="text-xs font-bold text-slate-600 group-hover:text-slate-800 transition-colors">{{ doc }}</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="mt-5 rounded-xl bg-violet-50 border border-violet-100 p-3 flex gap-2.5 items-start">
+        <span class="material-icons text-violet-600 text-[18px]">info</span>
+        <p class="text-xs font-semibold text-violet-800 leading-relaxed">
+          Approving this application will mark the document checklist as <strong>Complete</strong> and <strong>Officially Enroll</strong> the learner.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="flex items-center justify-end gap-2 border-t border-violet-50 bg-violet-50/20 px-5 py-4">
+      <button (click)="closeModal()" [disabled]="isApproving" class="action-secondary !py-2 !px-4 !text-xs border-transparent">Cancel</button>
+      <button (click)="approveApplication()" [disabled]="isApproving" class="action-primary !py-2 !px-4 !text-xs" [ngClass]="{'opacity-50 cursor-not-allowed': isApproving}">
+        <span class="material-icons text-[16px]" *ngIf="isApproving">hourglass_empty</span>
+        <span class="material-icons text-[16px]" *ngIf="!isApproving">check_circle</span>
+        {{ isApproving ? 'Approving...' : 'Officially Enroll' }}
+      </button>
+    </div>
+
+  </div>
+</div>

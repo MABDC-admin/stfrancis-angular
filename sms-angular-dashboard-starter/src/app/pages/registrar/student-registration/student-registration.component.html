@@ -1,0 +1,219 @@
+<section class="page-shell h-[calc(100vh-theme('spacing.16'))] flex flex-col p-0 overflow-hidden">
+  <!-- Header -->
+  <div class="border-b border-violet-100/60 bg-white px-6 py-4 shrink-0 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between z-10">
+    <div>
+      <p class="text-[10px] font-extrabold uppercase tracking-widest text-violet-500 mb-0.5">Registrar Module</p>
+      <h1 class="text-xl font-extrabold tracking-tight text-slate-900">📋 Student Registration</h1>
+      <p class="text-xs font-semibold text-slate-500 mt-0.5">
+        Create the learner record, capture family/contact information, and prepare for document verification.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap gap-2 relative">
+      <button type="button" class="rounded-xl bg-violet-50 border border-violet-200 px-3 py-2 text-xs font-extrabold text-violet-700 hover:bg-violet-100 transition-colors flex items-center gap-1.5 shadow-sm" (click)="fillTestData()">
+        <span class="material-icons text-[16px]">bolt</span> Fill Data
+      </button>
+      <button type="button" class="action-secondary !py-2 !px-3 !text-xs">
+        <span class="material-icons text-[16px]">save</span> Save Draft
+      </button>
+      <button type="button" (click)="onSubmit()" [disabled]="isSubmitting" class="action-primary !py-2 !px-3 !text-xs disabled:opacity-50 disabled:cursor-not-allowed">
+        <span class="material-icons text-[16px]">{{ isSubmitting ? 'hourglass_empty' : 'send' }}</span>
+        {{ isSubmitting ? 'Submitting...' : 'Submit for Review' }}
+      </button>
+
+      <!-- Toast Notification -->
+      <div class="absolute -bottom-20 right-0 z-[100] transition-all duration-300 transform flex w-72 overflow-hidden rounded-xl bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-violet-100"
+           [class.translate-y-0]="toast.show"
+           [class.opacity-100]="toast.show"
+           [class.-translate-y-4]="!toast.show"
+           [class.opacity-0]="!toast.show"
+           [class.pointer-events-none]="!toast.show">
+        <div class="w-1 shrink-0" 
+             [ngClass]="{
+               'bg-emerald-500': toast.type === 'success',
+               'bg-red-500': toast.type === 'error',
+               'bg-amber-500': toast.type === 'warning',
+               'bg-violet-500': toast.type === 'info'
+             }"></div>
+        <div class="flex items-start gap-2 p-3 w-full text-left">
+          <span class="material-icons text-xl mt-0.5" 
+                [ngClass]="{
+                  'text-emerald-500': toast.type === 'success',
+                  'text-red-500': toast.type === 'error',
+                  'text-amber-500': toast.type === 'warning',
+                  'text-violet-500': toast.type === 'info'
+                }">
+            {{ toast.type === 'success' ? 'check_circle' : toast.type === 'error' ? 'error' : toast.type === 'warning' ? 'warning' : 'info' }}
+          </span>
+          <div class="flex-1">
+            <h5 class="text-xs font-extrabold text-slate-800">{{ toast.title }}</h5>
+            <p class="mt-0.5 text-[11px] font-semibold text-slate-500 leading-snug">{{ toast.message }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="flex-1 overflow-y-auto bg-gradient-to-br from-violet-50/50 via-slate-50 to-fuchsia-50/30 p-5">
+    <div class="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_20rem]">
+      <form class="space-y-4" (ngSubmit)="onSubmit()">
+        
+        <!-- Step 1: Learner Information -->
+        <section class="rounded-2xl border border-violet-100/60 bg-white shadow-sm overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-3 border-b border-violet-50">
+            <h2 class="text-base font-extrabold text-slate-800 flex items-center gap-2">
+              ✏️ Learner Information
+            </h2>
+            <span class="text-[10px] font-bold text-slate-400">Fields marked <span class="text-rose-400">*</span> are required</span>
+          </div>
+
+          <div class="p-5 grid grid-cols-2 gap-x-4 gap-y-4 md:grid-cols-4">
+            <label>
+              <span class="form-label">🔢 Student Number</span>
+              <input class="form-input !bg-slate-100 cursor-not-allowed" [(ngModel)]="draft.studentNo" name="studentNo" placeholder="Auto-generated" readonly />
+            </label>
+
+            <label>
+              <span class="form-label">🆔 LRN <span class="text-rose-400">*</span></span>
+              <input class="form-input" [(ngModel)]="draft.lrn" name="lrn" placeholder="12-digit LRN" />
+            </label>
+
+            <label>
+              <span class="form-label">🎓 Grade Level <span class="text-rose-400">*</span></span>
+              <select class="form-input" [(ngModel)]="draft.gradeLevel" name="gradeLevel">
+                <option *ngFor="let grade of gradeLevels">{{ grade }}</option>
+              </select>
+            </label>
+
+            <label>
+              <span class="form-label">📌 Student Type <span class="text-rose-400">*</span></span>
+              <select class="form-input" [(ngModel)]="draft.studentType" name="studentType">
+                <option *ngFor="let type of studentTypes">{{ type }}</option>
+              </select>
+            </label>
+
+            <label>
+              <span class="form-label">👤 First Name <span class="text-rose-400">*</span></span>
+              <input class="form-input" [(ngModel)]="draft.firstName" name="firstName" placeholder="e.g. Juan" />
+            </label>
+
+            <label>
+              <span class="form-label">👤 Middle Name</span>
+              <input class="form-input" [(ngModel)]="draft.middleName" name="middleName" placeholder="e.g. Santos" />
+            </label>
+
+            <label>
+              <span class="form-label">👤 Last Name <span class="text-rose-400">*</span></span>
+              <input class="form-input" [(ngModel)]="draft.lastName" name="lastName" placeholder="e.g. Dela Cruz" />
+            </label>
+
+            <label>
+              <span class="form-label">✨ Suffix</span>
+              <input class="form-input" [(ngModel)]="draft.suffix" name="suffix" placeholder="Jr., III, etc." />
+            </label>
+
+            <label>
+              <span class="form-label">📅 Birthdate <span class="text-rose-400">*</span></span>
+              <input class="form-input" [(ngModel)]="draft.birthdate" name="birthdate" type="date" />
+            </label>
+
+            <label>
+              <span class="form-label">🔢 Age</span>
+              <input class="form-input !bg-slate-100 cursor-not-allowed" [value]="calculatedAge" name="age" readonly tabindex="-1" />
+            </label>
+
+            <label>
+              <span class="form-label">⚧ Gender <span class="text-rose-400">*</span></span>
+              <select class="form-input" [(ngModel)]="draft.gender" name="gender">
+                <option value="">Select gender</option>
+                <option>Male</option>
+                <option>Female</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <!-- Step 2: Guardian and Contact -->
+        <section class="rounded-2xl border border-violet-100/60 bg-white shadow-sm overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-3 border-b border-violet-50">
+            <h2 class="text-base font-extrabold text-slate-800 flex items-center gap-2">
+              👨‍👩‍👧 Guardian and Contact
+            </h2>
+            <span class="text-[10px] font-bold text-slate-400">Step 2</span>
+          </div>
+
+          <div class="p-5 grid grid-cols-2 gap-x-4 gap-y-4 md:grid-cols-4">
+            <label>
+              <span class="form-label">👨‍👧 Guardian Name <span class="text-rose-400">*</span></span>
+              <input class="form-input" [(ngModel)]="draft.guardianName" name="guardianName" placeholder="Parent / Guardian" />
+            </label>
+
+            <label>
+              <span class="form-label">🤝 Relationship <span class="text-rose-400">*</span></span>
+              <input class="form-input" [(ngModel)]="draft.guardianRelation" name="guardianRelation" placeholder="Mother, Father, Guardian" />
+            </label>
+
+            <label>
+              <span class="form-label">📱 Contact Number <span class="text-rose-400">*</span></span>
+              <input class="form-input" [(ngModel)]="draft.guardianContact" name="guardianContact" placeholder="09XX XXX XXXX" />
+            </label>
+
+            <label>
+              <span class="form-label">📧 Email Address</span>
+              <input class="form-input" [(ngModel)]="draft.email" name="email" placeholder="parent@email.com" />
+            </label>
+
+            <label class="col-span-2">
+              <span class="form-label">🏠 Complete Address <span class="text-rose-400">*</span></span>
+              <textarea class="form-area" [(ngModel)]="draft.address" name="address" placeholder="House no., street, barangay, city, province"></textarea>
+            </label>
+
+            <label>
+              <span class="form-label">🏫 Previous School</span>
+              <input class="form-input" [(ngModel)]="draft.previousSchool" name="previousSchool" placeholder="For transferee / returning" />
+            </label>
+
+            <label>
+              <span class="form-label">📝 Registrar Remarks</span>
+              <textarea class="form-area" [(ngModel)]="draft.remarks" name="remarks" placeholder="Notes for verification"></textarea>
+            </label>
+          </div>
+        </section>
+      </form>
+
+      <!-- Sidebar -->
+      <aside class="space-y-4">
+        <!-- Registration Checklist -->
+        <section class="rounded-2xl border border-violet-100/60 bg-white shadow-sm overflow-hidden">
+          <div class="px-5 py-3 border-b border-violet-50">
+            <h2 class="text-sm font-extrabold text-slate-800 flex items-center gap-2">
+              ✅ Registration Checklist
+            </h2>
+            <p class="text-[10px] font-semibold text-slate-400 mt-0.5">Mark requirements during document intake.</p>
+          </div>
+
+          <div class="p-4 space-y-2">
+            <label *ngFor="let doc of requiredDocuments" class="group flex items-center gap-2.5 rounded-xl border border-violet-100/60 bg-white px-3 py-2.5 hover:border-violet-300 hover:bg-violet-50/50 transition-all cursor-pointer">
+              <input type="checkbox" class="h-4 w-4 rounded border-violet-300 text-violet-600 focus:ring-violet-500 cursor-pointer" />
+              <span class="text-xs font-bold text-slate-600 group-hover:text-slate-800 transition-colors">{{ doc }}</span>
+            </label>
+          </div>
+        </section>
+
+        <!-- Registrar Rule Card -->
+        <section class="rounded-2xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 p-5 text-white shadow-lg relative overflow-hidden">
+          <div class="relative z-10">
+            <div class="text-3xl mb-2">🛡️</div>
+            <h3 class="text-base font-extrabold">Registrar Rule</h3>
+            <p class="mt-1.5 text-xs font-semibold leading-5 text-white/80">
+              A learner can move to Finance Assessment only after the registration record is reviewed and required documents are checked.
+            </p>
+          </div>
+          <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-white/10 rounded-full"></div>
+          <div class="absolute -right-2 -top-8 w-20 h-20 bg-white/5 rounded-full"></div>
+        </section>
+      </aside>
+    </div>
+  </div>
+</section>

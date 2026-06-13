@@ -1,0 +1,104 @@
+<header class="glass-topbar topbar-video-shell sticky top-0 z-10 hidden h-20 items-center justify-between px-8 lg:flex">
+  <div
+    class="avatar-toast fixed right-8 top-24 z-[200] flex w-80 overflow-hidden rounded-xl border bg-white shadow-[0_18px_50px_-20px_rgba(15,23,42,0.35)] transition-all duration-300"
+    [ngClass]="{
+      'translate-y-0 opacity-100': avatarToast.show,
+      '-translate-y-4 opacity-0 pointer-events-none': !avatarToast.show,
+      'border-emerald-100': avatarToast.type === 'success',
+      'border-rose-100': avatarToast.type === 'error'
+    }"
+  >
+    <div class="w-1 shrink-0" [ngClass]="avatarToast.type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'"></div>
+    <div class="flex items-start gap-2 p-3">
+      <span class="material-icons mt-0.5 text-xl" [ngClass]="avatarToast.type === 'success' ? 'text-emerald-500' : 'text-rose-500'">
+        {{ avatarToast.type === 'success' ? 'check_circle' : 'error' }}
+      </span>
+      <div>
+        <h5 class="text-xs font-extrabold text-slate-800">{{ avatarToast.title }}</h5>
+        <p class="mt-0.5 text-[11px] font-semibold leading-snug text-slate-500">{{ avatarToast.message }}</p>
+      </div>
+    </div>
+  </div>
+
+  <video class="topbar-bg-video" autoplay loop muted playsinline [muted]="true" [autoplay]="true">
+    <source src="/assets/topbar-flag-bg.mp4" type="video/mp4" />
+  </video>
+  <div class="topbar-bg-overlay"></div>
+
+  <div class="topbar-content">
+    <h2 class="text-2xl font-extrabold tracking-tight text-slate-950">{{ pageTitle() }}</h2>
+    <p class="mt-1 text-sm font-medium text-slate-500">{{ pageSubtitle() }}</p>
+  </div>
+
+  <div class="topbar-content flex items-center gap-4">
+    <label class="focus-ring flex h-12 w-[28rem] items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 shadow-sm transition focus-within:border-emerald-300 focus-within:ring-4 focus-within:ring-emerald-500/10">
+      <span class="material-icons text-slate-400">search</span>
+      <input
+        type="search"
+        [(ngModel)]="searchText"
+        (ngModelChange)="onSearchChange($event)"
+        class="w-full border-0 bg-transparent text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400"
+        placeholder="Search student, LRN, receipt..."
+        aria-label="Search"
+      />
+    </label>
+
+    <label class="focus-ring flex h-12 w-48 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 shadow-sm transition focus-within:border-emerald-300 focus-within:ring-4 focus-within:ring-emerald-500/10">
+      <span class="material-icons text-slate-400">calendar_month</span>
+      <select 
+        class="w-full border-0 bg-transparent text-sm font-bold text-slate-700 outline-none"
+        [(ngModel)]="selectedAyId"
+        (change)="onAyChange($event)"
+      >
+        <option *ngFor="let ay of academicYears" [value]="ay.id">{{ ay.code }}</option>
+      </select>
+    </label>
+
+    <button
+      class="notification-bell relative flex h-12 w-12 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
+      [ngClass]="{ 'has-finance-alert': financeNotifications.hasAssessmentNotifications() }"
+      title="Finance assessment notifications"
+      aria-label="Finance assessment notifications"
+    >
+      <span class="material-icons">notifications_none</span>
+      <span
+        *ngIf="financeNotifications.hasAssessmentNotifications()"
+        class="notification-count absolute -right-2 -top-2 grid h-6 min-w-6 place-items-center rounded-full bg-red-500 px-1.5 text-xs font-extrabold text-white ring-4 ring-white"
+      >
+        {{ financeNotifications.learnersNeedingAssessmentCount() }}
+      </span>
+    </button>
+
+    <div class="flex items-center gap-3 border-l border-slate-200 pl-4 ml-2">
+      <div class="flex items-center gap-3">
+        <label class="group relative block h-11 w-11 cursor-pointer" title="Upload staff avatar">
+          <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onAvatarUpload($event)" class="sr-only" />
+          <img
+            *ngIf="currentUser?.avatarUrl"
+            [src]="currentUser.avatarUrl"
+            alt="Profile Avatar"
+            class="h-11 w-11 rounded-full object-cover shadow-sm ring-2 ring-white"
+          />
+          <span
+            *ngIf="!currentUser?.avatarUrl"
+            class="grid h-11 w-11 place-items-center rounded-full bg-gradient-to-br from-emerald-500 to-blue-600 text-sm font-extrabold text-white shadow-sm ring-2 ring-white"
+          >
+            {{ userInitials() }}
+          </span>
+          <span class="absolute inset-0 grid place-items-center rounded-full bg-slate-950/55 text-white opacity-0 transition group-hover:opacity-100">
+            <span class="material-icons text-[17px]">{{ isUploadingAvatar ? 'hourglass_empty' : 'photo_camera' }}</span>
+          </span>
+        </label>
+        
+        <div class="hidden flex-col md:flex">
+          <span class="text-sm font-extrabold text-slate-900 leading-tight">{{ currentUser?.email || 'SFXSAI User' }}</span>
+          <span class="text-xs font-bold text-emerald-600 uppercase tracking-wide">{{ currentUser?.role || 'Registrar' }}</span>
+        </div>
+      </div>
+      
+      <button (click)="logout()" class="ml-2 flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-red-50 hover:text-red-600 hover:border-red-200" aria-label="Logout" title="Logout">
+        <span class="material-icons text-[1.25rem]">logout</span>
+      </button>
+    </div>
+  </div>
+</header>

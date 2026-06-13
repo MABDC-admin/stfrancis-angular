@@ -1,0 +1,25 @@
+<section class="panel-card p-6">
+  <div>
+    <h3 class="text-lg font-extrabold tracking-tight text-slate-950">Enrollment Progress</h3>
+    <p class="mt-1 text-sm font-medium text-slate-500">Current school year enrollment status</p>
+  </div>
+
+  <div class="mt-6 space-y-5">
+    <div *ngFor="let item of items" class="grid grid-cols-[10rem_1fr_7rem] items-center gap-5">
+      <div class="flex items-center gap-3">
+        <span class="h-3 w-3 rounded-full" [ngClass]="item.dotClass"></span>
+        <span class="text-sm font-bold text-slate-700">{{ item.label }}</span>
+      </div>
+
+      <div class="h-3 overflow-hidden rounded-full bg-slate-100">
+        <div
+          class="h-full rounded-full"
+          [ngClass]="item.barClass"
+          [ngStyle]="{ width: item.percent + '%' }"
+        ></div>
+      </div>
+
+      <p class="text-right text-sm font-bold text-slate-600">{{ item.count }}</p>
+    </div>
+  </div>
+</section>

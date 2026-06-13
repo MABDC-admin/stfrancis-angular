@@ -1,0 +1,21 @@
+<section class="panel-card p-6">
+  <div>
+    <h3 class="text-lg font-extrabold tracking-tight text-slate-950">Quick Actions</h3>
+    <p class="mt-1 text-sm font-medium text-slate-500">Common registrar and finance tasks</p>
+  </div>
+
+  <div class="mt-5 space-y-3">
+    <button
+      *ngFor="let action of actions"
+      class="group flex w-full items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3 text-left transition hover:border-emerald-200 hover:bg-emerald-50"
+    >
+      <span class="flex items-center gap-3">
+        <span class="grid h-10 w-10 place-items-center rounded-md shadow-sm" [ngClass]="action.iconClass">
+          <span class="material-icons !text-[1.2rem]">{{ action.icon }}</span>
+        </span>
+        <span class="text-sm font-extrabold text-slate-700 group-hover:text-emerald-700">{{ action.label }}</span>
+      </span>
+      <span class="material-icons text-slate-400 group-hover:text-emerald-600">chevron_right</span>
+    </button>
+  </div>
+</section>

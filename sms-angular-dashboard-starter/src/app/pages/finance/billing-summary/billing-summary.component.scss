@@ -1,0 +1,400 @@
+@use '../finance-shell';
+
+.billing-summary-page {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(20, 184, 166, .09), transparent 26rem),
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.billing-hero {
+  border-color: rgba(15, 118, 110, .14);
+}
+
+.billing-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .85rem;
+  margin-bottom: 1rem;
+}
+
+.billing-metric {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  min-width: 0;
+  border: 1px solid rgba(15, 23, 42, .08);
+  border-radius: 14px;
+  background: #fff;
+  padding: 1rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, .05);
+}
+
+.billing-metric .material-icons {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: 12px;
+  background: #ecfeff;
+  color: #0f766e;
+  font-size: 1.35rem;
+}
+
+.billing-metric.paid .material-icons { background: #dcfce7; color: #15803d; }
+.billing-metric.balance .material-icons { background: #fff7ed; color: #c2410c; }
+.billing-metric.rate .material-icons { background: #eff6ff; color: #1d4ed8; }
+
+.billing-metric small,
+.row-money small,
+.billing-facts small,
+.detail-heading span,
+.fee-line small,
+.payment-line small {
+  display: block;
+  color: #64748b;
+  font-size: .68rem;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.billing-metric strong {
+  display: block;
+  margin-top: .18rem;
+  color: #0f172a;
+  font-size: 1.3rem;
+  font-weight: 950;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.billing-list-panel {
+  padding: 1rem;
+}
+
+.billing-toolbar {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(190px, 260px);
+  gap: .75rem;
+  align-items: end;
+  margin-bottom: 1rem;
+}
+
+.search-field,
+.status-field {
+  margin-bottom: 0;
+}
+
+.billing-rows {
+  display: grid;
+  gap: .75rem;
+}
+
+.billing-row {
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.billing-row.expanded {
+  border-color: rgba(15, 118, 110, .3);
+  box-shadow: 0 14px 32px rgba(15, 118, 110, .08);
+}
+
+.billing-row-main {
+  display: grid;
+  grid-template-columns: auto minmax(220px, 1fr) minmax(130px, .45fr) minmax(130px, .45fr) auto auto;
+  width: 100%;
+  align-items: center;
+  gap: .8rem;
+  border: 0;
+  background: transparent;
+  padding: .9rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.learner-badge {
+  display: grid;
+  width: 2.8rem;
+  height: 2.8rem;
+  place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0f766e, #2563eb);
+  color: #fff;
+  font-weight: 950;
+}
+
+.learner-copy {
+  min-width: 0;
+}
+
+.learner-copy strong {
+  display: block;
+  color: #0f172a;
+  font-size: .95rem;
+  font-weight: 950;
+  overflow-wrap: anywhere;
+}
+
+.learner-copy small {
+  display: block;
+  margin-top: .2rem;
+  color: #64748b;
+  font-size: .76rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.discount-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+  margin-top: .45rem;
+}
+
+.discount-tags span {
+  border-radius: 999px;
+  background: #ecfeff;
+  color: #0f766e;
+  padding: .22rem .5rem;
+  font-size: .66rem;
+  font-weight: 950;
+  line-height: 1.1;
+}
+
+.discount-tags span.none {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.row-money {
+  min-width: 0;
+  border-left: 1px solid #e2e8f0;
+  padding-left: .85rem;
+}
+
+.row-money strong {
+  display: block;
+  margin-top: .2rem;
+  color: #0f172a;
+  font-size: .95rem;
+  font-weight: 950;
+  overflow-wrap: anywhere;
+}
+
+.row-money.paid strong {
+  color: #047857;
+}
+
+.expand-icon {
+  color: #64748b;
+  transition: transform .18s ease;
+}
+
+.billing-row.expanded .expand-icon {
+  transform: rotate(180deg);
+}
+
+.billing-row-detail {
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: .9rem;
+}
+
+.billing-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+  gap: .75rem;
+  align-items: stretch;
+  margin-bottom: .85rem;
+}
+
+.billing-facts > div,
+.ledger-link {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  padding: .8rem;
+}
+
+.billing-facts strong {
+  display: block;
+  margin-top: .25rem;
+  color: #0f172a;
+  font-size: .95rem;
+  font-weight: 950;
+  overflow-wrap: anywhere;
+}
+
+.ledger-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  color: #0f766e;
+  font-size: .78rem;
+  font-weight: 950;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.ledger-link .material-icons {
+  font-size: 1.05rem;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .85rem;
+}
+
+.detail-card {
+  min-width: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  padding: .9rem;
+}
+
+.detail-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-bottom: .7rem;
+}
+
+.detail-heading h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: .98rem;
+  font-weight: 950;
+}
+
+.detail-heading span {
+  color: #0f766e;
+  text-align: right;
+}
+
+.fee-line,
+.payment-line {
+  display: flex;
+  justify-content: space-between;
+  gap: .85rem;
+  border-top: 1px solid #edf2f7;
+  padding: .7rem 0;
+}
+
+.fee-line:first-of-type,
+.payment-line:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.fee-line strong,
+.payment-line strong {
+  display: block;
+  color: #0f172a;
+  font-size: .85rem;
+  font-weight: 950;
+}
+
+.fee-line small,
+.payment-line small {
+  margin-top: .2rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.fee-line > span,
+.payment-line > span {
+  color: #0f172a;
+  font-size: .86rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.fee-line.discount > span {
+  color: #0f766e;
+}
+
+.empty-note,
+.billing-empty p {
+  margin: .2rem 0 0;
+  color: #64748b;
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.billing-empty {
+  display: grid;
+  justify-items: center;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  background: #f8fafc;
+  padding: 2.25rem 1rem;
+  text-align: center;
+}
+
+.billing-empty .material-icons {
+  color: #0f766e;
+  font-size: 2rem;
+}
+
+.billing-empty h2 {
+  margin: .5rem 0 0;
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 950;
+}
+
+@media (max-width: 1180px) {
+  .billing-metrics,
+  .detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .billing-row-main {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .row-money,
+  .billing-row-main > .status-pill {
+    display: none;
+  }
+
+  .billing-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .billing-metrics,
+  .billing-toolbar,
+  .billing-facts,
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .billing-row-main {
+    gap: .65rem;
+    padding: .75rem;
+  }
+
+  .learner-badge {
+    width: 2.35rem;
+    height: 2.35rem;
+  }
+
+  .fee-line,
+  .payment-line {
+    display: grid;
+  }
+
+  .fee-line > span,
+  .payment-line > span {
+    white-space: normal;
+  }
+}

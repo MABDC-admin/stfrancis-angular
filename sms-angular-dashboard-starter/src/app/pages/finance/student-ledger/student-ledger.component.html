@@ -1,0 +1,73 @@
+<section class="finance-page">
+  <header class="finance-header">
+    <div>
+      <p class="finance-eyebrow">Student Ledger</p>
+      <h1 class="finance-title">Per Academic Year Account</h1>
+      <p class="finance-subtitle">Ledger data is isolated to {{ academicYear?.code || 'the selected academic year' }}.</p>
+    </div>
+    <div class="finance-header-actions">
+      <app-finance-pdf-export-button title="Student Ledger" [subtitle]="academicYear?.code || 'Selected academic year'" />
+      <span class="status-pill" [class.clear]="ledger?.financeStatus === 'Cleared'">{{ ledger?.financeStatus || 'No ledger loaded' }}</span>
+    </div>
+  </header>
+
+  <section class="finance-panel">
+    <div class="summary-strip">
+      <label class="field">
+        <span>Student</span>
+        <select [(ngModel)]="selectedStudentId" (change)="loadLedger()">
+          <option value="">Select student</option>
+          <option *ngFor="let student of students" [value]="student.id">{{ student.lastName }}, {{ student.firstName }} - {{ student.gradeLevel }}</option>
+        </select>
+      </label>
+      <div class="summary-card"><span>Net</span><strong>₱{{ ledger?.netAmount || 0 | number:'1.2-2' }}</strong></div>
+      <div class="summary-card"><span>Paid</span><strong>₱{{ ledger?.paidAmount || 0 | number:'1.2-2' }}</strong></div>
+      <div class="summary-card"><span>Balance</span><strong>₱{{ ledger?.balance || 0 | number:'1.2-2' }}</strong></div>
+      <div class="summary-card"><span>Discount / Scholarship</span><strong>{{ ledgerDiscountSummary }}</strong></div>
+    </div>
+    <p class="message" *ngIf="message">{{ message }}</p>
+    <p class="message error" *ngIf="error">{{ error }}</p>
+  </section>
+
+  <div class="finance-grid ledger-detail-grid" *ngIf="ledger">
+    <section class="finance-panel">
+      <div class="ledger-section-heading">
+        <h2 class="finance-title">Assessment Lines</h2>
+        <span>{{ ledger.lineItems?.length || 0 }} line{{ (ledger.lineItems?.length || 0) === 1 ? '' : 's' }}</span>
+      </div>
+      <table class="finance-table">
+        <thead><tr><th>Fee Type</th><th>Description</th><th>Amount</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let item of ledger.lineItems">
+            <td>{{ item.feeType?.name || item.feeTypeId }}</td>
+            <td>{{ item.description }}</td>
+            <td>₱{{ item.amount | number:'1.2-2' }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="ledger-discount-grid">
+        <div class="discount-chip"><span>Regular</span><strong>{{ ledger.regularDiscountPercent }}%</strong></div>
+        <div class="discount-chip"><span>Sibling</span><strong>{{ ledger.siblingDiscountPercent }}%</strong></div>
+        <div class="discount-chip"><span>Scholarship</span><strong>{{ ledger.scholarshipDiscountPercent }}%</strong></div>
+        <div class="discount-chip total"><span>Total Discount</span><strong>₱{{ ledger.discountAmount | number:'1.2-2' }}</strong></div>
+        <div class="discount-chip total"><span>Applied</span><strong>{{ ledgerDiscountSummary }}</strong></div>
+      </div>
+    </section>
+
+    <section class="finance-panel">
+      <h2 class="finance-title">Payment History</h2>
+      <table class="finance-table">
+        <thead><tr><th>Date</th><th>Receipt</th><th>Method</th><th>Amount</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let payment of ledger.payments">
+            <td>{{ payment.paymentDate | date:'mediumDate' }}</td>
+            <td>{{ payment.receiptNumber }}</td>
+            <td>{{ payment.method }}</td>
+            <td>₱{{ payment.amount | number:'1.2-2' }}</td>
+          </tr>
+          <tr *ngIf="!ledger.payments?.length"><td colspan="4">No payments recorded.</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+</section>

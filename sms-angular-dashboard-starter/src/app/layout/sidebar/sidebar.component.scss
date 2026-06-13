@@ -1,0 +1,34 @@
+.sidebar-link {
+  @apply mb-1 flex items-center gap-3 rounded-md px-4 py-3 text-sm font-semibold text-slate-600 transition duration-200 hover:bg-emerald-50 hover:text-emerald-700;
+  position: relative;
+}
+
+.sidebar-link.active,
+.sidebar-link.active-link {
+  @apply bg-gradient-to-r from-emerald-500 to-blue-600 text-white shadow-lg shadow-blue-500/20 hover:text-white;
+}
+
+.sidebar-label {
+  @apply px-4 pb-2 pt-5 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400;
+}
+
+.sidebar-badge {
+  margin-left: auto;
+  min-width: 1.45rem;
+  height: 1.45rem;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  padding: 0 .35rem;
+  font-size: .68rem;
+  font-weight: 950;
+  line-height: 1;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, .78);
+}
+
+.sidebar-link.active .sidebar-badge {
+  background: #fff;
+  color: #dc2626;
+}

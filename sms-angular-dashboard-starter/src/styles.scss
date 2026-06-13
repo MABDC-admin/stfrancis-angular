@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --sms-green: #059669;
+  --sms-blue: #2563eb;
+  --sms-ink: #0f172a;
+  --sms-violet: #7c3aed;
+  --sms-lavender: #ede9fe;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: "Nunito", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.material-icons {
+  font-size: 22px;
+  line-height: 1;
+}
+
+@layer components {
+  .panel-card {
+    @apply rounded-2xl border border-violet-100/80 bg-white shadow-card;
+  }
+
+  .glass-topbar {
+    @apply border-b border-violet-100/60 bg-white/90 backdrop-blur-xl;
+  }
+
+  .focus-ring {
+    @apply focus:outline-none focus:ring-4 focus:ring-violet-500/15;
+  }
+}
+
+@layer components {
+  .page-shell {
+    @apply space-y-5;
+  }
+
+  .page-header-card {
+    @apply rounded-2xl border border-violet-100/80 bg-white p-5 shadow-card;
+  }
+
+  .page-eyebrow {
+    @apply text-xs font-extrabold uppercase tracking-[0.18em] text-violet-500;
+  }
+
+  .page-title {
+    @apply mt-1.5 text-2xl font-extrabold tracking-tight text-slate-900 md:text-3xl;
+  }
+
+  .page-subtitle {
+    @apply mt-1.5 max-w-3xl text-sm font-semibold leading-6 text-slate-500;
+  }
+
+  .action-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-violet-500/20 transition hover:-translate-y-0.5 hover:shadow-soft;
+  }
+
+  .action-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-violet-200 bg-white px-4 py-2.5 text-sm font-extrabold text-slate-700 shadow-sm transition hover:bg-violet-50;
+  }
+
+  .form-label {
+    @apply text-[13px] font-bold text-slate-700 flex items-center gap-1.5;
+  }
+
+  .form-input {
+    @apply mt-1.5 h-[42px] w-full rounded-xl border border-slate-200/80 bg-slate-50/50 px-4 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-violet-300 focus:ring-4 focus:ring-violet-500/10 focus:bg-white;
+  }
+
+  .form-area {
+    @apply mt-1.5 min-h-24 w-full rounded-xl border border-slate-200/80 bg-slate-50/50 px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-violet-300 focus:ring-4 focus:ring-violet-500/10 focus:bg-white resize-y;
+  }
+
+  .table-card {
+    @apply overflow-hidden rounded-2xl border border-violet-100/80 bg-white shadow-card;
+  }
+
+  .table-header {
+    @apply border-b border-violet-100/60 bg-violet-50/30 px-5 py-4;
+  }
+
+  .table-th {
+    @apply whitespace-nowrap px-4 py-3 text-left text-xs font-extrabold uppercase tracking-wider text-slate-500;
+  }
+
+  .table-td {
+    @apply px-4 py-4 text-sm font-semibold text-slate-700;
+  }
+
+  .status-pill {
+    @apply inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-extrabold;
+  }
+
+  .mini-card {
+    @apply rounded-2xl border border-violet-100/80 bg-white p-5 shadow-card;
+  }
+}

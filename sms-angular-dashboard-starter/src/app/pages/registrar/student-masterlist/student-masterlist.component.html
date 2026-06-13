@@ -1,0 +1,85 @@
+<section class="page-shell">
+  <div class="border-b border-violet-100/60 bg-white px-6 py-4 shrink-0 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between z-10 rounded-2xl shadow-card m-6">
+    <div>
+      <p class="text-[10px] font-extrabold uppercase tracking-widest text-violet-500 mb-0.5">Registrar Module</p>
+      <h1 class="text-xl font-extrabold tracking-tight text-slate-900">📚 Student Masterlist</h1>
+      <p class="text-xs font-semibold text-slate-500 mt-0.5">
+        Central list of learner records with enrollment, document, adviser, section, and finance clearance visibility.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <button class="action-secondary !py-2 !px-3 !text-xs border-transparent"><span class="material-icons text-[16px]">file_upload</span> Import CSV</button>
+      <button class="action-primary !py-2 !px-3 !text-xs"><span class="material-icons text-[16px]">download</span> Export Masterlist</button>
+    </div>
+  </div>
+
+  <section class="rounded-2xl border border-violet-100/60 bg-white shadow-sm overflow-hidden mx-6">
+    <div class="border-b border-violet-50 bg-violet-50/20 px-5 py-4 grid gap-4 lg:grid-cols-[1fr_auto_auto] lg:items-center">
+      <div>
+        <h2 class="text-base font-extrabold text-slate-900">Learner Records</h2>
+        <p class="mt-0.5 text-xs font-semibold text-slate-500">{{ filteredStudents.length }} records loaded</p>
+      </div>
+
+      <label class="flex h-9 items-center gap-2 rounded-xl border border-violet-100 bg-white px-3 shadow-sm focus-within:border-violet-500 focus-within:ring-1 focus-within:ring-violet-500 transition-shadow">
+        <span class="material-icons text-slate-400 text-[18px]">search</span>
+        <input class="w-64 bg-transparent text-[13px] font-bold outline-none placeholder:text-slate-400 placeholder:font-semibold text-slate-800" placeholder="Search name, LRN, student no..." />
+      </label>
+
+      <div class="flex items-center gap-2">
+        <label class="flex h-9 items-center gap-1.5 rounded-xl border border-violet-100 bg-white px-2.5 shadow-sm focus-within:border-violet-500 focus-within:ring-1 focus-within:ring-violet-500 transition-shadow">
+          <span class="material-icons text-slate-400 text-[16px]">filter_list</span>
+          <select #gradeSelect class="bg-transparent text-[13px] font-bold text-slate-700 outline-none pr-1 cursor-pointer" (change)="selectedGrade = gradeSelect.value" [value]="selectedGrade">
+            <option *ngFor="let grade of grades" [value]="grade">{{ grade }}</option>
+          </select>
+        </label>
+        
+        <button class="action-secondary !py-1.5 !px-3 !text-xs border-transparent bg-violet-50 hover:bg-violet-100"><span class="material-icons text-[16px]">tune</span> More Filters</button>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200/80">
+        <thead class="bg-white">
+          <tr>
+            <th class="table-th">Student</th>
+            <th class="table-th">LRN</th>
+            <th class="table-th">Grade & Section</th>
+            <th class="table-th">Adviser</th>
+            <th class="table-th">Enrollment</th>
+            <th class="table-th">Documents</th>
+            <th class="table-th">Finance</th>
+            <th class="table-th">Profile</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-violet-50 bg-white">
+          <tr
+            *ngFor="let student of filteredStudents; let rowIndex = index; trackBy: trackStudent"
+            class="transition-colors hover:bg-violet-50/80"
+            [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'">
+            <td class="table-td">
+              <div class="flex items-center gap-3">
+                <div class="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-violet-100 to-fuchsia-100 text-[11px] font-extrabold text-violet-700 shadow-sm shrink-0">
+                  {{ student.firstName.charAt(0) }}{{ student.lastName.charAt(0) }}
+                </div>
+                <div>
+                  <p class="font-extrabold text-slate-900 text-[15px] leading-tight">{{ student.firstName }} {{ student.lastName }}</p>
+                  <p class="mt-0.5 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">{{ student.studentNo }} · {{ student.studentType }}</p>
+                </div>
+              </div>
+            </td>
+            <td class="table-td">{{ student.lrn }}</td>
+            <td class="table-td">{{ student.gradeLevel }}<br /><span class="text-xs text-slate-400">{{ student.section }}</span></td>
+            <td class="table-td">{{ student.adviser }}</td>
+            <td class="table-td"><span class="status-pill" [ngClass]="statusClass(student.enrollmentStatus)">{{ student.enrollmentStatus }}</span></td>
+            <td class="table-td"><span class="status-pill" [ngClass]="statusClass(student.documentStatus)">{{ student.documentStatus }}</span></td>
+            <td class="table-td"><span class="status-pill" [ngClass]="statusClass(student.financeStatus)">{{ student.financeStatus }}</span></td>
+            <td class="table-td">
+              <a [routerLink]="['/registrar-finance/learner-profile', student.id]" class="rounded-lg border border-violet-100 px-3 py-1.5 text-[11px] font-extrabold text-violet-600 hover:bg-violet-50 transition-colors inline-block shadow-sm">Open</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>

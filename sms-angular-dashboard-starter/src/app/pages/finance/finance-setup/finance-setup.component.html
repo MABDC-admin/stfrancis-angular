@@ -1,0 +1,91 @@
+<section class="finance-page">
+  <header class="finance-header">
+    <div>
+      <p class="finance-eyebrow">Finance Setup</p>
+      <h1 class="finance-title">Fee Types & Templates</h1>
+      <p class="finance-subtitle">Templates are bucketed by {{ academicYear?.code || 'academic year' }} and grade level.</p>
+    </div>
+    <div class="finance-header-actions">
+      <app-finance-pdf-export-button title="Finance Setup" [subtitle]="academicYear?.code || 'Selected academic year'" />
+      <span class="status-pill">{{ academicYear?.code || 'No academic year' }}</span>
+    </div>
+  </header>
+
+  <div class="finance-grid">
+    <section class="finance-panel">
+      <div class="setup-panel-heading">
+        <div>
+          <h2 class="finance-title">Fee Types</h2>
+          <p class="finance-subtitle">Reusable charges for templates.</p>
+        </div>
+        <span class="count-pill">{{ feeTypes.length }} total</span>
+      </div>
+
+      <div class="fee-type-form">
+        <label class="field"><span>Name</span><input [(ngModel)]="feeTypeName" placeholder="Tuition, Books, Uniform" /></label>
+        <label class="field"><span>Description</span><input [(ngModel)]="feeTypeDescription" /></label>
+        <button class="primary-btn" (click)="createFeeType()">Create Fee Type</button>
+      </div>
+
+      <div class="fee-type-list">
+        <article class="fee-type-item" *ngFor="let feeType of feeTypes">
+          <div class="fee-type-main">
+            <strong>{{ feeType.name }}</strong>
+            <span>{{ feeType.description || 'No description' }}</span>
+          </div>
+          <span class="status-pill" [class.clear]="feeType.isActive">{{ feeType.isActive ? 'Active' : 'Inactive' }}</span>
+          <div class="fee-type-actions">
+            <button class="icon-btn danger" title="Delete fee type" aria-label="Delete fee type" (click)="deleteFeeType(feeType.id)">
+              <span class="material-icons">delete</span>
+            </button>
+          </div>
+        </article>
+        <p class="empty-note" *ngIf="!feeTypes.length">No fee types created yet.</p>
+      </div>
+    </section>
+
+    <section class="finance-panel">
+      <h2 class="finance-title">Fee Template</h2>
+      <div class="summary-strip">
+        <label class="field"><span>Grade Level</span><select [(ngModel)]="templateGradeLevel"><option *ngFor="let grade of grades" [value]="grade">{{ grade }}</option></select></label>
+        <label class="field"><span>Template Name</span><input [(ngModel)]="templateName" /></label>
+        <div class="summary-card"><span>Total</span><strong>₱{{ templateTotal | number:'1.2-2' }}</strong></div>
+        <div class="field"><span>Line</span><button class="secondary-btn" (click)="addTemplateLine()">Add Line</button></div>
+      </div>
+
+      <table class="finance-table">
+        <thead><tr><th>Fee Type</th><th>Description</th><th>Amount</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let line of templateLineItems">
+            <td><select [(ngModel)]="line.feeTypeId"><option *ngFor="let feeType of activeFeeTypes" [value]="feeType.id">{{ feeType.name }}</option></select></td>
+            <td><input [(ngModel)]="line.description" /></td>
+            <td><input type="number" min="0" [(ngModel)]="line.amount" /></td>
+          </tr>
+          <tr *ngIf="!templateLineItems.length"><td colspan="3">Add line items to create a template.</td></tr>
+        </tbody>
+      </table>
+      <button class="primary-btn" style="margin-top:1rem" (click)="createTemplate()">Create Template</button>
+    </section>
+  </div>
+
+  <section class="finance-panel" style="margin-top:1rem">
+    <h2 class="finance-title">Templates For {{ academicYear?.code || 'Selected Year' }}</h2>
+    <table class="finance-table">
+      <thead><tr><th>Grade</th><th>Name</th><th>Lines</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let template of templates">
+          <td>{{ template.gradeLevel }}</td>
+          <td>{{ template.name }}</td>
+          <td>{{ template.lineItems?.length || 0 }}</td>
+          <td><span class="status-pill" [class.clear]="template.isActive">{{ template.isActive ? 'Active' : 'Inactive' }}</span></td>
+          <td class="button-row">
+            <button class="secondary-btn" (click)="deactivateTemplate(template.id)" [disabled]="!template.isActive">Deactivate</button>
+            <button class="danger-btn" (click)="deleteTemplate(template.id)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="message" *ngIf="message">{{ message }}</p>
+    <p class="message error" *ngIf="error">{{ error }}</p>
+  </section>
+</section>

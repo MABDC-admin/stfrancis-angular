@@ -1,0 +1,282 @@
+<div class="student-shell" [ngClass]="{ 'theme-preview': settingsForm.themePreview }">
+  <div class="student-toast" [ngClass]="{ show: toast().show, error: toast().type === 'error' }">
+    <span class="material-icons">{{ toast().type === 'success' ? 'check_circle' : 'error' }}</span>
+    {{ toast().message }}
+  </div>
+
+  <section class="student-hero">
+    <div>
+      <p class="eyebrow">Learner Portal</p>
+      <h1>{{ state().profile.name }}</h1>
+      <p>{{ state().profile.gradeLevel }} - {{ state().profile.section }} • Adviser: {{ state().profile.adviser }}</p>
+    </div>
+    <div class="hero-actions">
+      <a routerLink="/student/classes"><span class="material-icons">class</span> View Classes</a>
+      <a routerLink="/student/submissions"><span class="material-icons">upload_file</span> Submit Work</a>
+      <a routerLink="/student/resources"><span class="material-icons">folder</span> Open Resources</a>
+    </div>
+  </section>
+
+  <nav class="module-strip">
+    <a *ngFor="let module of modules" [routerLink]="['/student', module.route]" [ngClass]="{ active: currentView() === module.route }">
+      <span class="material-icons">{{ module.icon }}</span>
+      {{ module.label }}
+      <b *ngIf="module.route === 'announcements' && unreadAnnouncements()">{{ unreadAnnouncements() }}</b>
+      <b *ngIf="module.route === 'submissions' && pendingAssignments().length">{{ pendingAssignments().length }}</b>
+    </a>
+  </nav>
+
+  <section *ngIf="currentView() === 'dashboard'" class="student-grid">
+    <article class="metric-card green"><span class="material-icons">class</span><small>My Classes</small><strong>{{ dashboardSummary().enrolledClasses }}</strong></article>
+    <article class="metric-card blue"><span class="material-icons">assignment</span><small>Pending Work</small><strong>{{ dashboardSummary().pendingAssignments }}</strong></article>
+    <article class="metric-card cyan"><span class="material-icons">how_to_reg</span><small>Attendance Today</small><strong>{{ dashboardSummary().attendanceToday }}</strong></article>
+    <article class="metric-card gold"><span class="material-icons">grade</span><small>General Average</small><strong>{{ dashboardSummary().generalAverage }}</strong></article>
+
+    <article class="panel wide">
+      <div class="panel-heading"><div><p class="eyebrow">Today</p><h2>Class Schedule</h2></div><a routerLink="/student/schedule">Full timetable</a></div>
+      <div class="schedule-list">
+        <div *ngFor="let section of state().classes">
+          <span>{{ section.schedule }}</span>
+          <strong>{{ section.subject }}</strong>
+          <small>{{ section.teacher }} • {{ section.room }}</small>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-heading"><div><p class="eyebrow">Announcements</p><h2>Unread Notices</h2></div><a routerLink="/student/announcements">Open</a></div>
+      <div class="notice-list">
+        <div *ngFor="let item of state().announcements.slice(0, 3)" [ngClass]="{ important: item.important, unread: !item.read }">
+          <span>{{ item.scope }}</span>
+          <strong>{{ item.title }}</strong>
+          <p>{{ item.body }}</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel wide">
+      <div class="panel-heading"><div><p class="eyebrow">Pending Assignments</p><h2>Submission Queue</h2></div><a routerLink="/student/assignments">Manage</a></div>
+      <div class="assignment-row" *ngFor="let item of pendingAssignments()">
+        <div><strong>{{ item.title }}</strong><small>{{ className(item.classId) }} • Due {{ item.dueDate }}</small></div>
+        <span class="status" [ngClass]="statusClass(item.status)">{{ item.status }}</span>
+      </div>
+      <div class="empty-state compact" *ngIf="!pendingAssignments().length">
+        <span class="material-icons">task_alt</span>
+        <strong>No pending submissions</strong>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-heading"><div><p class="eyebrow">Grade Overview</p><h2>{{ performanceLabel(generalAverage()) }}</h2></div></div>
+      <div class="progress-ring"><strong>{{ generalAverage() }}</strong><span>Average</span></div>
+      <div class="mini-bars">
+        <div><span>Attendance</span><b [style.width.%]="attendancePercent()"></b><strong>{{ attendancePercent() }}%</strong></div>
+        <div><span>Assignments</span><b [style.width.%]="assignmentPercent()"></b><strong>{{ assignmentPercent() }}%</strong></div>
+      </div>
+    </article>
+  </section>
+
+  <section *ngIf="currentView() === 'profile'" class="panel">
+    <div class="panel-heading"><div><p class="eyebrow">Student Profile</p><h2>Personal & Academic Details</h2></div></div>
+    <form class="form-grid" (ngSubmit)="saveProfile()">
+      <label>Name <input [(ngModel)]="profileForm.name" name="studentName" readonly /></label>
+      <label>Student No. <input [(ngModel)]="profileForm.studentNo" name="studentNo" readonly /></label>
+      <label>Grade & Section <input [value]="profileForm.gradeLevel + ' - ' + profileForm.section" readonly /></label>
+      <label>Adviser <input [(ngModel)]="profileForm.adviser" name="adviser" readonly /></label>
+      <label>Contact No. <input [(ngModel)]="profileForm.contact" name="contact" required /></label>
+      <label>Guardian <input [(ngModel)]="profileForm.guardian" name="guardian" required /></label>
+      <label class="span-2">Address <input [(ngModel)]="profileForm.address" name="address" /></label>
+      <button class="primary" type="submit"><span class="material-icons">save</span> Save Contact Info</button>
+    </form>
+  </section>
+
+  <section *ngIf="currentView() === 'classes'" class="student-grid">
+    <article *ngFor="let section of state().classes" class="class-card" (click)="selectedClassId.set(section.id)">
+      <p class="eyebrow">{{ section.teacher }}</p>
+      <h2>{{ section.subject }}</h2>
+      <p>{{ section.schedule }} • {{ section.room }}</p>
+      <div class="class-progress"><b [style.width.%]="section.progress"></b></div>
+      <strong>{{ section.progress }}% progress</strong>
+    </article>
+    <article class="panel wide">
+      <div class="panel-heading">
+        <div><p class="eyebrow">Class Workspace</p><h2>{{ selectedClass().subject }}</h2></div>
+        <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event)">
+          <option *ngFor="let section of state().classes" [value]="section.id">{{ section.subject }}</option>
+        </select>
+      </div>
+      <div class="workspace-grid">
+        <div><h3>Lessons</h3><p *ngFor="let lesson of classLessons(selectedClass().id)"><strong>{{ lesson.title }}</strong><small>{{ lesson.description }}</small></p></div>
+        <div><h3>Assignments</h3><p *ngFor="let item of classAssignments(selectedClass().id)"><strong>{{ item.title }}</strong><small>{{ item.status }} • {{ item.dueDate }}</small></p></div>
+        <div><h3>Resources</h3><p *ngFor="let resource of classResources(selectedClass().id)"><strong>{{ resource.title }}</strong><small>{{ resource.type }} • {{ resource.size }}</small></p></div>
+      </div>
+    </article>
+  </section>
+
+  <section *ngIf="currentView() === 'assignments'" class="panel">
+    <div class="panel-heading"><div><p class="eyebrow">Assignments</p><h2>All Assigned Work</h2></div><a routerLink="/student/submissions">Submit work</a></div>
+    <div class="assignment-list">
+      <div *ngFor="let item of state().assignments" (click)="selectedAssignmentId.set(item.id)" [ngClass]="{ selected: selectedAssignmentId() === item.id }">
+        <div><strong>{{ item.title }}</strong><small>{{ className(item.classId) }} • Due {{ item.dueDate }}</small></div>
+        <span class="status" [ngClass]="statusClass(item.status)">{{ item.status }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section *ngIf="currentView() === 'submissions'" class="panel">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">Assignment Submission Center</p>
+        <h2>{{ pendingAssignments().length }} Pending {{ pendingAssignments().length === 1 ? 'Submission' : 'Submissions' }}</h2>
+      </div>
+      <span class="history-note">{{ completedAssignments().length }} submitted or graded</span>
+    </div>
+
+    <div class="submission-focus" *ngIf="pendingAssignments().length; else noPendingAssignments">
+      <button
+        type="button"
+        *ngFor="let item of pendingAssignments()"
+        (click)="selectedAssignmentId.set(item.id)"
+        [ngClass]="{ active: selectedAssignmentId() === item.id }">
+        <span class="material-icons">{{ item.status === 'Late' ? 'priority_high' : 'edit_note' }}</span>
+        <strong>{{ item.title }}</strong>
+        <small>{{ className(item.classId) }} • Due {{ item.dueDate }}</small>
+        <em class="status" [ngClass]="statusClass(item.status)">{{ item.status }}</em>
+      </button>
+    </div>
+    <ng-template #noPendingAssignments>
+      <div class="empty-state">
+        <span class="material-icons">task_alt</span>
+        <strong>No pending assignments right now</strong>
+        <p>Submitted and graded work remains available below for review or resubmission.</p>
+      </div>
+    </ng-template>
+
+    <form class="form-grid" (ngSubmit)="submitSelectedAssignment()">
+      <label>Assignment
+        <select [ngModel]="selectedAssignmentId()" name="assignment" (ngModelChange)="selectedAssignmentId.set($event)">
+          <option *ngFor="let item of pendingAssignments()" [value]="item.id">{{ item.title }} - {{ item.status }}</option>
+          <option *ngIf="pendingAssignments().length && completedAssignments().length" disabled>Submitted / graded history</option>
+          <option *ngFor="let item of completedAssignments()" [value]="item.id">{{ item.title }} - {{ item.status }}</option>
+        </select>
+      </label>
+      <label>File Upload UI <input [(ngModel)]="submissionForm.fileName" name="fileName" placeholder="example: worksheet.pdf" /></label>
+      <label class="span-2">Text Submission <textarea [(ngModel)]="submissionForm.note" name="submissionNote" placeholder="Write an answer or note to your teacher"></textarea></label>
+      <button class="primary" type="submit"><span class="material-icons">upload_file</span> Submit Assignment</button>
+    </form>
+    <div class="section-label">Submission history</div>
+    <div class="timeline">
+      <div *ngFor="let submission of state().submissions">
+        <strong>{{ submission.fileName }}</strong>
+        <span>{{ submission.submittedAt }} • {{ assignmentTitle(submission.assignmentId) }}</span>
+        <p>{{ submission.note }}</p>
+      </div>
+    </div>
+  </section>
+
+  <section *ngIf="currentView() === 'grades'" class="panel">
+    <div class="panel-heading">
+      <div><p class="eyebrow">Grades & Performance</p><h2>Quarterly Breakdown</h2></div>
+      <select [ngModel]="selectedQuarter()" (ngModelChange)="selectedQuarter.set($event)"><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select>
+    </div>
+    <div class="grade-grid">
+      <div *ngFor="let section of state().classes">
+        <span>{{ section.subject }}</span>
+        <strong>{{ averageFor(section) }}</strong>
+        <small>{{ performanceFor(section) }}</small>
+        <b [style.width.%]="averageFor(section)"></b>
+      </div>
+    </div>
+  </section>
+
+  <section *ngIf="currentView() === 'attendance'" class="panel">
+    <div class="panel-heading"><div><p class="eyebrow">Attendance</p><h2>{{ attendancePercent() }}% Attendance Rate</h2></div></div>
+    <div class="attendance-list">
+      <div *ngFor="let item of state().attendance">
+        <strong>{{ className(item.classId) }}</strong>
+        <span>{{ item.date }}</span>
+        <em [ngClass]="item.status.toLowerCase()">{{ item.status }}</em>
+      </div>
+    </div>
+  </section>
+
+  <section *ngIf="currentView() === 'schedule'" class="panel">
+    <div class="panel-heading"><div><p class="eyebrow">Schedule</p><h2>Weekly Timetable</h2></div></div>
+    <div class="timetable">
+      <div *ngFor="let section of state().classes" [ngClass]="{ current: section.id === selectedClass().id }">
+        <span>{{ section.schedule }}</span>
+        <strong>{{ section.subject }}</strong>
+        <small>{{ section.teacher }} • {{ section.room }}</small>
+      </div>
+    </div>
+  </section>
+
+  <section *ngIf="currentView() === 'resources'" class="panel">
+    <div class="panel-heading">
+      <div><p class="eyebrow">Learning Resources</p><h2>Materials Library</h2></div>
+      <input class="search-input" [ngModel]="resourceSearch()" (ngModelChange)="resourceSearch.set($event)" placeholder="Search resources..." />
+    </div>
+    <form class="form-grid compact" (ngSubmit)="addResourceMock()">
+      <input [(ngModel)]="resourceForm.title" name="resourceTitle" placeholder="Resource title" />
+      <input [(ngModel)]="resourceForm.subject" name="resourceSubject" placeholder="Subject" />
+      <select [(ngModel)]="resourceForm.type" name="resourceType"><option>PDF</option><option>Video</option><option>Worksheet</option><option>Document</option><option>Link</option></select>
+      <button class="primary" type="submit"><span class="material-icons">add</span> Add</button>
+    </form>
+    <div class="resource-list">
+      <div *ngFor="let resource of filteredResources()">
+        <span class="material-icons">description</span>
+        <div><strong>{{ resource.title }}</strong><small>{{ resource.subject }} • {{ resource.type }} • {{ resource.size }}</small></div>
+        <button>Download</button>
+      </div>
+    </div>
+  </section>
+
+  <section *ngIf="currentView() === 'announcements'" class="panel">
+    <div class="panel-heading"><div><p class="eyebrow">Announcements</p><h2>School and Class Notices</h2></div></div>
+    <div class="notice-list">
+      <div *ngFor="let item of state().announcements" [ngClass]="{ important: item.important, unread: !item.read }">
+        <span>{{ item.scope }} • {{ item.postedAt }}</span>
+        <strong>{{ item.title }}</strong>
+        <p>{{ item.body }}</p>
+        <button *ngIf="!item.read" (click)="markRead(item.id)">Mark read</button>
+      </div>
+    </div>
+  </section>
+
+  <section *ngIf="currentView() === 'messages'" class="panel">
+    <div class="panel-heading"><div><p class="eyebrow">Messages</p><h2>Teachers and Adviser</h2></div></div>
+    <form class="message-form" (ngSubmit)="sendMessage()">
+      <input [(ngModel)]="messageForm.thread" name="messageThread" placeholder="Teacher or adviser" />
+      <input [(ngModel)]="messageForm.message" name="messageText" placeholder="Type your message..." />
+      <button class="primary" type="submit"><span class="material-icons">send</span> Send</button>
+    </form>
+    <div class="chat-list">
+      <div *ngFor="let message of state().messages" [ngClass]="{ mine: message.mine }">
+        <strong>{{ message.thread }}</strong>
+        <p>{{ message.message }}</p>
+        <span>{{ message.sentAt }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section *ngIf="currentView() === 'progress'" class="student-grid">
+    <article class="panel"><div class="panel-heading"><div><p class="eyebrow">Attendance</p><h2>{{ attendancePercent() }}%</h2></div></div><div class="big-bar"><b [style.width.%]="attendancePercent()"></b></div></article>
+    <article class="panel"><div class="panel-heading"><div><p class="eyebrow">Assignments</p><h2>{{ assignmentPercent() }}%</h2></div></div><div class="big-bar"><b [style.width.%]="assignmentPercent()"></b></div></article>
+    <article class="panel wide"><div class="panel-heading"><div><p class="eyebrow">Grade Trend</p><h2>{{ performanceLabel(generalAverage()) }}</h2></div></div><div class="grade-grid"><div *ngFor="let section of state().classes"><span>{{ section.subject }}</span><strong>{{ averageFor(section) }}</strong><b [style.width.%]="averageFor(section)"></b></div></div></article>
+  </section>
+
+  <section *ngIf="currentView() === 'settings'" class="panel">
+    <div class="panel-heading"><div><p class="eyebrow">Settings</p><h2>Account Preferences</h2></div></div>
+    <form class="form-grid" (ngSubmit)="changePassword()">
+      <label>Current Password <input [(ngModel)]="settingsForm.currentPassword" name="currentPassword" type="password" /></label>
+      <label>New Password <input [(ngModel)]="settingsForm.newPassword" name="newPassword" type="password" /></label>
+      <label>Confirm Password <input [(ngModel)]="settingsForm.confirmPassword" name="confirmPassword" type="password" /></label>
+      <button class="primary" type="submit"><span class="material-icons">lock_reset</span> Change Password</button>
+    </form>
+    <div class="settings-toggles">
+      <label><input type="checkbox" [(ngModel)]="settingsForm.emailAlerts" name="emailAlerts" /> Email notifications</label>
+      <label><input type="checkbox" [(ngModel)]="settingsForm.assignmentAlerts" name="assignmentAlerts" /> Assignment reminders</label>
+      <label><input type="checkbox" [(ngModel)]="settingsForm.themePreview" name="themePreview" /> Light blue theme preview</label>
+    </div>
+  </section>
+</div>

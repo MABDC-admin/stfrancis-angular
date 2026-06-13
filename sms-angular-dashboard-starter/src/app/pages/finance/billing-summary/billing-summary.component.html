@@ -1,0 +1,153 @@
+<section class="finance-page billing-summary-page">
+  <header class="finance-header billing-hero">
+    <div>
+      <p class="finance-eyebrow">Billing Summary</p>
+      <h1 class="finance-title">Learner Billing Accounts</h1>
+      <p class="finance-subtitle">All billing figures are isolated to {{ academicYear?.code || 'the selected academic year' }}.</p>
+    </div>
+    <div class="finance-header-actions">
+      <app-finance-pdf-export-button title="Billing Summary" [subtitle]="academicYear?.code || 'Selected academic year'" />
+      <span class="status-pill">{{ academicYear?.code || 'No active year' }}</span>
+    </div>
+  </header>
+
+  <section class="billing-metrics" aria-label="Billing totals">
+    <article class="billing-metric">
+      <span class="material-icons">groups</span>
+      <div>
+        <small>Learners Billed</small>
+        <strong>{{ totals.learnersBilled }}</strong>
+      </div>
+    </article>
+    <article class="billing-metric paid">
+      <span class="material-icons">payments</span>
+      <div>
+        <small>Total Paid</small>
+        <strong>₱{{ totals.totalPaid | number:'1.2-2' }}</strong>
+      </div>
+    </article>
+    <article class="billing-metric balance">
+      <span class="material-icons">account_balance_wallet</span>
+      <div>
+        <small>Outstanding Balance</small>
+        <strong>₱{{ totals.totalBalance | number:'1.2-2' }}</strong>
+      </div>
+    </article>
+    <article class="billing-metric rate">
+      <span class="material-icons">donut_large</span>
+      <div>
+        <small>Collection Rate</small>
+        <strong>{{ totals.collectionRate }}%</strong>
+      </div>
+    </article>
+  </section>
+
+  <section class="finance-panel billing-list-panel">
+    <div class="billing-toolbar">
+      <label class="field search-field">
+        <span>Find learner</span>
+        <input [(ngModel)]="searchText" placeholder="Search name, LRN, student no..." />
+      </label>
+      <label class="field status-field">
+        <span>Status</span>
+        <select [(ngModel)]="statusFilter">
+          <option value="ALL">All statuses</option>
+          <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
+        </select>
+      </label>
+    </div>
+
+    <p class="message" *ngIf="loading">Loading learner billing records...</p>
+    <p class="message error" *ngIf="error">{{ error }}</p>
+
+    <div class="billing-empty" *ngIf="!loading && !error && !rows.length">
+      <span class="material-icons">receipt_long</span>
+      <h2>No assessed learners yet</h2>
+      <p>Create assessments first, then this page will show learner balances and payment history.</p>
+    </div>
+
+    <div class="billing-empty" *ngIf="!loading && rows.length && !filteredRows.length">
+      <span class="material-icons">manage_search</span>
+      <h2>No matching billing records</h2>
+      <p>Adjust the search or status filter.</p>
+    </div>
+
+    <div class="billing-rows" *ngIf="filteredRows.length">
+      <article class="billing-row" *ngFor="let row of filteredRows" [class.expanded]="expandedAssessmentId === row.assessmentId">
+        <button class="billing-row-main" type="button" (click)="toggleRow(row)">
+          <div class="learner-badge">
+            <span>{{ row.learnerName.charAt(0) }}</span>
+          </div>
+          <div class="learner-copy">
+            <strong>{{ row.learnerName }}</strong>
+            <small>{{ row.gradeLevel }} · {{ row.studentNo }} · LRN {{ row.lrn }}</small>
+            <div class="discount-tags">
+              <span *ngFor="let label of row.discountLabels" [class.none]="!row.hasDiscount">{{ label }}</span>
+            </div>
+          </div>
+          <div class="row-money paid">
+            <small>Paid</small>
+            <strong>₱{{ row.totalPaid | number:'1.2-2' }}</strong>
+          </div>
+          <div class="row-money">
+            <small>Balance</small>
+            <strong>₱{{ row.outstandingBalance | number:'1.2-2' }}</strong>
+          </div>
+          <span class="status-pill" [class.clear]="row.financeStatus === 'Cleared'">{{ row.financeStatus }}</span>
+          <span class="material-icons expand-icon">expand_more</span>
+        </button>
+
+        <div class="billing-row-detail" *ngIf="expandedAssessmentId === row.assessmentId">
+          <div class="billing-facts">
+            <div><small>Total amount paid</small><strong>₱{{ row.totalPaid | number:'1.2-2' }}</strong></div>
+            <div><small>Outstanding balance</small><strong>₱{{ row.outstandingBalance | number:'1.2-2' }}</strong></div>
+            <div><small>Discount / Scholarship</small><strong>{{ row.discountSummary }}</strong></div>
+            <div><small>Payment due dates</small><strong>{{ row.dueDateLabel }}</strong></div>
+            <a class="ledger-link" [routerLink]="['../student-ledger']" [queryParams]="{ studentId: row.studentId }">
+              <span class="material-icons">history</span>
+              Full payment history
+            </a>
+          </div>
+
+          <div class="detail-grid">
+            <section class="detail-card">
+              <div class="detail-heading">
+                <h2>Assessed Tuition Fees</h2>
+                <span>Net ₱{{ row.assessedTotal | number:'1.2-2' }}</span>
+              </div>
+              <div class="fee-line" *ngFor="let fee of row.assessedFees">
+                <div>
+                  <strong>{{ fee.feeType?.name || 'Fee item' }}</strong>
+                  <small>{{ fee.description }}</small>
+                </div>
+                <span>₱{{ fee.amount | number:'1.2-2' }}</span>
+              </div>
+              <div class="fee-line discount" *ngIf="row.discountAmount > 0">
+                <div>
+                  <strong>Discounts applied</strong>
+                  <small>{{ row.discountSummary }}</small>
+                </div>
+                <span>-₱{{ row.discountAmount | number:'1.2-2' }}</span>
+              </div>
+            </section>
+
+            <section class="detail-card">
+              <div class="detail-heading">
+                <h2>Recent Payments</h2>
+                <span>{{ row.payments.length }} record{{ row.payments.length === 1 ? '' : 's' }}</span>
+              </div>
+              <div class="payment-line" *ngFor="let payment of row.recentPayments">
+                <div>
+                  <strong>{{ payment.receiptNumber }}</strong>
+                  <small>{{ payment.paymentDate | date:'mediumDate' }} · {{ payment.method }}</small>
+                </div>
+                <span>₱{{ payment.amount | number:'1.2-2' }}</span>
+              </div>
+              <p class="empty-note" *ngIf="!row.recentPayments.length">No payments recorded for this assessment.</p>
+            </section>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+</section>

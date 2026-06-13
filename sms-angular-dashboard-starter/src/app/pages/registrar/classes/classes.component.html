@@ -1,0 +1,192 @@
+<section class="page-shell h-[calc(100vh-theme('spacing.16'))] flex flex-col p-0 overflow-hidden">
+  <!-- Header inside shell -->
+  <div class="border-b border-violet-100/60 bg-white px-6 py-4 shrink-0 flex items-center justify-between z-10 rounded-2xl shadow-card">
+    <div>
+      <h1 class="text-xl font-extrabold tracking-tight text-slate-900">📚 Class Management</h1>
+      <p class="text-xs font-semibold text-slate-500 mt-0.5">Organize grade levels, setup class sections, and view assigned learners.</p>
+    </div>
+    <button (click)="openCreateModal()" class="action-primary !py-2 !px-3 !text-xs">
+      <span class="material-icons text-[16px]">add</span> New Class Section
+    </button>
+  </div>
+
+  <div class="flex flex-1 overflow-hidden">
+    <!-- Grade Level Sidebar -->
+    <aside class="w-64 border-r border-violet-100/60 bg-slate-50/50 shrink-0 flex flex-col overflow-y-auto">
+      <div class="p-4">
+        <p class="text-[10px] font-extrabold uppercase tracking-widest text-violet-400 mb-3 ml-2">Grade Levels</p>
+        <div class="space-y-1">
+          <button *ngFor="let grade of gradeLevels" 
+                  (click)="filterByGrade(grade)"
+                  [ngClass]="activeGrade === grade ? 'bg-violet-100/50 text-violet-700 shadow-sm border-violet-200/50' : 'text-slate-600 hover:bg-white border-transparent hover:border-violet-100 hover:shadow-sm'"
+                  class="w-full text-left px-4 py-2 rounded-xl text-[13px] font-bold transition-all border flex items-center justify-between group">
+            {{ grade }}
+            <span class="material-icons text-[16px] opacity-0 transition-opacity" [ngClass]="{'opacity-100': activeGrade === grade}">chevron_right</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto bg-slate-50 relative p-6">
+      
+      <!-- Sections Overview Header -->
+      <div class="mb-5 flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-extrabold text-slate-800 flex items-center gap-2">
+            🏫 {{ activeGrade }} Sections
+          </h2>
+          <p class="text-xs font-semibold text-slate-500 mt-0.5">Select a class section below to view its enrolled learners.</p>
+        </div>
+      </div>
+
+      <!-- Sections Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
+        <article *ngFor="let section of filteredSections" 
+                 (click)="selectSection(section)"
+                 [ngClass]="selectedSection?.id === section.id ? 'ring-2 ring-violet-500 shadow-md border-transparent bg-white' : 'border-violet-100/60 bg-white hover:border-violet-300 hover:shadow-sm'"
+                 class="rounded-2xl border p-4 cursor-pointer transition-all relative group">
+          
+          <div class="absolute right-2 top-2 flex opacity-0 group-hover:opacity-100 transition-opacity">
+            <button (click)="openEditModal(section); $event.stopPropagation()" class="p-1.5 text-slate-400 hover:text-violet-600 rounded-lg hover:bg-violet-50 transition-colors"><span class="material-icons text-[16px] block">edit</span></button>
+            <button (click)="openDeleteModal(section); $event.stopPropagation()" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"><span class="material-icons text-[16px] block">delete</span></button>
+          </div>
+
+          <div class="flex items-start justify-between gap-3 pr-14">
+            <div>
+              <h3 class="text-base font-extrabold text-slate-800">{{ section.sectionName }}</h3>
+              <p class="text-xs font-semibold text-slate-500 mt-0.5 flex items-center gap-1.5">
+                <span class="material-icons text-[14px]">person</span> {{ section.adviser || 'No Adviser' }}
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-3 flex items-center justify-between border-t border-violet-50 pt-3">
+            <div>
+              <p class="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Room</p>
+              <p class="text-[13px] font-bold text-slate-700">{{ section.room || 'TBA' }}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Enrolled</p>
+              <div class="flex items-center gap-2">
+                <p class="text-[13px] font-bold text-slate-700">{{ section.enrolled }}/{{ section.capacity }}</p>
+                <div class="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full bg-violet-500" [ngStyle]="{'width': usage(section) + '%'}"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Empty State for Sections -->
+        <div *ngIf="filteredSections.length === 0" class="col-span-full rounded-2xl border-2 border-dashed border-violet-200 p-8 flex flex-col items-center justify-center bg-violet-50/50">
+          <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-violet-400 mb-3 shadow-sm">
+            <span class="material-icons text-2xl">class</span>
+          </div>
+          <p class="text-slate-800 font-extrabold text-sm">No classes set up</p>
+          <p class="text-[13px] text-slate-500 mt-0.5">There are no sections created for {{ activeGrade }} yet.</p>
+          <button (click)="openCreateModal()" class="mt-3 text-violet-600 font-bold text-[13px] hover:underline">Create the first section</button>
+        </div>
+      </div>
+
+      <!-- Learners in Selected Section -->
+      <div *ngIf="selectedSection" class="animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="text-base font-extrabold text-slate-800 flex items-center gap-2">
+            👨‍🎓 Learners in {{ selectedSection.sectionName }}
+            <span class="bg-violet-100 text-violet-700 text-[10px] font-bold py-0.5 px-2 rounded-full">{{ sectionLearners.length }}</span>
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
+          <!-- Beautiful Learner Card -->
+          <div *ngFor="let student of sectionLearners" class="bg-white rounded-2xl p-3 border border-violet-100/60 shadow-sm hover:border-violet-200 hover:shadow-md transition-all flex items-start gap-3 group cursor-pointer">
+            <!-- Avatar Placeholder -->
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center font-extrabold text-sm shadow-inner shrink-0 group-hover:scale-105 transition-transform">
+              {{ getInitials(student.firstName, student.lastName) }}
+            </div>
+            <div class="min-w-0 flex-1">
+              <h4 class="text-sm font-extrabold text-slate-900 truncate" [title]="student.firstName + ' ' + student.lastName">
+                {{ student.lastName }}, {{ student.firstName }} {{ student.middleName }}
+              </h4>
+              <p class="text-xs font-semibold text-slate-500 mt-0.5 font-mono">{{ student.lrn || student.studentNo }}</p>
+              
+              <div class="flex items-center gap-2 mt-2">
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide bg-slate-100 text-slate-600">
+                  {{ student.gender }}
+                </span>
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide"
+                      [ngClass]="student.studentType === 'Regular' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'">
+                  {{ student.studentType }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="sectionLearners.length === 0" class="col-span-full py-12 text-center text-slate-500 text-sm font-medium">
+            No learners currently assigned to this section.
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</section>
+
+<!-- CRUD Modal -->
+<div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+  <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden transform transition-all">
+    <div class="flex items-center justify-between border-b border-violet-50 px-5 py-4 bg-violet-50/30">
+      <h3 class="text-base font-extrabold text-slate-800 flex items-center gap-2">
+        <span class="material-icons" [ngClass]="modalMode === 'delete' ? 'text-rose-500' : 'text-violet-500'">
+          {{ modalMode === 'create' ? 'add_circle' : modalMode === 'edit' ? 'edit' : 'warning' }}
+        </span>
+        {{ modalMode === 'create' ? 'Add New Section' : modalMode === 'edit' ? 'Edit Section' : 'Delete Section' }}
+      </h3>
+      <button (click)="closeModal()" class="text-slate-400 hover:text-slate-600 bg-white rounded-full p-1 border border-slate-200 shadow-sm"><span class="material-icons block text-[16px]">close</span></button>
+    </div>
+    
+    <div class="p-5">
+      <ng-container *ngIf="modalMode !== 'delete'">
+        <div class="space-y-3">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="form-label mb-1.5">Grade Level</label>
+              <input type="text" disabled [value]="formData.gradeLevel" class="form-input !bg-slate-100 cursor-not-allowed">
+            </div>
+            <div>
+              <label class="form-label mb-1.5">Section Name</label>
+              <input type="text" [(ngModel)]="formData.sectionName" class="form-input" placeholder="e.g. Newton">
+            </div>
+          </div>
+          <div>
+            <label class="form-label mb-1.5">Adviser Name</label>
+            <input type="text" [(ngModel)]="formData.adviser" class="form-input" placeholder="e.g. Maria Dela Cruz">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="form-label mb-1.5">Room</label>
+              <input type="text" [(ngModel)]="formData.room" class="form-input" placeholder="e.g. Room 101">
+            </div>
+            <div>
+              <label class="form-label mb-1.5">Capacity</label>
+              <input type="number" [(ngModel)]="formData.capacity" class="form-input">
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="modalMode === 'delete'">
+        <p class="text-sm text-slate-600 font-medium">Are you sure you want to permanently delete the section <strong class="text-slate-900">{{ formData.sectionName }}</strong>? This action cannot be undone and will unassign any currently enrolled learners.</p>
+      </ng-container>
+    </div>
+    
+    <div class="flex justify-end gap-2 border-t border-violet-50 bg-violet-50/20 px-5 py-4">
+      <button (click)="closeModal()" class="action-secondary !py-2 !px-4 !text-xs border-transparent">Cancel</button>
+      <button (click)="saveSection()" class="action-primary !py-2 !px-4 !text-xs" [ngClass]="{'!from-rose-500 !to-red-600': modalMode === 'delete'}">
+        <span class="material-icons text-[16px]">{{ modalMode === 'create' ? 'check_circle' : modalMode === 'edit' ? 'save' : 'delete_forever' }}</span>
+        {{ modalMode === 'create' ? 'Create Section' : modalMode === 'edit' ? 'Save Changes' : 'Yes, Delete' }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,62 @@
+<aside class="fixed inset-y-0 left-0 z-30 hidden w-72 border-r border-slate-200/80 bg-white shadow-card lg:flex lg:flex-col">
+  <div class="flex h-20 items-center gap-3 border-b border-slate-100 px-6">
+    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white p-1.5 shadow-lg shadow-blue-500/20 ring-1 ring-emerald-100">
+      <img src="assets/logo.png" alt="SFXSAI Logo" class="h-full w-full object-contain" />
+    </div>
+
+    <div class="min-w-0">
+      <h1 class="truncate text-xl font-extrabold tracking-tight text-slate-950">SFXSAI</h1>
+      <p class="truncate text-sm font-medium text-slate-500">{{ portalLabel }}</p>
+    </div>
+  </div>
+
+  <nav class="flex-1 overflow-y-auto px-4 py-5">
+    <a
+      [routerLink]="['/', rolePath, 'dashboard']"
+      routerLinkActive="active"
+      class="sidebar-link mb-5"
+    >
+      <span class="material-icons">dashboard</span>
+      <span>Dashboard</span>
+    </a>
+
+    <ng-container *ngFor="let section of sections">
+      <p class="sidebar-label">{{ section.label }}</p>
+
+      <a
+        *ngFor="let item of section.items"
+        [routerLink]="['/', rolePath, item.route]"
+        routerLinkActive="active"
+        class="sidebar-link"
+      >
+        <span class="material-icons">{{ item.icon }}</span>
+        <span>{{ item.label }}</span>
+        <span *ngIf="badgeFor(item.route) as badge" class="sidebar-badge">{{ badge }}</span>
+      </a>
+    </ng-container>
+  </nav>
+
+  <div class="border-t border-slate-100 px-5 py-6">
+    <button class="flex items-center gap-3 rounded-lg px-1 text-sm font-semibold text-slate-500 transition hover:text-slate-900">
+      <span class="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm">
+        <span class="material-icons text-base">chevron_left</span>
+      </span>
+      Collapse
+    </button>
+  </div>
+</aside>
+
+<div class="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 lg:hidden">
+  <div class="flex items-center gap-3">
+    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-1.5 shadow-sm ring-1 ring-emerald-100">
+      <img src="assets/logo.png" alt="SFXSAI Logo" class="h-full w-full object-contain" />
+    </div>
+    <div>
+      <h1 class="text-base font-extrabold text-slate-950">SFXSAI</h1>
+      <p class="text-xs text-slate-500">{{ portalLabel }}</p>
+    </div>
+  </div>
+  <button class="rounded-lg border border-slate-200 p-2 text-slate-600">
+    <span class="material-icons">menu</span>
+  </button>
+</div>

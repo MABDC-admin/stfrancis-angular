@@ -1,0 +1,90 @@
+<section class="page-shell">
+  <div class="page-header-card flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+      <p class="page-eyebrow">Settings</p>
+      <h1 class="page-title">Academic Year Management</h1>
+      <p class="page-subtitle">Configure the school years and set the active academic year.</p>
+    </div>
+    <div class="flex flex-wrap gap-3">
+      <button (click)="openForm()" class="action-primary"><span class="material-icons">add</span>New Academic Year</button>
+    </div>
+  </div>
+
+  <div class="panel-card mt-6 p-6">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-slate-50 text-xs font-extrabold uppercase tracking-wide text-slate-500">
+          <tr>
+            <th class="px-4 py-3">Code</th>
+            <th class="px-4 py-3">Start Date</th>
+            <th class="px-4 py-3">End Date</th>
+            <th class="px-4 py-3">Status</th>
+            <th class="px-4 py-3">Remarks</th>
+            <th class="px-4 py-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr *ngFor="let ay of years" class="hover:bg-slate-50">
+            <td class="px-4 py-3 font-extrabold text-slate-900">{{ ay.code }}</td>
+            <td class="px-4 py-3 font-medium text-slate-600">{{ ay.startDate | date }}</td>
+            <td class="px-4 py-3 font-medium text-slate-600">{{ ay.endDate | date }}</td>
+            <td class="px-4 py-3">
+              <span *ngIf="ay.isActive" class="status-pill bg-emerald-50 text-emerald-700">Active</span>
+              <span *ngIf="!ay.isActive" class="status-pill bg-slate-100 text-slate-500">Inactive</span>
+            </td>
+            <td class="px-4 py-3 font-medium text-slate-500">{{ ay.remarks || 'None' }}</td>
+            <td class="px-4 py-3 text-right">
+              <div class="flex items-center justify-end gap-2">
+                <button (click)="openForm(ay)" class="grid h-8 w-8 place-items-center rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200"><span class="material-icons !text-lg">edit</span></button>
+                <button (click)="deleteYear(ay.id)" class="grid h-8 w-8 place-items-center rounded-md bg-red-50 text-red-600 hover:bg-red-100"><span class="material-icons !text-lg">delete</span></button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Create/Edit Modal -->
+<div *ngIf="showForm" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+  <div class="w-full max-w-lg rounded-xl bg-white p-8 shadow-2xl">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-xl font-extrabold text-slate-900">{{ draft.id ? 'Edit Academic Year' : 'New Academic Year' }}</h2>
+      <button (click)="closeForm()" class="grid h-8 w-8 place-items-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"><span class="material-icons">close</span></button>
+    </div>
+
+    <form (ngSubmit)="save()" class="space-y-4">
+      <label class="block">
+        <span class="form-label">Year Code (e.g., SY2027-2028)</span>
+        <input class="form-input" [(ngModel)]="draft.code" name="code" required />
+      </label>
+
+      <div class="grid grid-cols-2 gap-4">
+        <label class="block">
+          <span class="form-label">Start Date</span>
+          <input type="date" class="form-input" [(ngModel)]="draft.startDate" name="startDate" required />
+        </label>
+        <label class="block">
+          <span class="form-label">End Date</span>
+          <input type="date" class="form-input" [(ngModel)]="draft.endDate" name="endDate" required />
+        </label>
+      </div>
+
+      <label class="block">
+        <span class="form-label">Remarks</span>
+        <input class="form-input" [(ngModel)]="draft.remarks" name="remarks" />
+      </label>
+
+      <label class="flex items-center gap-3">
+        <input type="checkbox" [(ngModel)]="draft.isActive" name="isActive" class="h-5 w-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-600" />
+        <span class="font-bold text-slate-700">Set as Active Academic Year</span>
+      </label>
+
+      <div class="pt-4 flex justify-end gap-3">
+        <button type="button" (click)="closeForm()" class="action-secondary">Cancel</button>
+        <button type="submit" [disabled]="isSubmitting" class="action-primary">{{ isSubmitting ? 'Saving...' : 'Save Year' }}</button>
+      </div>
+    </form>
+  </div>
+</div>

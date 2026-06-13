@@ -1,0 +1,52 @@
+<section class="page-shell">
+  <div class="border-b border-violet-100/60 bg-white px-6 py-4 shrink-0 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between z-10 rounded-2xl shadow-card">
+    <div>
+      <p class="text-[10px] font-extrabold uppercase tracking-widest text-violet-500 mb-0.5">Registrar Module</p>
+      <h1 class="text-xl font-extrabold tracking-tight text-slate-900">📚 Academic Records</h1>
+      <p class="text-xs font-semibold text-slate-500 mt-0.5">
+        Maintain validated grade history, general average, promotion remarks, and records used for SF9 and SF10 preparation.
+      </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button class="action-secondary !py-2 !px-3 !text-xs"><span class="material-icons text-[16px]">upload_file</span> Import Grades</button>
+      <button class="action-primary !py-2 !px-3 !text-xs"><span class="material-icons text-[16px]">fact_check</span> Validate Records</button>
+    </div>
+  </div>
+
+  <section class="table-card">
+    <div class="table-header flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <h2 class="text-base font-extrabold text-slate-900">Learner Academic History</h2>
+        <p class="mt-0.5 text-xs font-semibold text-slate-500">Uses “General Average” instead of GPA.</p>
+      </div>
+      <button class="action-secondary !py-2 !px-3 !text-xs"><span class="material-icons text-[16px]">print</span> Print SF10 Draft</button>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200/80">
+        <thead class="bg-white">
+          <tr>
+            <th class="table-th">Learner</th>
+            <th class="table-th">School Year</th>
+            <th class="table-th">Grade / Section</th>
+            <th class="table-th">General Average</th>
+            <th class="table-th">Remarks</th>
+            <th class="table-th">Status</th>
+            <th class="table-th">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-violet-100/60 bg-white">
+          <tr *ngFor="let record of records; trackBy: trackRecord" class="hover:bg-violet-50/50 transition-colors">
+            <td class="table-td font-extrabold text-slate-800">{{ record.studentName }}</td>
+            <td class="table-td">{{ record.schoolYear }}</td>
+            <td class="table-td">{{ record.gradeLevel }}<br /><span class="text-[10px] font-bold text-slate-400">{{ record.section }}</span></td>
+            <td class="table-td"><span class="text-base font-extrabold text-slate-800">{{ record.generalAverage }}</span></td>
+            <td class="table-td text-xs">{{ record.remarks }}</td>
+            <td class="table-td"><span class="status-pill" [ngClass]="statusClass(record.status)">{{ record.status }}</span></td>
+            <td class="table-td"><button class="rounded-lg border border-violet-200 bg-white px-3 py-1.5 text-xs font-extrabold text-violet-600 shadow-sm hover:bg-violet-50 transition-colors">Open</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>

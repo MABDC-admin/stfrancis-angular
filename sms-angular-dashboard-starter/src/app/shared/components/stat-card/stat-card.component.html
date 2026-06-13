@@ -1,0 +1,15 @@
+<article class="group rounded-[1.35rem] border border-slate-200/80 bg-white p-5 shadow-card transition duration-300 hover:-translate-y-0.5 hover:shadow-soft">
+  <div class="flex items-center gap-4">
+    <div class="grid h-16 w-16 shrink-0 place-items-center rounded-lg" [ngClass]="stat.iconClass">
+      <span class="material-icons !text-[2rem]">{{ stat.icon }}</span>
+    </div>
+
+    <div class="min-w-0">
+      <p class="truncate text-xs font-semibold text-slate-500">{{ stat.title }}</p>
+      <h3 class="mt-1 text-2xl font-extrabold tracking-tight text-slate-950">{{ stat.value }}</h3>
+      <p class="mt-1 truncate text-sm font-bold" [ngClass]="stat.helperClass || 'text-slate-500'">
+        {{ stat.helper }}
+      </p>
+    </div>
+  </div>
+</article>

@@ -1,0 +1,139 @@
+<section class="space-y-7">
+  <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-800 to-indigo-900 p-4 sm:p-6 flex items-center shadow-lg border border-violet-700">
+    <!-- Video placed at the end part with a tightly constrained width to make it smaller, perfectly masked on the left -->
+    <div class="absolute inset-y-0 right-0 w-[40%] max-w-[300px] pointer-events-none" 
+         style="-webkit-mask-image: linear-gradient(to right, transparent 0%, black 50%); mask-image: linear-gradient(to right, transparent 0%, black 50%);">
+      <video autoplay loop muted playsinline [muted]="true" [autoplay]="true" class="w-full h-full object-cover object-center opacity-80 mix-blend-luminosity">
+        <source src="/assets/hero-banner.mp4" type="video/mp4" />
+      </video>
+    </div>
+    
+    <div class="relative z-10 max-w-xl">
+      <p class="text-[10px] font-extrabold uppercase tracking-widest text-violet-300">{{ activeAcademicYearCode }}</p>
+      <h1 class="mt-1 text-2xl font-extrabold tracking-tight text-white sm:text-3xl drop-shadow-sm">
+        👋 Welcome back, <span class="capitalize">{{ role ? (role | lowercase) : 'Admin' }}</span>!
+      </h1>
+      <p class="mt-1 text-xs font-medium leading-tight text-white/90">
+        Manage enrollment, learner records<span *ngIf="role !== 'REGISTRAR'">, billing, payments, and finance clearance</span> in one connected dashboard.
+      </p>
+
+      <div class="mt-4 flex flex-wrap gap-2.5">
+        <button *ngIf="role === 'REGISTRAR'" routerLink="../student-registration" class="inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-[13px] font-extrabold text-violet-700 shadow-md transition hover:bg-slate-50 hover:-translate-y-0.5 hover:shadow-lg">
+          <span class="material-icons text-[18px]">person_add</span>
+          New Enrollment
+        </button>
+        <button *ngIf="role !== 'REGISTRAR'" routerLink="../payments" class="inline-flex items-center gap-1.5 rounded-xl border border-white/60 bg-white/10 px-4 py-2 text-[13px] font-extrabold text-white backdrop-blur transition hover:bg-white/20 hover:-translate-y-0.5">
+          <span class="material-icons text-[18px]">payments</span>
+          Record Payment
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <section *ngIf="shouldShowRegistrarOverview(role)">
+    <div class="flex flex-wrap items-end gap-2 px-1">
+      <h2 class="text-xl font-extrabold tracking-tight text-slate-900">📊 Registrar Overview</h2>
+      <p class="pb-0.5 text-xs font-semibold text-slate-500">Student records, enrollment, documents, and sectioning</p>
+    </div>
+
+    <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <app-stat-card *ngFor="let stat of registrarStats" [stat]="stat" />
+    </div>
+  </section>
+
+  <section class="finance-dashboard-export" *ngIf="role !== 'REGISTRAR' && financeDashboard as finance">
+    <div class="flex flex-wrap items-end justify-between gap-3 px-1">
+      <div class="flex flex-wrap items-end gap-2">
+        <h2 class="text-xl font-extrabold tracking-tight text-slate-900">Finance Overview</h2>
+        <p class="pb-0.5 text-xs font-semibold text-slate-500">Live assessment, payment, collection, and finance-control metrics</p>
+      </div>
+      <app-finance-pdf-export-button title="Finance Dashboard" [subtitle]="finance.academicYearCode" targetSelector=".finance-dashboard-export" />
+    </div>
+
+    <div class="finance-widget-grid mt-4">
+      <article class="finance-widget metric-card">
+        <div class="widget-heading">
+          <span>Total Revenue</span>
+          <span class="material-icons">payments</span>
+        </div>
+        <strong>{{ formatPeso(finance.totalRevenue) }}</strong>
+        <p>{{ finance.academicYearCode }} collections posted</p>
+      </article>
+
+      <article class="finance-widget metric-card assessed-card">
+        <div class="widget-heading">
+          <span>Total Assessed</span>
+          <span class="material-icons">fact_check</span>
+        </div>
+        <strong>{{ formatPeso(finance.totalAssessed) }}</strong>
+        <p>{{ finance.academicYearCode }} net assessed tuition and fees</p>
+      </article>
+
+      <article class="finance-widget metric-card">
+        <div class="widget-heading">
+          <span>Accounts Receivable</span>
+          <span class="material-icons">request_quote</span>
+        </div>
+        <strong>{{ formatPeso(finance.accountsReceivable) }}</strong>
+        <p>{{ finance.unpaidStudents }} learner accounts with open balance</p>
+        <div class="progress-track"><i [style.width.%]="finance.collectionRate"></i></div>
+      </article>
+
+      <article class="finance-widget collection-card">
+        <div class="widget-heading">
+          <span>Tuition Fee Collection Status</span>
+          <span class="material-icons">school</span>
+        </div>
+        <div class="gauge" [style.--value]="finance.collectionRate + '%'">
+          <strong>{{ finance.collectionRate }}%</strong>
+        </div>
+        <p>{{ finance.paidStudents }} cleared / {{ finance.unpaidStudents }} pending</p>
+      </article>
+
+      <article class="finance-widget alerts-card">
+        <div class="widget-heading">
+          <span>Financial Alerts / Reminders</span>
+          <span class="material-icons">notifications_active</span>
+        </div>
+        <div class="alert-list">
+          <div *ngFor="let alert of finance.alerts" [ngClass]="'alert-' + alert.tone">
+            <strong>{{ alert.value }}</strong>
+            <span>{{ alert.label }}</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="finance-widget birthday-card">
+        <div class="widget-heading">
+          <span>Birthday</span>
+          <span class="material-icons">cake</span>
+        </div>
+        <div class="birthday-list" *ngIf="upcomingBirthdays.length; else noBirthdays">
+          <div *ngFor="let birthday of upcomingBirthdays">
+            <span class="birthday-date">{{ birthday.dateLabel }}</span>
+            <div>
+              <strong>{{ birthday.learnerName }}</strong>
+              <small>{{ birthday.gradeLevel }} · {{ birthday.daysUntil === 0 ? 'Today' : birthday.daysUntil + ' days' }}</small>
+            </div>
+          </div>
+        </div>
+        <ng-template #noBirthdays>
+          <p class="empty-widget-note">No incoming learner birthdays in the next 30 days.</p>
+        </ng-template>
+      </article>
+
+      <article class="finance-widget chart-card">
+        <div class="widget-heading">
+          <span>Trends & Forecasts</span>
+          <span class="material-icons">trending_up</span>
+        </div>
+        <strong>{{ formatPeso(finance.forecast.value) }}</strong>
+        <p>{{ finance.forecast.label }}</p>
+        <div class="forecast-bars" aria-hidden="true">
+          <i *ngFor="let point of finance.forecast.points" [style.height.%]="point.percent || 8"></i>
+        </div>
+      </article>
+    </div>
+  </section>
+
+</section>

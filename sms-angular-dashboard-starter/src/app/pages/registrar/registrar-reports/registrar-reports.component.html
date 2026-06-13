@@ -1,0 +1,36 @@
+<section class="page-shell">
+  <div class="border-b border-violet-100/60 bg-white px-6 py-4 shrink-0 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between z-10 rounded-2xl shadow-card">
+    <div>
+      <p class="text-[10px] font-extrabold uppercase tracking-widest text-violet-500 mb-0.5">Registrar Module</p>
+      <h1 class="text-xl font-extrabold tracking-tight text-slate-900">📊 Registrar Reports</h1>
+      <p class="text-xs font-semibold text-slate-500 mt-0.5">
+        Export and print operational reports for enrollment, masterlist, document deficiencies, learner movement, DepEd forms, and clearance review.
+      </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button class="action-secondary !py-2 !px-3 !text-xs"><span class="material-icons text-[16px]">schedule</span> Schedule Report</button>
+      <button class="action-primary !py-2 !px-3 !text-xs"><span class="material-icons text-[16px]">download</span> Export All</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+    <article *ngFor="let report of reports; trackBy: trackReport" class="rounded-2xl border border-violet-100/60 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <div class="grid h-12 w-12 place-items-center rounded-xl bg-violet-100 text-violet-600">
+        <span class="material-icons text-[24px]">{{ report.icon }}</span>
+      </div>
+      <h2 class="mt-4 text-base font-extrabold text-slate-900">{{ report.title }}</h2>
+      <p class="mt-1.5 text-[13px] font-semibold leading-relaxed text-slate-500">{{ report.description }}</p>
+      <div class="mt-4 grid grid-cols-2 gap-2">
+        <div class="rounded-xl bg-violet-50/50 border border-violet-50 p-2.5">
+          <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Frequency</p>
+          <p class="mt-0.5 text-[13px] font-extrabold text-slate-800">{{ report.frequency }}</p>
+        </div>
+        <div class="rounded-xl bg-violet-50/50 border border-violet-50 p-2.5">
+          <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Owner</p>
+          <p class="mt-0.5 text-[13px] font-extrabold text-slate-800">{{ report.owner }}</p>
+        </div>
+      </div>
+      <button class="mt-4 w-full rounded-lg border border-violet-200 px-4 py-2 text-xs font-extrabold text-violet-600 hover:bg-violet-50 shadow-sm transition-colors">Open Report</button>
+    </article>
+  </div>
+</section>

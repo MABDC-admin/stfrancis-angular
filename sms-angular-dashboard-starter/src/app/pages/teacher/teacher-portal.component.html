@@ -1,0 +1,313 @@
+<div class="teacher-shell">
+  <div
+    class="teacher-toast"
+    [ngClass]="{
+      'teacher-toast--show': toast().show,
+      'teacher-toast--error': toast().type === 'error'
+    }"
+  >
+    <span class="material-icons">{{ toast().type === 'success' ? 'check_circle' : 'error' }}</span>
+    <span>{{ toast().message }}</span>
+  </div>
+
+  <section class="teacher-hero">
+    <div>
+      <p class="eyebrow">Teacher Portal</p>
+      <h1>{{ state().teacher.name }}</h1>
+      <p>{{ state().teacher.department }} • {{ state().teacher.advisoryClass }} • SFXSAI</p>
+    </div>
+    <div class="hero-actions">
+      <a routerLink="/teacher/dll"><span class="material-icons">add_task</span> Add Lesson</a>
+      <a routerLink="/teacher/attendance"><span class="material-icons">fact_check</span> Take Attendance</a>
+      <a routerLink="/teacher/resources"><span class="material-icons">upload_file</span> Upload Resource</a>
+    </div>
+  </section>
+
+  <nav class="module-strip">
+    <a
+      *ngFor="let module of modules"
+      [routerLink]="['/teacher', module.route]"
+      [ngClass]="{ active: currentView() === module.route }"
+    >
+      <span class="material-icons">{{ module.icon }}</span>
+      {{ module.label }}
+    </a>
+  </nav>
+
+  <section *ngIf="currentView() === 'dashboard'" class="teacher-grid">
+    <article class="metric-card emerald">
+      <span class="material-icons">class</span>
+      <small>My Classes</small>
+      <strong>{{ dashboardSummary().myClasses }}</strong>
+    </article>
+    <article class="metric-card blue">
+      <span class="material-icons">groups</span>
+      <small>Total Students</small>
+      <strong>{{ dashboardSummary().totalStudents }}</strong>
+    </article>
+    <article class="metric-card amber">
+      <span class="material-icons">edit_note</span>
+      <small>Pending Grades</small>
+      <strong>{{ dashboardSummary().pendingGrades }}</strong>
+    </article>
+    <article class="metric-card teal">
+      <span class="material-icons">how_to_reg</span>
+      <small>Attendance Today</small>
+      <strong>{{ dashboardSummary().attendanceToday }}</strong>
+    </article>
+
+    <article class="panel wide">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Announcements</p>
+          <h2>Class Updates</h2>
+        </div>
+        <a routerLink="/teacher/announcements">Manage</a>
+      </div>
+      <div class="announcement-list">
+        <div *ngFor="let item of state().announcements">
+          <span>{{ item.audience }}</span>
+          <strong>{{ item.title }}</strong>
+          <p>{{ item.body }}</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Calendar</p>
+          <h2>This Week</h2>
+        </div>
+      </div>
+      <div class="mini-calendar">
+        <div *ngFor="let item of state().classes">
+          <span>{{ item.schedule.split(' ')[0] }}</span>
+          <strong>{{ item.subject }}</strong>
+          <small>{{ item.section }} • {{ item.room }}</small>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section *ngIf="currentView() === 'profile'" class="panel">
+    <div class="panel-heading"><div><p class="eyebrow">Teacher Profile</p><h2>Personal Information</h2></div></div>
+    <form class="form-grid" (ngSubmit)="saveProfile()">
+      <label>Name <input [(ngModel)]="profileForm.name" name="name" required /></label>
+      <label>Email <input [(ngModel)]="profileForm.email" name="email" type="email" required /></label>
+      <label>Department <input [(ngModel)]="profileForm.department" name="department" /></label>
+      <label>Phone <input [(ngModel)]="profileForm.phone" name="phone" /></label>
+      <label>Advisory Class <input [(ngModel)]="profileForm.advisoryClass" name="advisoryClass" /></label>
+      <button class="primary" type="submit"><span class="material-icons">save</span> Save Profile</button>
+    </form>
+    <div class="assigned-subjects">
+      <span *ngFor="let section of state().classes">{{ section.subject }} • {{ section.section }}</span>
+    </div>
+  </section>
+
+  <section *ngIf="currentView() === 'classes'" class="teacher-grid">
+    <article *ngFor="let section of state().classes" class="class-card" (click)="selectedClassId.set(section.id)">
+      <div>
+        <p class="eyebrow">{{ section.subject }}</p>
+        <h2>{{ section.section }}</h2>
+        <p>{{ section.schedule }} • {{ section.room }}</p>
+      </div>
+      <div class="class-card-footer">
+        <strong>{{ section.studentIds.length }} learners</strong>
+        <span>{{ classCompletionPercent(section) }}% graded</span>
+      </div>
+    </article>
+    <article class="panel wide">
+      <div class="panel-heading">
+        <div><p class="eyebrow">Class Management</p><h2>{{ selectedClass().section }}</h2></div>
+        <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event)">
+          <option *ngFor="let section of state().classes" [value]="section.id">{{ section.section }} • {{ section.subject }}</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Student</th><th>Guardian</th><th>Contact</th><th>Performance</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let student of selectedClassStudents()">
+              <td><strong>{{ student.name }}</strong><small>{{ student.studentNo }}</small></td>
+              <td>{{ student.guardian }}</td>
+              <td>{{ student.contact }}</td>
+              <td><span class="pill">{{ averageFor(student.id) ?? 'Pending' }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+
+  <section *ngIf="currentView() === 'attendance'" class="panel">
+    <div class="panel-heading">
+      <div><p class="eyebrow">Attendance Management</p><h2>Daily Marking</h2></div>
+      <div class="inline-controls">
+        <input type="date" [ngModel]="attendanceDate()" (ngModelChange)="attendanceDate.set($event)" />
+        <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event)">
+          <option *ngFor="let section of state().classes" [value]="section.id">{{ section.section }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="status-row">
+      <span *ngFor="let status of attendanceStatuses">{{ status }} <strong>{{ attendanceSummary()[status] }}</strong></span>
+    </div>
+    <div class="attendance-list">
+      <div *ngFor="let student of selectedClassStudents()">
+        <strong>{{ student.name }}</strong>
+        <div>
+          <button *ngFor="let status of attendanceStatuses" [ngClass]="{ active: attendanceFor(student.id) === status }" (click)="setAttendance(student.id, status)">
+            {{ status }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section *ngIf="currentView() === 'grades'" class="panel">
+    <div class="panel-heading">
+      <div><p class="eyebrow">Grades Management</p><h2>Quarterly Grade Sheet</h2></div>
+      <div class="inline-controls">
+        <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event)">
+          <option *ngFor="let section of state().classes" [value]="section.id">{{ section.section }} • {{ section.subject }}</option>
+        </select>
+        <select [ngModel]="selectedQuarter()" (ngModelChange)="selectedQuarter.set($event)">
+          <option *ngFor="let quarter of quarters" [value]="quarter">{{ quarter }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Student</th><th>Written</th><th>Performance</th><th>Exam</th><th>Average</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let student of selectedClassStudents()">
+            <td><strong>{{ student.name }}</strong><small>{{ student.studentNo }}</small></td>
+            <td><input type="number" min="0" max="100" [ngModel]="gradeValue(student.id, 'written')" (ngModelChange)="updateGrade(student.id, 'written', $event)" /></td>
+            <td><input type="number" min="0" max="100" [ngModel]="gradeValue(student.id, 'performance')" (ngModelChange)="updateGrade(student.id, 'performance', $event)" /></td>
+            <td><input type="number" min="0" max="100" [ngModel]="gradeValue(student.id, 'exam')" (ngModelChange)="updateGrade(student.id, 'exam', $event)" /></td>
+            <td><span class="pill">{{ averageFor(student.id) ?? 'Pending' }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section *ngIf="currentView() === 'schedule'" class="panel">
+    <div class="panel-heading"><div><p class="eyebrow">Schedule / Timetable</p><h2>Weekly Class Time Slots</h2></div></div>
+    <div class="schedule-grid">
+      <div *ngFor="let section of state().classes">
+        <span>{{ section.schedule }}</span>
+        <strong>{{ section.subject }}</strong>
+        <p>{{ section.section }}</p>
+        <small>{{ section.room }}</small>
+      </div>
+    </div>
+  </section>
+
+  <section *ngIf="currentView() === 'resources'" class="panel">
+    <div class="panel-heading">
+      <div><p class="eyebrow">Learning Resources</p><h2>Materials Library</h2></div>
+      <input class="search-input" placeholder="Search resources..." [ngModel]="resourceSearch()" (ngModelChange)="resourceSearch.set($event)" />
+    </div>
+    <form class="form-grid compact" (ngSubmit)="addResource()">
+      <input [(ngModel)]="resourceForm.title" name="resourceTitle" placeholder="Resource title" required />
+      <select [(ngModel)]="resourceForm.type" name="resourceType"><option *ngFor="let type of resourceTypes" [value]="type">{{ type }}</option></select>
+      <input [(ngModel)]="resourceForm.subject" name="resourceSubject" placeholder="Subject" required />
+      <button class="primary" type="submit"><span class="material-icons">upload_file</span> Add Resource</button>
+    </form>
+    <div class="resource-list">
+      <div *ngFor="let resource of filteredResources()">
+        <span class="material-icons">description</span>
+        <div><strong>{{ resource.title }}</strong><p>{{ resource.subject }} • {{ resource.type }} • {{ resource.size }}</p></div>
+        <button (click)="teacherStore.deleteResource(resource.id)">Delete</button>
+      </div>
+    </div>
+  </section>
+
+  <section *ngIf="currentView() === 'dll'" class="panel">
+    <div class="panel-heading"><div><p class="eyebrow">Daily Lesson Log</p><h2>Create DLL Entry</h2></div></div>
+    <form class="dll-form" (ngSubmit)="addDll()">
+      <textarea [(ngModel)]="dllForm.objectives" name="objectives" placeholder="Learning objectives" required></textarea>
+      <textarea [(ngModel)]="dllForm.activities" name="activities" placeholder="Activities" required></textarea>
+      <textarea [(ngModel)]="dllForm.materials" name="materials" placeholder="Materials used"></textarea>
+      <textarea [(ngModel)]="dllForm.remarks" name="remarks" placeholder="Remarks"></textarea>
+      <button class="primary" type="submit"><span class="material-icons">save</span> Save DLL</button>
+    </form>
+    <div class="timeline">
+      <div *ngFor="let dll of state().dlls">
+        <strong>{{ dll.date }} • {{ selectedClass().subject }}</strong>
+        <p>{{ dll.objectives }}</p>
+        <button (click)="teacherStore.deleteDll(dll.id)">Delete</button>
+      </div>
+    </div>
+  </section>
+
+  <section *ngIf="currentView() === 'announcements'" class="panel">
+    <div class="panel-heading"><div><p class="eyebrow">Announcements</p><h2>Post Class Updates</h2></div></div>
+    <form class="form-grid" (ngSubmit)="addAnnouncement()">
+      <select [(ngModel)]="announcementForm.audience" name="audience">
+        <option>All students</option>
+        <option *ngFor="let section of state().classes">{{ section.section }}</option>
+      </select>
+      <input [(ngModel)]="announcementForm.title" name="announcementTitle" placeholder="Title" required />
+      <input class="span-2" [(ngModel)]="announcementForm.body" name="announcementBody" placeholder="Message" required />
+      <button class="primary" type="submit"><span class="material-icons">campaign</span> Post</button>
+    </form>
+    <div class="announcement-list">
+      <div *ngFor="let item of state().announcements">
+        <span>{{ item.audience }} • {{ item.postedAt }}</span>
+        <strong>{{ item.title }}</strong>
+        <p>{{ item.body }}</p>
+        <button (click)="teacherStore.deleteAnnouncement(item.id)">Delete</button>
+      </div>
+    </div>
+  </section>
+
+  <section *ngIf="currentView() === 'messages'" class="panel">
+    <div class="panel-heading"><div><p class="eyebrow">Messaging</p><h2>Teacher Communication</h2></div></div>
+    <form class="form-grid compact" (ngSubmit)="sendMessage()">
+      <input [(ngModel)]="messageForm.thread" name="thread" placeholder="Recipient or thread" />
+      <select [(ngModel)]="messageForm.audience" name="messageAudience"><option>Student</option><option>Parent</option><option>Admin</option></select>
+      <input [(ngModel)]="messageForm.message" name="message" placeholder="Type message..." required />
+      <button class="primary" type="submit"><span class="material-icons">send</span> Send</button>
+    </form>
+    <div class="message-list">
+      <div *ngFor="let message of state().messages">
+        <strong>{{ message.thread }}</strong>
+        <span>{{ message.audience }} • {{ message.sentAt }}</span>
+        <p>{{ message.message }}</p>
+      </div>
+    </div>
+  </section>
+
+  <section *ngIf="currentView() === 'analytics'" class="teacher-grid">
+    <article class="panel">
+      <div class="panel-heading"><div><p class="eyebrow">Attendance Trends</p><h2>Status Distribution</h2></div></div>
+      <div class="bar-list">
+        <div *ngFor="let status of attendanceStatuses"><span>{{ status }}</span><b [style.width.%]="attendanceSummary()[status] * 20 + 12"></b><strong>{{ attendanceSummary()[status] }}</strong></div>
+      </div>
+    </article>
+    <article class="panel">
+      <div class="panel-heading"><div><p class="eyebrow">Class Performance</p><h2>Completion Comparison</h2></div></div>
+      <div class="bar-list">
+        <div *ngFor="let section of state().classes"><span>{{ section.section }}</span><b [style.width.%]="classCompletionPercent(section)"></b><strong>{{ classCompletionPercent(section) }}%</strong></div>
+      </div>
+    </article>
+  </section>
+
+  <section *ngIf="currentView() === 'settings'" class="panel">
+    <div class="panel-heading"><div><p class="eyebrow">Settings</p><h2>Account & Notifications</h2></div></div>
+    <form class="form-grid" (ngSubmit)="changePassword()">
+      <label>Current Password <input [(ngModel)]="passwordForm.current" name="currentPassword" type="password" /></label>
+      <label>New Password <input [(ngModel)]="passwordForm.next" name="newPassword" type="password" /></label>
+      <label>Confirm Password <input [(ngModel)]="passwordForm.confirm" name="confirmPassword" type="password" /></label>
+      <button class="primary" type="submit"><span class="material-icons">lock_reset</span> Change Password</button>
+    </form>
+    <div class="settings-toggles">
+      <label><input type="checkbox" checked /> Email notifications</label>
+      <label><input type="checkbox" checked /> Grade submission reminders</label>
+      <label><input type="checkbox" /> Dark theme preview</label>
+    </div>
+  </section>
+</div>

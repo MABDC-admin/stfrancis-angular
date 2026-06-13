@@ -1,0 +1,88 @@
+@use '../finance-shell';
+
+.payment-layout {
+  grid-template-columns: minmax(300px, 390px) minmax(0, 1fr);
+  align-items: start;
+}
+
+.assessment-picker {
+  display: grid;
+  gap: .85rem;
+}
+
+.assessment-picker .field {
+  margin-bottom: 0;
+}
+
+.payment-snapshot {
+  border: 1px solid #dbe3ee;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  overflow: hidden;
+}
+
+.payment-snapshot.empty {
+  color: #64748b;
+}
+
+.learner-line {
+  display: grid;
+  gap: .25rem;
+  padding: .85rem .9rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.learner-line span,
+.balance-list dt {
+  color: #64748b;
+  font-size: .68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.learner-line strong {
+  color: #0f172a;
+  font-size: .95rem;
+  line-height: 1.25;
+}
+
+.balance-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  margin: 0;
+}
+
+.balance-list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .72rem .9rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.balance-list div:last-child {
+  border-bottom: 0;
+}
+
+.balance-list dd {
+  margin: 0;
+  color: #0f172a;
+  font-size: .9rem;
+  font-weight: 900;
+  text-align: right;
+}
+
+.balance-list .balance-due {
+  background: #ecfeff;
+}
+
+.balance-list .balance-due dt,
+.balance-list .balance-due dd {
+  color: #0f766e;
+}
+
+@media (max-width: 980px) {
+  .payment-layout {
+    grid-template-columns: 1fr;
+  }
+}

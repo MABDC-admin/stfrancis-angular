@@ -1,0 +1,37 @@
+<section class="page-shell">
+  <div class="border-b border-violet-100/60 bg-white px-6 py-4 shrink-0 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between z-10 rounded-2xl shadow-card">
+    <div>
+      <p class="text-[10px] font-extrabold uppercase tracking-widest text-violet-500 mb-0.5">Registrar Module</p>
+      <h1 class="text-xl font-extrabold tracking-tight text-slate-900">📄 DepEd Forms</h1>
+      <p class="text-xs font-semibold text-slate-500 mt-0.5">
+        Prepare school-form-ready views for school register, attendance, learner progress card, and permanent academic records.
+      </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button class="action-secondary !py-2 !px-3 !text-xs"><span class="material-icons text-[16px]">settings</span> Configure Templates</button>
+      <button class="action-primary !py-2 !px-3 !text-xs"><span class="material-icons text-[16px]">file_download</span> Generate Export</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+    <article *ngFor="let form of forms; trackBy: trackForm" class="rounded-2xl border border-violet-100/60 bg-white p-5 shadow-sm hover:border-violet-200 hover:shadow-md transition-all">
+      <div class="flex items-start justify-between gap-3">
+        <div class="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-violet-100 to-indigo-100 text-violet-600">
+          <span class="material-icons text-[24px]">description</span>
+        </div>
+        <span class="status-pill" [ngClass]="statusClass(form.status)">{{ form.status }}</span>
+      </div>
+
+      <p class="mt-4 text-[10px] font-extrabold uppercase tracking-widest text-violet-400">{{ form.formCode }}</p>
+      <h2 class="mt-1 text-base font-extrabold text-slate-800">{{ form.formName }}</h2>
+      <p class="mt-2 text-[13px] font-semibold leading-5 text-slate-500 line-clamp-2">{{ form.description }}</p>
+
+      <div class="mt-4 space-y-1.5 rounded-xl bg-violet-50/30 border border-violet-50 p-3">
+        <p class="text-xs font-bold text-slate-500 flex justify-between">Scope: <span class="text-slate-800">{{ form.scope }}</span></p>
+        <p class="text-xs font-bold text-slate-500 flex justify-between">Last generated: <span class="text-slate-800">{{ form.lastGenerated }}</span></p>
+      </div>
+
+      <button class="mt-4 w-full rounded-xl border border-violet-200 px-4 py-2 text-xs font-extrabold text-violet-600 hover:bg-violet-50 transition-colors">Open Form Builder</button>
+    </article>
+  </div>
+</section>

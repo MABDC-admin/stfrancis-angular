@@ -1,0 +1,698 @@
+<section class="page-shell" *ngIf="student">
+  <div class="fixed right-6 top-24 z-[120] transition-all duration-300 flex w-80 overflow-hidden rounded-xl border border-violet-100 bg-white shadow-[0_18px_50px_-20px_rgba(15,23,42,0.35)]"
+       [class.translate-y-0]="toast.show"
+       [class.opacity-100]="toast.show"
+       [class.-translate-y-4]="!toast.show"
+       [class.opacity-0]="!toast.show"
+       [class.pointer-events-none]="!toast.show">
+    <div class="w-1 shrink-0"
+         [ngClass]="{
+           'bg-emerald-500': toast.type === 'success',
+           'bg-red-500': toast.type === 'error',
+           'bg-amber-500': toast.type === 'warning',
+           'bg-violet-500': toast.type === 'info'
+         }"></div>
+    <div class="flex w-full items-start gap-2 p-3 text-left">
+      <span class="material-icons mt-0.5 text-xl"
+            [ngClass]="{
+              'text-emerald-500': toast.type === 'success',
+              'text-red-500': toast.type === 'error',
+              'text-amber-500': toast.type === 'warning',
+              'text-violet-500': toast.type === 'info'
+            }">
+        {{ toast.type === 'success' ? 'check_circle' : toast.type === 'error' ? 'error' : toast.type === 'warning' ? 'warning' : 'info' }}
+      </span>
+      <div class="flex-1">
+        <h5 class="text-xs font-extrabold text-slate-800">{{ toast.title }}</h5>
+        <p class="mt-0.5 text-[11px] font-semibold leading-snug text-slate-500">{{ toast.message }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-violet-100/60 shadow-card overflow-hidden bg-white shrink-0">
+    <div class="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 p-5 text-white">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex items-center gap-3">
+          <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 text-xl font-extrabold text-white shadow-inner backdrop-blur-sm border border-white/30">
+            {{ student.firstName.charAt(0) }}{{ student.lastName.charAt(0) }}
+          </div>
+          <div>
+            <span class="rounded-md bg-white/20 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-widest text-white backdrop-blur-sm">{{ student.studentNo }}</span>
+            <h1 class="mt-1 text-2xl font-extrabold tracking-tight">🧑‍🎓 {{ student.firstName }} {{ student.lastName }}</h1>
+            <p class="mt-0.5 text-xs font-semibold text-white/80">LRN {{ student.lrn }}</p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <a routerLink="/registrar-finance/student-masterlist" class="rounded-lg bg-white/10 px-3 py-2 text-xs font-extrabold text-white border border-white/20 hover:bg-white/20 transition-colors">
+            Back to Masterlist
+          </a>
+          <button class="rounded-lg bg-white px-3 py-2 text-xs font-extrabold text-violet-700 shadow-sm hover:bg-violet-50 transition-colors">Print Profile</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-3 p-5 md:grid-cols-4">
+      <div class="rounded-xl bg-violet-50/50 p-3 border border-violet-100/60 flex items-center justify-between">
+        <div>
+          <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Grade & Section</p>
+          <p class="mt-0.5 text-[15px] font-extrabold text-slate-800">{{ student.gradeLevel }} · {{ student.section }}</p>
+        </div>
+      </div>
+      <div class="rounded-xl bg-violet-50/50 p-3 border border-violet-100/60 flex items-center justify-between">
+        <div>
+          <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Enrollment Status</p>
+          <p class="mt-1"><span class="status-pill" [ngClass]="statusClass(student.enrollmentStatus)">{{ student.enrollmentStatus }}</span></p>
+        </div>
+      </div>
+      <div class="rounded-xl bg-violet-50/50 p-3 border border-violet-100/60 flex items-center justify-between">
+        <div>
+          <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Finance Clearance</p>
+          <p class="mt-1"><span class="status-pill" [ngClass]="statusClass(student.financeStatus)">{{ student.financeStatus }}</span></p>
+        </div>
+      </div>
+      <div class="rounded-xl bg-violet-50/50 p-3 border border-violet-100/60 flex items-center justify-between">
+        <div>
+          <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Attendance Health</p>
+          <p class="mt-1">
+            <span class="status-pill" [ngClass]="attendanceIssuesCount > 3 ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'">
+              {{ attendanceIssuesCount }} Issues
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4 border-b border-violet-100">
+    <nav class="-mb-px flex space-x-6 overflow-x-auto px-4" aria-label="Tabs">
+      <button
+        *ngFor="let tab of tabs"
+        (click)="setTab(tab.id)"
+        [ngClass]="activeTab === tab.id ? 'border-violet-500 text-violet-600' : 'border-transparent text-slate-500 hover:border-violet-300 hover:text-slate-700'"
+        class="whitespace-nowrap border-b-2 py-3 px-1 text-[13px] font-extrabold flex items-center gap-2 transition-colors">
+        <span class="material-icons text-[18px]">{{ tab.icon }}</span>
+        {{ tab.label }}
+      </button>
+    </nav>
+  </div>
+
+  <div class="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[1fr_22rem]">
+    <div class="space-y-6">
+      
+      <!-- PERSONAL TAB -->
+      <ng-container *ngIf="activeTab === 'personal'">
+        <section class="rounded-2xl border border-violet-100/60 bg-white p-5 shadow-sm">
+          <h2 class="text-lg font-extrabold text-slate-900">Personal and Family Information</h2>
+          
+          <div class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <div class="rounded-xl border border-blue-100 bg-blue-50/30 p-4">
+              <div class="flex items-center gap-1.5 mb-1">
+                <span class="material-icons text-[16px] text-blue-500">cake</span>
+                <p class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Date of Birth</p>
+              </div>
+              <p class="mt-1 font-bold text-slate-900">{{ (student.birthdate | date:'longDate') || 'N/A' }}</p>
+            </div>
+
+            <div class="rounded-xl border border-amber-100 bg-amber-50/30 p-4">
+              <div class="flex items-center gap-1.5 mb-1">
+                <span class="material-icons text-[16px] text-amber-500">hourglass_empty</span>
+                <p class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Age</p>
+              </div>
+              <p class="mt-1 font-bold text-slate-900">{{ studentAge }}</p>
+            </div>
+
+            <div class="rounded-xl border border-purple-100 bg-purple-50/30 p-4">
+              <div class="flex items-center gap-1.5 mb-1">
+                <span class="material-icons text-[16px] text-purple-500">face</span>
+                <p class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Gender</p>
+              </div>
+              <p class="mt-1 font-bold text-slate-900">{{ student.gender || 'N/A' }}</p>
+            </div>
+
+            <div class="col-span-2 sm:col-span-1 rounded-xl border border-emerald-100 bg-emerald-50/30 p-4">
+              <div class="flex items-center gap-1.5 mb-1">
+                <span class="material-icons text-[16px] text-emerald-500">phone</span>
+                <p class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Primary Contact No.</p>
+              </div>
+              <p class="mt-1 font-bold text-slate-900">{{ student.contactNo || 'N/A' }}</p>
+            </div>
+
+            <div class="col-span-2 sm:col-span-2 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+              <div class="flex items-center gap-1.5 mb-1">
+                <span class="material-icons text-[16px] text-slate-500">home</span>
+                <p class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Primary Address</p>
+              </div>
+              <p class="mt-1 font-bold text-slate-900">{{ student.address || student.uaeAddress || student.phAddress || 'N/A' }}</p>
+            </div>
+          </div>
+
+          <div class="mt-8">
+            <h3 class="text-sm font-extrabold text-slate-900 border-b border-slate-200 pb-2 mb-4">Family Background</h3>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div class="rounded-xl border border-rose-100 bg-rose-50/30 p-4">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <span class="material-icons text-[16px] text-rose-400">pregnant_woman</span>
+                  <p class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Mother's Maiden Name</p>
+                </div>
+                <p class="mt-1 font-bold text-slate-900">{{ student.motherName || student.guardian || 'N/A' }}</p>
+                <p class="text-xs font-medium text-slate-500">{{ student.motherContact || student.contactNo || 'No contact provided' }}</p>
+              </div>
+
+              <div class="rounded-xl border border-cyan-100 bg-cyan-50/30 p-4">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <span class="material-icons text-[16px] text-cyan-500">man</span>
+                  <p class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Father's Name</p>
+                </div>
+                <p class="mt-1 font-bold text-slate-900">{{ student.fatherName || 'N/A' }}</p>
+                <p class="text-xs font-medium text-slate-500">{{ student.fatherContact || 'No contact provided' }}</p>
+              </div>
+
+              <div class="rounded-xl border border-indigo-100 bg-indigo-50/30 p-4">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <span class="material-icons text-[16px] text-indigo-400">group</span>
+                  <p class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Other Guardian (if applicable)</p>
+                </div>
+                <p class="mt-1 font-bold text-slate-900">{{ student.guardian || 'N/A' }}</p>
+                <p class="text-xs font-medium text-slate-500">{{ student.contactNo || 'No contact provided' }}</p>
+              </div>
+
+              <div class="rounded-xl border border-orange-100 bg-orange-50/30 p-4">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <span class="material-icons text-[16px] text-orange-400">school</span>
+                  <p class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Previous School</p>
+                </div>
+                <p class="mt-1 font-bold text-slate-900">{{ student.previousSchool || 'N/A' }}</p>
+              </div>
+
+              <div class="col-span-1 sm:col-span-2 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <span class="material-icons text-[16px] text-slate-400">public</span>
+                  <p class="text-xs font-extrabold uppercase tracking-wide text-slate-500">UAE Address</p>
+                </div>
+                <p class="mt-1 font-bold text-slate-900">{{ student.uaeAddress || 'N/A' }}</p>
+              </div>
+
+              <div class="col-span-1 sm:col-span-2 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <span class="material-icons text-[16px] text-slate-400">map</span>
+                  <p class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Philippine Address</p>
+                </div>
+                <p class="mt-1 font-bold text-slate-900">{{ student.phAddress || student.address || 'N/A' }}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </ng-container>
+
+      <!-- SIBLINGS TAB -->
+      <ng-container *ngIf="activeTab === 'siblings'">
+        <section class="rounded-2xl border border-violet-100/60 bg-white p-5 shadow-sm">
+          <div class="flex justify-between items-center">
+            <h2 class="text-lg font-extrabold text-slate-900">Associated Siblings</h2>
+            <button class="action-secondary !py-1.5 !px-3 !text-xs border-transparent"><span class="material-icons text-[16px]">add</span> Add Sibling</button>
+          </div>
+          <div class="mt-5 space-y-3">
+            <div *ngFor="let sib of siblings" class="rounded-lg border border-slate-200 p-4 flex justify-between items-center">
+              <div>
+                <p class="font-extrabold text-slate-900">{{ sib.siblingName }}</p>
+                <p class="mt-1 text-sm font-semibold text-slate-500">{{ sib.relationship }} · {{ sib.gradeLevel }}</p>
+              </div>
+            </div>
+            <p *ngIf="siblings.length === 0" class="text-sm font-semibold text-slate-500">No siblings registered.</p>
+          </div>
+        </section>
+      </ng-container>
+
+      <!-- ACADEMIC RECORDS TAB -->
+      <ng-container *ngIf="activeTab === 'academic'">
+        <div class="space-y-6">
+          <section class="rounded-2xl border border-violet-100/60 bg-white p-5 shadow-sm">
+            <div class="flex justify-between items-center mb-5">
+              <h2 class="text-lg font-extrabold text-slate-900">Academic Records</h2>
+              <button class="action-secondary !py-1.5 !px-3 !text-xs border-transparent" (click)="openModal('academic')"><span class="material-icons text-[16px]">add</span> Add Record</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div *ngFor="let record of academicHistory" class="rounded-xl border border-slate-200 p-4 relative overflow-hidden group hover:border-violet-300 transition-colors cursor-pointer bg-slate-50/50 hover:bg-violet-50/30">
+                <div class="flex justify-between items-start mb-3">
+                  <div>
+                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">{{ record.schoolYear }}</p>
+                    <p class="font-bold text-slate-900 text-base mt-0.5">{{ record.gradeLevel }}</p>
+                  </div>
+                  <span class="status-pill" [ngClass]="statusClass(record.status)">{{ record.status }}</span>
+                </div>
+                <div class="flex items-end justify-between border-t border-slate-200 pt-3 mt-2">
+                  <div>
+                    <p class="text-xs text-slate-500 font-medium mb-0.5">Gen. Average</p>
+                    <p class="font-extrabold text-slate-800 text-xl">{{ record.generalAverage }}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-xs text-slate-500 font-medium mb-0.5">Remarks</p>
+                    <p class="font-semibold text-violet-700 text-sm">{{ record.remarks }}</p>
+                  </div>
+                </div>
+                <!-- View Details hover overlay mock -->
+                <div class="absolute inset-0 bg-violet-600/95 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <span class="material-icons text-white mb-1">visibility</span>
+                  <p class="text-white font-bold text-sm">View Report Card</p>
+                </div>
+              </div>
+              <p *ngIf="academicHistory.length === 0" class="col-span-2 text-sm font-semibold text-slate-500">No academic records found.</p>
+            </div>
+          </section>
+
+          <section class="rounded-2xl border border-violet-100/60 bg-white p-5 shadow-sm">
+            <div class="flex justify-between items-center mb-5">
+              <h2 class="text-lg font-extrabold text-slate-900">Extracurriculars & Achievements</h2>
+              <button class="action-secondary !py-1.5 !px-3 !text-xs border-transparent"><span class="material-icons text-[16px]">add</span> Add Entry</button>
+            </div>
+            <div class="space-y-3">
+              <div *ngFor="let achievement of achievements" class="rounded-lg border border-slate-200 p-4 flex justify-between items-center bg-emerald-50/30 hover:shadow-sm transition-shadow">
+                <div class="flex items-center gap-3">
+                  <div class="bg-emerald-100 text-emerald-600 p-2 rounded-full flex items-center justify-center">
+                    <span class="material-icons text-[20px]">emoji_events</span>
+                  </div>
+                  <div>
+                    <p class="font-extrabold text-slate-900">{{ achievement.title }}</p>
+                    <p class="mt-0.5 text-xs font-semibold text-slate-500">{{ achievement.description || achievement.schoolYear }}</p>
+                  </div>
+                </div>
+                <span class="text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-700 px-2 py-1 rounded">{{ achievement.type || 'Achievement' }}</span>
+              </div>
+              <p *ngIf="achievements.length === 0" class="text-sm font-semibold text-slate-500">No achievements recorded.</p>
+            </div>
+          </section>
+        </div>
+      </ng-container>
+
+      <!-- BEHAVIOR TAB -->
+      <ng-container *ngIf="activeTab === 'behavior'">
+        <section class="rounded-2xl border border-violet-100/60 bg-white p-5 shadow-sm">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-extrabold text-slate-900">Behavioral Records & Incidents</h2>
+            <button class="action-secondary !py-1.5 !px-3 !text-xs border-transparent" (click)="openModal('behavior')"><span class="material-icons text-[16px]">add</span> Log Incident</button>
+          </div>
+          
+          <div class="flex space-x-2 border-b border-slate-200 mb-5">
+            <button (click)="behaviorSubTab = 'disciplinary'" [ngClass]="behaviorSubTab === 'disciplinary' ? 'border-rose-500 text-rose-700' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'" class="px-4 py-2 text-sm font-extrabold border-b-2 transition-colors">Disciplinary</button>
+            <button (click)="behaviorSubTab = 'attendance'" [ngClass]="behaviorSubTab === 'attendance' ? 'border-amber-500 text-amber-700' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'" class="px-4 py-2 text-sm font-extrabold border-b-2 transition-colors flex items-center gap-2">Absent & Late <span *ngIf="attendanceIssuesCount > 0" class="bg-amber-100 text-amber-700 py-0.5 px-2 rounded-full text-[10px]">{{ attendanceIssuesCount }}</span></button>
+          </div>
+
+          <div class="space-y-3">
+            <div *ngFor="let rec of filteredBehaviorRecords" class="rounded-lg border border-slate-200 p-4 border-l-4" [ngClass]="behaviorSubTab === 'disciplinary' ? 'border-l-rose-500 bg-rose-50/20' : 'border-l-amber-500 bg-amber-50/20'">
+              <p class="font-extrabold text-slate-900">{{ rec.incidentType }} <span class="text-sm font-medium text-slate-500 ml-2">{{ rec.date | date:'medium' }}</span></p>
+              
+              <!-- Description layout based on tab -->
+              <p *ngIf="behaviorSubTab === 'disciplinary'" class="mt-2 text-sm text-rose-600 font-bold">{{ rec.description }}</p>
+              <p *ngIf="behaviorSubTab === 'attendance'" class="mt-2 text-sm text-slate-700"><strong>Reason (from Teacher):</strong> {{ rec.description }}</p>
+
+              <div class="mt-3 bg-white border border-slate-100 p-3 rounded text-sm text-slate-600">
+                <strong>Action Taken:</strong> {{ rec.actionTaken }}
+              </div>
+            </div>
+            <p *ngIf="filteredBehaviorRecords.length === 0" class="text-sm font-semibold text-slate-500">No {{ behaviorSubTab === 'attendance' ? 'Absent & Late' : 'Disciplinary' }} records found.</p>
+          </div>
+        </section>
+      </ng-container>
+
+      <!-- DOCUMENTS TAB -->
+      <ng-container *ngIf="activeTab === 'documents'">
+        <div class="space-y-6">
+          <section class="rounded-2xl border border-violet-100/60 bg-white p-5 shadow-sm">
+            <div class="flex justify-between items-center mb-2">
+              <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">✅ Registration Checklist</h2>
+            </div>
+            <p class="text-xs font-semibold text-slate-500 mb-4">Required documents for {{ student.studentType }} status.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label *ngFor="let doc of requiredDocuments" class="group flex items-center gap-3 rounded-xl border border-violet-100/60 bg-white px-4 py-3 hover:border-violet-300 hover:bg-violet-50/50 transition-all cursor-pointer shadow-sm">
+                <input type="checkbox" [checked]="student.documentStatus === 'Complete'" class="h-5 w-5 rounded border-violet-300 text-violet-600 focus:ring-violet-500 cursor-pointer" />
+                <span class="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{{ doc }}</span>
+              </label>
+            </div>
+          </section>
+
+          <section class="rounded-2xl border border-violet-100/60 bg-white p-5 shadow-sm">
+            <div class="flex justify-between items-center">
+              <h2 class="text-lg font-extrabold text-slate-900">Uploaded Documents</h2>
+              <div class="relative">
+                <input type="file" (change)="handlePdfUpload($event)" accept="application/pdf,image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" title="Upload Document" />
+                <button class="action-secondary !py-1.5 !px-3 !text-xs border-transparent pointer-events-none" [disabled]="isUploadingDocument">
+                  <span class="material-icons text-[16px]">{{ isUploadingDocument ? 'hourglass_empty' : 'upload' }}</span>
+                  {{ isUploadingDocument ? 'Saving...' : 'Upload Document' }}
+                </button>
+              </div>
+            </div>
+          <div class="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4" *ngIf="documents.length > 0">
+            <div *ngFor="let doc of documents" class="rounded-lg border border-slate-200 overflow-hidden flex flex-col group relative bg-white hover:shadow-md transition-shadow">
+              <div class="h-32 bg-slate-100 flex items-center justify-center border-b border-slate-200 overflow-hidden">
+                <img *ngIf="doc.isImage" [src]="doc.fileUrl" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                <div *ngIf="!doc.isImage" class="flex h-full w-full flex-col items-center justify-center bg-rose-50 text-rose-600">
+                  <span class="material-icons text-5xl">picture_as_pdf</span>
+                  <span class="mt-1 text-[10px] font-extrabold uppercase tracking-widest">PDF</span>
+                </div>
+              </div>
+              <div class="p-3 flex-1 flex flex-col justify-between">
+                <div>
+                  <p class="text-sm font-extrabold text-slate-900 truncate" [title]="doc.requirement">{{ doc.requirement }}</p>
+                  <p class="mt-1 text-xs font-semibold text-slate-400">{{ doc.uploadedAt | date:'medium' }}</p>
+                </div>
+                <div class="mt-3 flex items-center gap-2">
+                  <span class="status-pill text-[10px] w-full text-center" [ngClass]="statusClass(doc.status)">{{ doc.status }}</span>
+                  <a [href]="doc.fileUrl" target="_blank" rel="noopener" class="grid h-7 w-7 shrink-0 place-items-center rounded-lg border border-slate-200 text-slate-500 hover:border-violet-200 hover:text-violet-700" title="Open document">
+                    <span class="material-icons text-[16px]">open_in_new</span>
+                  </a>
+                  <button (click)="deleteDocument(doc)" class="grid h-7 w-7 shrink-0 place-items-center rounded-lg border border-rose-100 text-rose-500 hover:bg-rose-50" title="Delete document">
+                    <span class="material-icons text-[16px]">delete</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="documents.length === 0" class="mt-5 flex flex-col items-center justify-center py-10 border-2 border-dashed border-slate-200 rounded-lg bg-slate-50">
+            <span class="material-icons text-4xl text-slate-300 mb-2">folder_open</span>
+            <p class="text-sm font-semibold text-slate-500">No uploaded documents yet</p>
+          </div>
+        </section>
+        </div>
+      </ng-container>
+
+      <!-- FEES TAB -->
+      <ng-container *ngIf="activeTab === 'fees'">
+        <section class="rounded-2xl border border-violet-100/60 bg-white p-5 shadow-sm">
+          <div class="flex justify-between items-center">
+            <h2 class="text-lg font-extrabold text-slate-900">Fee Status</h2>
+            <button class="action-secondary !py-1.5 !px-3 !text-xs border-transparent" (click)="openModal('fee')"><span class="material-icons text-[16px]">add</span> Add Fee</button>
+          </div>
+          <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div *ngFor="let fee of fees" class="rounded-lg border border-slate-200 p-5 relative overflow-hidden">
+              <div class="absolute top-0 right-0 w-2 h-full" [ngClass]="fee.status === 'Fully Paid' ? 'bg-emerald-500' : 'bg-rose-500'"></div>
+              <p class="text-xs font-extrabold uppercase tracking-wide text-slate-500">{{ fee.feeType }}</p>
+              <p class="mt-2 text-2xl font-extrabold text-slate-900">AED {{ fee.amount }}</p>
+              <div class="mt-4 flex items-center gap-2">
+                <span class="status-pill" [ngClass]="statusClass(fee.status)">{{ fee.status }}</span>
+                <span class="text-xs font-semibold text-slate-400" *ngIf="fee.status === 'Fully Paid'">Paid on {{ fee.paidDate | date }}</span>
+              </div>
+            </div>
+            <p *ngIf="fees.length === 0" class="col-span-2 text-sm font-semibold text-slate-500">No fees recorded.</p>
+          </div>
+        </section>
+      </ng-container>
+
+      <!-- USER LOGIN TAB -->
+      <ng-container *ngIf="activeTab === 'user'">
+        <section class="rounded-2xl border border-violet-100/60 bg-white p-5 shadow-sm">
+          <h2 class="text-lg font-extrabold text-slate-900">Student Login Credentials</h2>
+          <div class="mt-5 max-w-md">
+            <div *ngIf="userAccount" class="rounded-lg border border-emerald-200 bg-emerald-50 p-5">
+              <div class="flex items-center gap-3 text-emerald-700 mb-4">
+                <span class="material-icons">check_circle</span>
+                <p class="font-extrabold">Account Active</p>
+              </div>
+              <div class="space-y-3">
+                <div>
+                  <p class="text-xs font-extrabold uppercase text-emerald-600/70">Username</p>
+                  <p class="font-bold text-emerald-900 text-lg">{{ userAccount.email }}</p>
+                </div>
+                <div>
+                  <p class="text-xs font-extrabold uppercase text-emerald-600/70">Role</p>
+                  <p class="font-bold text-emerald-900">{{ userAccount.role }}</p>
+                </div>
+              </div>
+              <div class="mt-6 pt-4 border-t border-emerald-200/50">
+                <button (click)="resetPassword()" class="w-full bg-white text-emerald-700 border border-emerald-200 font-extrabold py-2 px-4 rounded shadow-sm hover:bg-emerald-100 transition-colors flex items-center justify-center gap-2">
+                  <span class="material-icons text-[18px]">lock_reset</span>
+                  Reset Password
+                </button>
+              </div>
+            </div>
+
+            <div *ngIf="!userAccount" class="rounded-lg border border-slate-200 bg-slate-50 p-5 text-center">
+              <span class="material-icons text-slate-400 text-4xl mb-2">person_off</span>
+              <p class="font-extrabold text-slate-900">No Login Account</p>
+              <p class="mt-1 text-sm text-slate-500">A user account is automatically generated when the student is marked as Officially Enrolled.</p>
+            </div>
+          </div>
+        </section>
+      </ng-container>
+
+    </div>
+
+    <aside class="space-y-6">
+      <section class="rounded-2xl border border-violet-100/60 bg-white p-5 shadow-sm">
+        <h2 class="text-base font-extrabold text-slate-900">Registrar Actions</h2>
+        <div class="mt-4 space-y-2">
+          <button (click)="openModal('edit-info')" class="action-secondary w-full justify-start !py-2 !px-3 !text-xs border-transparent"><span class="material-icons text-[16px]">edit</span> Edit Learner Info</button>
+          <button (click)="openModal('move-section')" class="action-secondary w-full justify-start !py-2 !px-3 !text-xs border-transparent"><span class="material-icons text-[16px]">swap_horiz</span> Move Section</button>
+          <button
+            (click)="markCleared()"
+            [disabled]="isMarkingRegistrarCleared"
+            class="action-primary w-full justify-start !py-2 !px-3 !text-xs disabled:cursor-not-allowed disabled:opacity-60">
+            <span class="material-icons text-[16px]">{{ isMarkingRegistrarCleared ? 'hourglass_empty' : 'verified' }}</span>
+            {{ isMarkingRegistrarCleared ? 'Marking Cleared...' : 'Mark Registrar Cleared' }}
+          </button>
+        </div>
+      </section>
+
+      <!-- MEDICAL & EMERGENCY -->
+      <section class="rounded-2xl border border-rose-100/60 bg-white p-5 shadow-sm">
+        <div class="flex justify-between items-center">
+          <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">🏥 Medical & Emergency</h2>
+          <button class="text-slate-400 hover:text-violet-600 transition-colors"><span class="material-icons text-[16px]">edit</span></button>
+        </div>
+        <div class="mt-4 grid grid-cols-1 gap-3">
+          <div class="rounded-xl border border-rose-200 bg-rose-50 p-4">
+            <h3 class="text-[10px] font-extrabold uppercase tracking-widest text-rose-600 mb-1">Emergency Contact</h3>
+            <p class="font-bold text-slate-900 text-sm">{{ student.motherName || student.guardian || 'N/A' }}</p>
+            <p class="text-xs font-medium text-slate-700 mt-0.5">{{ student.motherContact || student.contactNo || 'N/A' }}</p>
+          </div>
+          <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <h3 class="text-[10px] font-extrabold uppercase tracking-widest text-amber-600 mb-1">Medical Alerts</h3>
+            <ul *ngIf="medicalAlerts.length > 0" class="list-disc list-inside text-xs text-slate-800 space-y-1">
+              <li *ngFor="let alert of medicalAlerts">
+                <span class="font-bold">{{ alert.type || 'Alert' }}:</span> {{ alert.description || alert.value }}
+              </li>
+            </ul>
+            <p *ngIf="medicalAlerts.length === 0" class="text-xs font-semibold text-slate-600">No medical alerts recorded.</p>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <!-- Dynamic Modal Overlay -->
+  <div *ngIf="isModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/55 p-4 backdrop-blur-sm">
+    <div [ngClass]="modalType === 'edit-info' ? 'edit-learner-modal' : 'w-full max-w-md rounded-xl bg-white shadow-xl'">
+      <div *ngIf="modalType === 'edit-info'" class="edit-learner-header">
+        <div class="flex min-w-0 items-center gap-4">
+          <div class="edit-learner-avatar">
+            {{ (student.firstName || student.name || 'L').charAt(0) }}{{ (student.lastName || '').charAt(0) }}
+          </div>
+          <div class="min-w-0">
+            <p class="edit-learner-kicker">Learner record</p>
+            <h3 class="edit-learner-title">Edit Learner Info</h3>
+            <p class="edit-learner-subtitle">
+              {{ student.studentNo || 'No student no.' }} · {{ student.gradeLevel || 'No grade' }}{{ student.section ? ' - ' + student.section : '' }}
+            </p>
+          </div>
+        </div>
+        <button (click)="closeModal()" class="edit-learner-close" aria-label="Close edit learner modal">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <div *ngIf="modalType !== 'edit-info'" class="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+        <h3 class="text-lg font-extrabold text-slate-900 capitalize" *ngIf="modalType !== 'move-section'">Add {{ modalType }} Record</h3>
+        <h3 class="text-lg font-extrabold text-slate-900 capitalize" *ngIf="modalType === 'move-section'">Move Section</h3>
+        <button (click)="closeModal()" class="text-slate-400 hover:text-slate-600"><span class="material-icons">close</span></button>
+      </div>
+      <div [ngClass]="modalType === 'edit-info' ? 'edit-learner-body' : 'p-6 max-h-[80vh] overflow-y-auto'">
+        
+        <!-- Sibling Form -->
+        <ng-container *ngIf="modalType === 'sibling'">
+          <div class="space-y-4">
+            <div>
+              <label class="mb-1 block text-sm font-extrabold text-slate-700">Sibling Name</label>
+              <input type="text" [(ngModel)]="formData.siblingName" class="w-full rounded-md border-slate-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" placeholder="Full name">
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-extrabold text-slate-700">Relationship</label>
+              <input type="text" [(ngModel)]="formData.relationship" class="w-full rounded-md border-slate-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" placeholder="e.g. Brother, Sister">
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-extrabold text-slate-700">Grade Level</label>
+              <input type="text" [(ngModel)]="formData.gradeLevel" class="w-full rounded-md border-slate-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" placeholder="e.g. G5">
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Academic Form -->
+        <ng-container *ngIf="modalType === 'academic'">
+          <div class="space-y-4 text-center">
+            <span class="material-icons text-4xl text-amber-500">construction</span>
+            <p class="font-extrabold text-slate-700">Academic Records are managed globally via the Academic History tab in the sidebar.</p>
+          </div>
+        </ng-container>
+
+        <!-- Behavior Form -->
+        <ng-container *ngIf="modalType === 'behavior'">
+          <div class="space-y-4">
+            <div>
+              <label class="mb-1 block text-sm font-extrabold text-slate-700">Incident Type</label>
+              <input type="text" [(ngModel)]="formData.incidentType" class="w-full rounded-md border-slate-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" placeholder="e.g. Disciplinary, Citation">
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-extrabold text-slate-700">Description</label>
+              <textarea [(ngModel)]="formData.description" rows="3" class="w-full rounded-md border-slate-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" placeholder="Describe the incident..."></textarea>
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-extrabold text-slate-700">Action Taken</label>
+              <input type="text" [(ngModel)]="formData.actionTaken" class="w-full rounded-md border-slate-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" placeholder="e.g. Warning issued">
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Fee Form -->
+        <ng-container *ngIf="modalType === 'fee'">
+          <div class="space-y-4">
+            <div>
+              <label class="mb-1 block text-sm font-extrabold text-slate-700">Fee Type</label>
+              <input type="text" [(ngModel)]="formData.feeType" class="w-full rounded-md border-slate-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" placeholder="e.g. Tuition, Lab Fee">
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-extrabold text-slate-700">Amount (AED)</label>
+              <input type="number" [(ngModel)]="formData.amount" class="w-full rounded-md border-slate-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" placeholder="0.00">
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-extrabold text-slate-700">Status</label>
+              <select [(ngModel)]="formData.status" class="w-full rounded-md border-slate-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm">
+                <option value="Outstanding Balance">Outstanding Balance</option>
+                <option value="Fully Paid">Fully Paid</option>
+              </select>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Edit Info Form -->
+        <ng-container *ngIf="modalType === 'edit-info'">
+          <div class="edit-learner-form">
+            
+            <div class="edit-learner-section">
+              <div class="edit-learner-section-head">
+                <span class="material-icons">badge</span>
+                <h4>Basic Details</h4>
+              </div>
+              <div class="edit-learner-grid">
+                <div class="edit-learner-field">
+                  <label>First Name</label>
+                  <input type="text" [(ngModel)]="formData.firstName" class="edit-learner-input">
+                </div>
+                <div class="edit-learner-field">
+                  <label>Last Name</label>
+                  <input type="text" [(ngModel)]="formData.lastName" class="edit-learner-input">
+                </div>
+                <div class="edit-learner-field">
+                  <label>Gender</label>
+                  <select [(ngModel)]="formData.gender" class="edit-learner-input">
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+                </div>
+                <div class="edit-learner-field">
+                  <label>Date of Birth</label>
+                  <input type="date" [(ngModel)]="formData.birthdate" class="edit-learner-input">
+                </div>
+              </div>
+            </div>
+
+            <div class="edit-learner-section">
+              <div class="edit-learner-section-head">
+                <span class="material-icons">contact_phone</span>
+                <h4>Contact & Address</h4>
+              </div>
+              <div class="edit-learner-grid">
+                <div class="edit-learner-field">
+                  <label>Primary Contact No.</label>
+                  <input type="text" [(ngModel)]="formData.contactNo" class="edit-learner-input">
+                </div>
+                <div class="edit-learner-field">
+                  <label>Previous School</label>
+                  <input type="text" [(ngModel)]="formData.previousSchool" class="edit-learner-input">
+                </div>
+                <div class="edit-learner-field edit-learner-field--wide">
+                  <label>Generic / Registration Address</label>
+                  <input type="text" [(ngModel)]="formData.address" class="edit-learner-input">
+                </div>
+                <div class="edit-learner-field">
+                  <label>UAE Address</label>
+                  <input type="text" [(ngModel)]="formData.uaeAddress" class="edit-learner-input">
+                </div>
+                <div class="edit-learner-field">
+                  <label>Philippine Address</label>
+                  <input type="text" [(ngModel)]="formData.phAddress" class="edit-learner-input">
+                </div>
+              </div>
+            </div>
+
+            <div class="edit-learner-section">
+              <div class="edit-learner-section-head">
+                <span class="material-icons">family_restroom</span>
+                <h4>Family Background</h4>
+              </div>
+              <div class="edit-learner-grid">
+                <div class="edit-learner-field">
+                  <label>Mother's Name</label>
+                  <input type="text" [(ngModel)]="formData.motherName" class="edit-learner-input">
+                </div>
+                <div class="edit-learner-field">
+                  <label>Mother's Contact</label>
+                  <input type="text" [(ngModel)]="formData.motherContact" class="edit-learner-input">
+                </div>
+                <div class="edit-learner-field">
+                  <label>Father's Name</label>
+                  <input type="text" [(ngModel)]="formData.fatherName" class="edit-learner-input">
+                </div>
+                <div class="edit-learner-field">
+                  <label>Father's Contact</label>
+                  <input type="text" [(ngModel)]="formData.fatherContact" class="edit-learner-input">
+                </div>
+                <div class="edit-learner-field edit-learner-field--wide">
+                  <label>Other Guardian Name</label>
+                  <input type="text" [(ngModel)]="formData.guardian" class="edit-learner-input">
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </ng-container>
+
+        <!-- Move Section Form -->
+        <ng-container *ngIf="modalType === 'move-section'">
+          <div class="space-y-4">
+            <div>
+              <label class="mb-1 block text-sm font-extrabold text-slate-700">Current Section</label>
+              <input type="text" [value]="student.section" class="w-full rounded-md border-slate-300 shadow-sm bg-slate-100 cursor-not-allowed sm:text-sm" disabled>
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-extrabold text-slate-700">New Section ({{ student.gradeLevel }})</label>
+              <select [(ngModel)]="formData.newSection" class="w-full rounded-md border-slate-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 sm:text-sm">
+                <option value="">Select Target Section...</option>
+                <option *ngFor="let sec of availableSections" [value]="sec.id">{{ sec.sectionName }} ({{ sec.availableSlots }} slots)</option>
+              </select>
+            </div>
+            <div class="bg-blue-50 text-blue-800 text-xs p-3 rounded mt-2 border border-blue-100">
+              Moving the student will update the active masterlist and automatically adjust the enrolled capacity of the related sections.
+            </div>
+          </div>
+        </ng-container>
+
+      </div>
+      <div [ngClass]="modalType === 'edit-info' ? 'edit-learner-footer' : 'flex justify-end gap-3 rounded-b-xl bg-slate-50 px-6 py-4'">
+        <button (click)="closeModal()" [ngClass]="modalType === 'edit-info' ? 'edit-learner-button edit-learner-button--ghost' : 'rounded-lg px-4 py-2 text-sm font-extrabold text-slate-600 hover:bg-slate-100'">Cancel</button>
+        <button *ngIf="modalType !== 'academic'" (click)="saveModal()" [ngClass]="modalType === 'edit-info' ? 'edit-learner-button edit-learner-button--primary' : 'rounded-lg bg-violet-600 px-4 py-2 text-sm font-extrabold text-white shadow-sm hover:bg-violet-700'">
+          {{ modalType === 'edit-info' ? 'Save Changes' : modalType === 'move-section' ? 'Move Learner' : 'Save Record' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+</section>

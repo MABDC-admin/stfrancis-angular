@@ -1,0 +1,213 @@
+<section class="page-shell">
+  <div
+    class="fixed right-8 top-24 z-[120] flex w-80 overflow-hidden rounded-xl border bg-white shadow-[0_18px_50px_-20px_rgba(15,23,42,0.35)] transition-all duration-300"
+    [ngClass]="{
+      'translate-y-0 opacity-100': toast.show,
+      '-translate-y-4 opacity-0 pointer-events-none': !toast.show,
+      'border-emerald-100': toast.type === 'success',
+      'border-rose-100': toast.type === 'error'
+    }">
+    <div class="w-1 shrink-0" [ngClass]="toast.type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'"></div>
+    <div class="flex items-start gap-2 p-3">
+      <span class="material-icons mt-0.5 text-xl" [ngClass]="toast.type === 'success' ? 'text-emerald-500' : 'text-rose-500'">
+        {{ toast.type === 'success' ? 'check_circle' : 'error' }}
+      </span>
+      <div>
+        <h5 class="text-xs font-extrabold text-slate-800">{{ toast.title }}</h5>
+        <p class="mt-0.5 text-[11px] font-semibold leading-snug text-slate-500">{{ toast.message }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="border-b border-violet-100/60 bg-white px-6 py-4 shrink-0 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between z-10 rounded-2xl shadow-card m-6">
+    <div>
+      <p class="text-[10px] font-extrabold uppercase tracking-widest text-violet-500 mb-0.5">Registrar Module</p>
+      <h1 class="text-xl font-extrabold tracking-tight text-slate-900">🔄 Transferee Management</h1>
+      <p class="text-xs font-semibold text-slate-500 mt-0.5">
+        Process incoming/outgoing transfers, LRN requests, and evaluate records.
+      </p>
+    </div>
+    
+    <div class="flex flex-wrap gap-2">
+      <button class="action-secondary !py-2 !px-3 !text-xs border-transparent"><span class="material-icons text-[16px]">cloud_download</span> Export Log</button>
+      <button (click)="openNewTransferModal()" class="action-primary !py-2 !px-3 !text-xs"><span class="material-icons text-[16px]">add</span> New Transfer</button>
+    </div>
+  </div>
+
+  <!-- Tabs & Search -->
+  <div class="mb-4 mx-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div class="bg-white rounded-xl p-1 inline-flex shadow-sm border border-violet-100/60">
+      <button (click)="setTab('incoming')" [ngClass]="activeTab === 'incoming' ? 'bg-violet-50 text-violet-700 shadow-sm ring-1 ring-violet-100' : 'text-slate-500 hover:text-slate-700 hover:bg-violet-50/50'" class="px-4 py-1.5 text-[13px] font-extrabold rounded-lg transition-all flex items-center gap-1.5">
+        <span class="material-icons text-[16px]">login</span> Incoming
+      </button>
+      <button (click)="setTab('outgoing')" [ngClass]="activeTab === 'outgoing' ? 'bg-violet-50 text-violet-700 shadow-sm ring-1 ring-violet-100' : 'text-slate-500 hover:text-slate-700 hover:bg-violet-50/50'" class="px-4 py-1.5 text-[13px] font-extrabold rounded-lg transition-all flex items-center gap-1.5">
+        <span class="material-icons text-[16px]">logout</span> Outgoing
+      </button>
+      <button (click)="setTab('lrn-requests')" [ngClass]="activeTab === 'lrn-requests' ? 'bg-violet-50 text-violet-700 shadow-sm ring-1 ring-violet-100' : 'text-slate-500 hover:text-slate-700 hover:bg-violet-50/50'" class="px-4 py-1.5 text-[13px] font-extrabold rounded-lg transition-all flex items-center gap-1.5">
+        <span class="material-icons text-[16px]">contact_mail</span> LRN Requests
+      </button>
+    </div>
+
+    <div class="relative w-full sm:w-64">
+      <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+      <input type="text" [(ngModel)]="searchQuery" (input)="filterData()" placeholder="Search student or school..." class="w-full pl-9 pr-3 py-2 rounded-xl border-violet-100 shadow-sm focus:border-violet-500 focus:ring-violet-500 text-[13px] font-bold text-slate-800 placeholder:text-slate-400 placeholder:font-semibold bg-white transition-shadow">
+    </div>
+  </div>
+
+  <!-- Content Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mx-6">
+    <div *ngFor="let t of filteredTransfers" class="bg-white rounded-2xl p-4 border border-violet-100/60 shadow-sm hover:shadow-md hover:border-violet-200 transition-all relative overflow-hidden group">
+      <!-- Decorative Status Strip -->
+      <div class="absolute left-0 top-0 w-1 h-full" [ngClass]="{
+        'bg-blue-500': t.status.includes('Pending Evaluation'),
+        'bg-emerald-500': t.status.includes('Cleared') || t.status.includes('Evaluated'),
+        'bg-amber-500': t.status.includes('LRN')
+      }"></div>
+
+      <div class="flex justify-between items-start mb-3 pl-3">
+        <div>
+          <span class="status-pill text-[10px] uppercase tracking-wider font-extrabold" [ngClass]="statusClass(t.status)">{{ t.status }}</span>
+          <h3 class="mt-2.5 text-base font-extrabold text-slate-900 group-hover:text-violet-700 transition-colors">{{ t.studentName }}</h3>
+          <p class="text-[11px] font-semibold text-slate-400 mt-0.5">Effective: {{ t.effectiveDate | date:'mediumDate' }}</p>
+        </div>
+        <div class="bg-violet-50/50 p-1.5 rounded-lg border border-violet-100 text-violet-500">
+          <span class="material-icons text-[18px]" *ngIf="t.movementType.includes('Incoming')">login</span>
+          <span class="material-icons text-[18px]" *ngIf="t.movementType.includes('Outgoing')">logout</span>
+        </div>
+      </div>
+
+      <div class="bg-violet-50/30 rounded-xl p-3 border border-violet-50 mb-4 ml-3">
+        <div class="flex items-center gap-2 text-[13px]">
+          <div class="flex-1">
+            <p class="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">From</p>
+            <p class="font-bold text-slate-700 truncate" [title]="t.from">{{ t.from || 'N/A' }}</p>
+          </div>
+          <span class="material-icons text-slate-300 text-[16px]">arrow_forward</span>
+          <div class="flex-1 text-right">
+            <p class="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">To</p>
+            <p class="font-bold text-slate-700 truncate" [title]="t.to">{{ t.to || 'N/A' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pl-3">
+        <button *ngIf="t.status.includes('Pending Evaluation')" (click)="openModal('evaluate', t)" class="flex-1 bg-violet-50 text-violet-700 hover:bg-violet-100 font-extrabold text-[11px] py-1.5 px-3 rounded-lg border border-violet-100 transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+          <span class="material-icons text-[14px]">verified</span> Evaluate
+        </button>
+        <button *ngIf="t.status.includes('Pending LRN')" (click)="openModal('lrn', t)" class="flex-1 bg-amber-50 text-amber-700 hover:bg-amber-100 font-extrabold text-[11px] py-1.5 px-3 rounded-lg border border-amber-100 transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+          <span class="material-icons text-[14px]">send</span> Request LRN
+        </button>
+        <button class="flex-none bg-white text-slate-600 hover:bg-slate-50 hover:text-violet-700 font-extrabold text-[11px] py-1.5 px-3 rounded-lg border border-slate-200 transition-colors flex items-center justify-center shadow-sm">
+          View Profile
+        </button>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredTransfers.length === 0" class="col-span-full bg-white rounded-2xl p-10 border-2 border-dashed border-violet-100/60 flex flex-col items-center justify-center text-center">
+      <div class="bg-violet-50 w-16 h-16 rounded-xl flex items-center justify-center mb-3 border border-violet-100">
+        <span class="material-icons text-3xl text-violet-300">transfer_within_a_station</span>
+      </div>
+      <h3 class="text-base font-extrabold text-slate-900">No transfers found</h3>
+      <p class="text-[13px] font-medium text-slate-500 mt-1 max-w-sm">There are no {{ activeTab }} transferee records matching your criteria right now.</p>
+    </div>
+  </div>
+
+  <!-- Dynamic Modal Overlay -->
+  <div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+    <div class="w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden border border-violet-100/50">
+      <div class="flex items-center justify-between border-b border-violet-50 px-6 py-4 bg-violet-50/30">
+        <h3 class="text-base font-extrabold text-slate-800 flex items-center gap-2">
+          <span class="material-icons text-[18px]" [ngClass]="modalType === 'evaluate' ? 'text-violet-500' : modalType === 'new' ? 'text-emerald-500' : 'text-amber-500'">
+            {{ modalType === 'evaluate' ? 'history_edu' : modalType === 'new' ? 'add_circle' : 'contact_mail' }}
+          </span>
+          {{ modalType === 'evaluate' ? 'Evaluate Academic Records' : modalType === 'new' ? 'New Transfer' : 'Request LRN Transfer' }}
+        </h3>
+        <button (click)="closeModal()" class="text-slate-400 hover:text-slate-600 bg-white rounded-full p-1 border border-violet-100 shadow-sm transition-colors"><span class="material-icons block text-[18px]">close</span></button>
+      </div>
+      
+      <div class="p-6">
+        <!-- Context Card -->
+        <div *ngIf="modalType !== 'new'" class="bg-violet-50/50 border border-violet-100 rounded-xl p-4 mb-5 flex gap-3 items-center">
+          <div class="bg-white p-2 rounded-lg shadow-sm border border-violet-100 text-violet-500 shrink-0">
+            <span class="material-icons text-[20px]">person</span>
+          </div>
+          <div>
+            <p class="text-[13px] font-extrabold text-violet-900">{{ selectedTransfer?.studentName }}</p>
+            <p class="text-[11px] font-semibold text-violet-700/70">Transferring from: {{ selectedTransfer?.from }}</p>
+          </div>
+        </div>
+
+        <!-- New Transfer Form -->
+        <ng-container *ngIf="modalType === 'new'">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label class="mb-1.5 block text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Transfer Type</label>
+              <select [(ngModel)]="formData.transferDirection" (change)="onTransferDirectionChange()" class="w-full rounded-xl border-violet-100 shadow-sm focus:border-violet-500 focus:ring-violet-500 text-[13px] font-bold text-slate-800">
+                <option value="Incoming Transfer">Incoming Transfer</option>
+                <option value="Outgoing Transfer">Outgoing Transfer</option>
+                <option value="LRN Transfer">LRN Transfer</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1.5 block text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Effective Date</label>
+              <input type="date" [(ngModel)]="formData.effectiveDate" class="w-full rounded-xl border-violet-100 shadow-sm focus:border-violet-500 focus:ring-violet-500 text-[13px] font-bold text-slate-800">
+            </div>
+            <div class="sm:col-span-2">
+              <label class="mb-1.5 block text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Learner Name</label>
+              <input type="text" [(ngModel)]="formData.studentName" class="w-full rounded-xl border-violet-100 shadow-sm focus:border-violet-500 focus:ring-violet-500 text-[13px] font-bold text-slate-800" placeholder="Full learner name">
+            </div>
+            <div>
+              <label class="mb-1.5 block text-[10px] font-extrabold uppercase tracking-widest text-slate-500">From School</label>
+              <input type="text" [(ngModel)]="formData.previousSchool" class="w-full rounded-xl border-violet-100 shadow-sm focus:border-violet-500 focus:ring-violet-500 text-[13px] font-bold text-slate-800" placeholder="Origin school">
+            </div>
+            <div>
+              <label class="mb-1.5 block text-[10px] font-extrabold uppercase tracking-widest text-slate-500">To School</label>
+              <input type="text" [(ngModel)]="formData.receivingSchool" class="w-full rounded-xl border-violet-100 shadow-sm focus:border-violet-500 focus:ring-violet-500 text-[13px] font-bold text-slate-800" placeholder="Receiving school">
+            </div>
+            <div class="sm:col-span-2">
+              <label class="mb-1.5 block text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Initial Status</label>
+              <input type="text" [(ngModel)]="formData.status" class="w-full rounded-xl border-violet-100 shadow-sm focus:border-violet-500 focus:ring-violet-500 text-[13px] font-bold text-slate-800" placeholder="Auto-filled from transfer type">
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Evaluate Form -->
+        <ng-container *ngIf="modalType === 'evaluate'">
+          <div class="space-y-4">
+            <p class="text-[13px] text-slate-600 font-semibold leading-relaxed mb-3">Review the submitted SF10/Form 137 and evaluate the subjects taken. Mark the record as evaluated once subjects are mapped to the current curriculum.</p>
+            <div>
+              <label class="mb-1.5 block text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Evaluation Notes</label>
+              <textarea [(ngModel)]="formData.evaluationNotes" rows="3" class="w-full rounded-xl border-violet-100 shadow-sm focus:border-violet-500 focus:ring-violet-500 text-[13px] font-bold text-slate-800 bg-violet-50/30" placeholder="e.g. Credited 5 subjects. Math 7 requires remedial..."></textarea>
+            </div>
+            <div class="bg-amber-50/50 border border-amber-100 rounded-xl p-3 flex gap-2 mt-4 text-amber-800 text-xs items-start">
+              <span class="material-icons text-[16px] mt-0.5">warning</span>
+              <p class="font-semibold leading-relaxed">Once evaluated, the student will be cleared for official enrollment in the system.</p>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- LRN Form -->
+        <ng-container *ngIf="modalType === 'lrn'">
+          <div class="space-y-4">
+            <p class="text-[13px] text-slate-600 font-semibold leading-relaxed mb-3">You are about to initiate an official LRN Transfer request to the originating school via the DepEd LIS portal integration.</p>
+            <div>
+              <label class="mb-1.5 block text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Message to Originating School</label>
+              <textarea [(ngModel)]="formData.lrnMessage" rows="3" class="w-full rounded-xl border-violet-100 shadow-sm focus:border-violet-500 focus:ring-violet-500 text-[13px] font-bold text-slate-800 bg-violet-50/30" placeholder="Requesting release of LRN for enrollment..."></textarea>
+            </div>
+          </div>
+        </ng-container>
+
+      </div>
+      
+      <div class="flex justify-end gap-2 border-t border-violet-50 bg-violet-50/20 px-6 py-4">
+        <button (click)="closeModal()" class="action-secondary !py-2 !px-4 !text-xs border-transparent">Cancel</button>
+        <button (click)="saveModal()" [disabled]="isSaving" class="action-primary !py-2 !px-4 !text-xs disabled:cursor-not-allowed disabled:opacity-60" [ngClass]="modalType === 'evaluate' ? 'bg-violet-600 hover:bg-violet-700' : modalType === 'new' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-600 hover:bg-amber-700'">
+          <span class="material-icons text-[16px]">{{ isSaving ? 'hourglass_empty' : modalType === 'evaluate' ? 'check_circle' : modalType === 'new' ? 'save' : 'send' }}</span>
+          {{ isSaving ? 'Saving...' : modalType === 'evaluate' ? 'Mark as Evaluated' : modalType === 'new' ? 'Save Transfer' : 'Send LRN Request' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,128 @@
+<section class="finance-page">
+  <header class="finance-header">
+    <div>
+      <p class="finance-eyebrow">Billing & Assessment</p>
+      <h1 class="finance-title">Student Assessment</h1>
+      <p class="finance-subtitle">All assessment records are locked to {{ academicYear?.code || 'the selected academic year' }}.</p>
+    </div>
+    <div class="finance-header-actions">
+      <app-finance-pdf-export-button title="Billing & Assessment" [subtitle]="academicYear?.code || 'Selected academic year'" />
+      <span class="status-pill" [class.clear]="academicYear?.isActive">{{ academicYear?.code || 'No academic year' }}</span>
+    </div>
+  </header>
+
+  <div class="finance-grid">
+    <section class="finance-panel">
+      <div class="multi-assessment-card">
+        <div class="multi-assessment-header">
+          <div>
+            <span>Batch New Assessment</span>
+            <strong>{{ selectedStudentIds.length }} selected</strong>
+          </div>
+          <div class="multi-assessment-actions">
+            <button type="button" (click)="selectAllAvailableStudents()" [disabled]="!availableStudents.length">All</button>
+            <button type="button" (click)="clearBatchSelection()" [disabled]="!selectedStudentIds.length">Clear</button>
+          </div>
+        </div>
+
+        <div class="learner-checklist" *ngIf="availableStudents.length; else noBatchStudents">
+          <label
+            *ngFor="let student of availableStudents"
+            [class.selected]="selectedStudentIds.includes(student.id || '')">
+            <input
+              type="checkbox"
+              [checked]="selectedStudentIds.includes(student.id || '')"
+              (change)="toggleStudentSelection(student.id, $any($event.target).checked)" />
+            <span class="learner-initials">{{ student.firstName.charAt(0) }}{{ student.lastName.charAt(0) }}</span>
+            <span class="learner-meta">
+              <strong>{{ student.lastName }}, {{ student.firstName }}</strong>
+              <small>{{ student.gradeLevel }} · {{ student.studentNo || student.lrn }}</small>
+            </span>
+          </label>
+        </div>
+        <ng-template #noBatchStudents>
+          <p class="empty-note">No unassessed learners for this academic year.</p>
+        </ng-template>
+      </div>
+
+      <label class="field">
+        <span>Edit Single Assessed Learner</span>
+        <select [(ngModel)]="selectedStudentId" (change)="startSingleEdit()">
+          <option value="">Select learner to edit existing assessment</option>
+          <option *ngFor="let option of studentOptions" [value]="option.student.id">
+            {{ option.student.lastName }}, {{ option.student.firstName }} - {{ option.student.gradeLevel }} - {{ option.status }}
+          </option>
+        </select>
+      </label>
+
+      <div class="assessment-mode-panel">
+        <div>
+          <span>Unassessed learners</span>
+          <strong>{{ availableStudents.length }}</strong>
+        </div>
+        <div>
+          <span>Editable assessed learners</span>
+          <strong>{{ assessedStudentsCount }}</strong>
+        </div>
+      </div>
+
+      <p class="finance-subtitle">
+        Select multiple unassessed learners for the same template, or choose one assessed learner to edit forgotten discounts, scholarship, sibling discount, or fee lines.
+      </p>
+
+      <label class="field">
+        <span>Fee Template</span>
+        <select [(ngModel)]="selectedTemplateId" (change)="applyTemplate()">
+          <option value="">Select template</option>
+          <option *ngFor="let template of templates" [value]="template.id">{{ template.gradeLevel }} - {{ template.name }}</option>
+        </select>
+      </label>
+
+      <div class="summary-card" *ngIf="existingAssessment">
+        <span>Existing Assessment</span>
+        <strong>{{ existingAssessment.financeStatus }}</strong>
+        <p class="finance-subtitle">Discount / Scholarship: {{ existingDiscountSummary }}</p>
+        <p class="finance-subtitle">Edit mode: saving updates this learner assessment; no duplicate assessment is created.</p>
+      </div>
+    </section>
+
+    <section class="finance-panel">
+      <div class="summary-strip">
+        <div class="summary-card"><span>Gross</span><strong>₱{{ grossAmount | number:'1.2-2' }}</strong></div>
+        <div class="summary-card"><span>Discount</span><strong>{{ totalDiscountPercent }}%</strong></div>
+        <div class="summary-card"><span>Net</span><strong>₱{{ netAmount | number:'1.2-2' }}</strong></div>
+        <div class="summary-card">
+          <span>Learners</span>
+          <strong>{{ selectedStudentIds.length ? selectedStudentIds.length + ' selected' : (selectedStudent?.studentNo || '-') }}</strong>
+        </div>
+      </div>
+
+      <div class="summary-strip">
+        <label class="field"><span>Regular %</span><input type="number" min="0" max="100" [(ngModel)]="regularDiscountPercent" /></label>
+        <label class="field"><span>Sibling %</span><input type="number" min="0" max="100" [(ngModel)]="siblingDiscountPercent" /></label>
+        <label class="field"><span>Scholarship %</span><input type="number" min="0" max="100" [(ngModel)]="scholarshipDiscountPercent" /></label>
+        <div class="field"><span>Cap</span><input [value]="totalDiscountPercent > 100 ? 'Over 100% blocked' : 'OK'" readonly /></div>
+      </div>
+
+      <table class="finance-table">
+        <thead><tr><th>Fee</th><th>Description</th><th>Amount</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let item of lineItems">
+            <td>{{ item.feeType?.name || item.feeTypeId }}</td>
+            <td>{{ item.description }}</td>
+            <td>₱{{ item.amount | number:'1.2-2' }}</td>
+          </tr>
+          <tr *ngIf="!lineItems.length"><td colspan="3">Select a template to load line items.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="button-row" style="margin-top:1rem">
+        <button class="primary-btn" (click)="saveAssessment()" [disabled]="loading || totalDiscountPercent > 100">
+          {{ selectedStudentIds.length > 1 ? 'Save Batch Assessments' : 'Save Assessment' }}
+        </button>
+      </div>
+      <p class="message" *ngIf="message">{{ message }}</p>
+      <p class="message error" *ngIf="error">{{ error }}</p>
+    </section>
+  </div>
+</section>

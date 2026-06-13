@@ -1,0 +1,94 @@
+<section class="finance-page">
+  <header class="finance-header">
+    <div>
+      <p class="finance-eyebrow">Record Payment</p>
+      <h1 class="finance-title">Payment Posting</h1>
+      <p class="finance-subtitle">Overpayment is blocked. Clearance updates after payment posting for {{ academicYear?.code || 'selected year' }} only.</p>
+    </div>
+    <div class="finance-header-actions">
+      <app-finance-pdf-export-button title="Payment Posting" [subtitle]="academicYear?.code || 'Selected academic year'" />
+      <span class="status-pill" [class.clear]="selectedAssessment?.financeStatus === 'Cleared'">{{ selectedAssessment?.financeStatus || 'No assessment selected' }}</span>
+    </div>
+  </header>
+
+  <div class="finance-grid payment-layout">
+    <section class="finance-panel assessment-picker">
+      <label class="field">
+        <span>Assessment</span>
+        <select [(ngModel)]="selectedAssessmentId">
+          <option value="">Select assessment</option>
+          <option *ngFor="let assessment of assessments" [value]="assessment.id">
+            {{ assessment.student?.lastName }}, {{ assessment.student?.firstName }} - {{ discountSummary(assessment) }} - ₱{{ assessment.balance | number:'1.2-2' }} balance
+          </option>
+        </select>
+      </label>
+
+      <div class="payment-snapshot" [class.empty]="!selectedAssessment">
+        <div class="learner-line">
+          <span>{{ selectedAssessment ? 'Selected learner' : 'No learner selected' }}</span>
+          <strong>
+            {{ selectedAssessment?.student?.lastName || 'Choose an assessment' }}<ng-container *ngIf="selectedAssessment">, {{ selectedAssessment.student?.firstName }}</ng-container>
+          </strong>
+        </div>
+
+        <dl class="balance-list">
+          <div>
+            <dt>Discount</dt>
+            <dd>{{ discountSummary(selectedAssessment) }}</dd>
+          </div>
+          <div>
+            <dt>Net</dt>
+            <dd>₱{{ selectedAssessment?.netAmount || 0 | number:'1.2-2' }}</dd>
+          </div>
+          <div>
+            <dt>Paid</dt>
+            <dd>₱{{ selectedAssessment?.paidAmount || 0 | number:'1.2-2' }}</dd>
+          </div>
+          <div class="balance-due">
+            <dt>Balance</dt>
+            <dd>₱{{ selectedAssessment?.balance || 0 | number:'1.2-2' }}</dd>
+          </div>
+          <div>
+            <dt>Year</dt>
+            <dd>{{ academicYear?.code || '-' }}</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="finance-panel">
+      <div class="summary-strip">
+        <label class="field"><span>Receipt / Reference</span><input [(ngModel)]="receiptNumber" /></label>
+        <label class="field"><span>Method</span><select [(ngModel)]="method"><option *ngFor="let item of methods" [value]="item">{{ item }}</option></select></label>
+        <label class="field"><span>Date</span><input type="date" [(ngModel)]="paymentDate" /></label>
+        <label class="field"><span>Amount</span><input type="number" min="0" [(ngModel)]="amount" /></label>
+      </div>
+
+      <label class="field"><span>Remarks</span><textarea [(ngModel)]="remarks"></textarea></label>
+
+      <div class="button-row">
+        <button class="secondary-btn" (click)="fillExactBalance()" [disabled]="!selectedAssessment">Use Exact Balance</button>
+        <button class="primary-btn" (click)="recordPayment()" [disabled]="loading || !selectedAssessment">Post Payment</button>
+      </div>
+      <p class="message" *ngIf="message">{{ message }}</p>
+      <p class="message error" *ngIf="error">{{ error }}</p>
+    </section>
+  </div>
+
+  <section class="finance-panel" style="margin-top:1rem">
+    <h2 class="finance-title">Payment History</h2>
+    <table class="finance-table">
+      <thead><tr><th>Student</th><th>Date</th><th>Receipt / Reference</th><th>Method</th><th>Amount</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let payment of payments">
+          <td>{{ payment.student?.lastName }}, {{ payment.student?.firstName }}</td>
+          <td>{{ payment.paymentDate | date:'mediumDate' }}</td>
+          <td>{{ payment.receiptNumber }}</td>
+          <td>{{ payment.method }}</td>
+          <td>₱{{ payment.amount | number:'1.2-2' }}</td>
+        </tr>
+        <tr *ngIf="!payments.length"><td colspan="5">No payments recorded for this academic year.</td></tr>
+      </tbody>
+    </table>
+  </section>
+</section>
