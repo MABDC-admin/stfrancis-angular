@@ -44,6 +44,7 @@
           <tr>
             <th class="table-th">Student</th>
             <th class="table-th">LRN</th>
+            <th class="table-th">Contact</th>
             <th class="table-th">Grade & Section</th>
             <th class="table-th">Adviser</th>
             <th class="table-th">Enrollment</th>
@@ -69,6 +70,12 @@
               </div>
             </td>
             <td class="table-td">{{ student.lrn }}</td>
+            <td class="table-td min-w-[220px]">
+              <div class="max-w-[260px]">
+                <p class="text-[14px] font-extrabold leading-tight text-slate-900">{{ student.contactNo || 'No contact number' }}</p>
+                <p class="mt-1 text-[11px] font-semibold leading-snug text-slate-500">{{ student.address || student.phAddress || 'No address recorded' }}</p>
+              </div>
+            </td>
             <td class="table-td">{{ student.gradeLevel }}<br /><span class="text-xs text-slate-400">{{ student.section }}</span></td>
             <td class="table-td">{{ student.adviser }}</td>
             <td class="table-td"><span class="status-pill" [ngClass]="statusClass(student.enrollmentStatus)">{{ student.enrollmentStatus }}</span></td>
