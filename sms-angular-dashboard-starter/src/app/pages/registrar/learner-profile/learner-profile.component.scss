@@ -1,5 +1,46 @@
 :host { display: block; }
 
+.learner-photo-uploader {
+  position: relative;
+  display: grid;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 1px 16px rgba(255, 255, 255, 0.08), 0 14px 32px rgba(15, 23, 42, 0.18);
+  color: #ffffff;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.learner-photo-initials {
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.learner-photo-overlay {
+  position: absolute;
+  inset: auto 0 0;
+  display: grid;
+  height: 24px;
+  place-items: center;
+  background: linear-gradient(180deg, transparent, rgba(15, 23, 42, 0.72));
+  color: #ffffff;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.learner-photo-uploader:hover .learner-photo-overlay,
+.learner-photo-uploader:focus-within .learner-photo-overlay {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .edit-learner-modal {
   width: min(960px, calc(100vw - 56px));
   max-height: calc(100vh - 56px);

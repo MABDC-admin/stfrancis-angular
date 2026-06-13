@@ -33,13 +33,25 @@
     <div class="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 p-5 text-white">
       <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div class="flex items-center gap-3">
-          <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 text-xl font-extrabold text-white shadow-inner backdrop-blur-sm border border-white/30">
-            {{ student.firstName.charAt(0) }}{{ student.lastName.charAt(0) }}
-          </div>
+          <label class="learner-photo-uploader" title="Change learner photo">
+            <input type="file" accept="image/png,image/jpeg,image/webp" (change)="handlePhotoUpload($event)" class="sr-only" />
+            <img
+              *ngIf="student.photoUrl"
+              [src]="student.photoUrl"
+              [alt]="student.firstName + ' ' + student.lastName + ' photo'"
+              class="h-full w-full rounded-2xl object-cover" />
+            <span *ngIf="!student.photoUrl" class="learner-photo-initials">
+              {{ student.firstName.charAt(0) }}{{ student.lastName.charAt(0) }}
+            </span>
+            <span class="learner-photo-overlay">
+              <span class="material-icons text-[17px]">{{ isUploadingPhoto ? 'hourglass_empty' : 'photo_camera' }}</span>
+            </span>
+          </label>
           <div>
             <span class="rounded-md bg-white/20 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-widest text-white backdrop-blur-sm">{{ student.studentNo }}</span>
             <h1 class="mt-1 text-2xl font-extrabold tracking-tight">🧑‍🎓 {{ student.firstName }} {{ student.lastName }}</h1>
             <p class="mt-0.5 text-xs font-semibold text-white/80">LRN {{ student.lrn }}</p>
+            <p class="mt-1 text-[11px] font-bold text-white/70">{{ isUploadingPhoto ? 'Uploading learner photo...' : 'Click photo to change avatar' }}</p>
           </div>
         </div>
 
@@ -485,7 +497,14 @@
       <div *ngIf="modalType === 'edit-info'" class="edit-learner-header">
         <div class="flex min-w-0 items-center gap-4">
           <div class="edit-learner-avatar">
-            {{ (student.firstName || student.name || 'L').charAt(0) }}{{ (student.lastName || '').charAt(0) }}
+            <img
+              *ngIf="student.photoUrl"
+              [src]="student.photoUrl"
+              [alt]="student.firstName + ' ' + student.lastName + ' photo'"
+              class="h-full w-full rounded-2xl object-cover" />
+            <span *ngIf="!student.photoUrl">
+              {{ (student.firstName || student.name || 'L').charAt(0) }}{{ (student.lastName || '').charAt(0) }}
+            </span>
           </div>
           <div class="min-w-0">
             <p class="edit-learner-kicker">Learner record</p>

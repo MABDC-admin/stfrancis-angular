@@ -30,6 +30,7 @@ export class LearnerProfileComponent implements OnInit {
   sections: any[] = [];
   isMarkingRegistrarCleared = false;
   isUploadingDocument = false;
+  isUploadingPhoto = false;
   toast = {
     show: false,
     title: '',
@@ -191,6 +192,37 @@ export class LearnerProfileComponent implements OnInit {
         this.isUploadingDocument = false;
         input.value = '';
         this.showToast('Upload failed', 'Only PDF and image files up to 10 MB are allowed.', 'error');
+      }
+    });
+  }
+
+  handlePhotoUpload(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!this.student?.id || !input.files?.length) return;
+
+    const file = input.files[0];
+    if (!file.type.startsWith('image/')) {
+      input.value = '';
+      this.showToast('Photo not uploaded', 'Please choose a PNG, JPG, or WEBP image file.', 'error');
+      return;
+    }
+
+    this.isUploadingPhoto = true;
+    this.api.uploadStudentPhoto(this.student.id, file).subscribe({
+      next: (savedFile) => {
+        this.student = {
+          ...this.student,
+          photoUrl: savedFile.publicUrl,
+          photoFileId: savedFile.id
+        };
+        this.isUploadingPhoto = false;
+        input.value = '';
+        this.showToast('Photo saved', 'The learner profile photo was updated.', 'success');
+      },
+      error: () => {
+        this.isUploadingPhoto = false;
+        input.value = '';
+        this.showToast('Upload failed', 'Only image files up to 5 MB are allowed.', 'error');
       }
     });
   }
