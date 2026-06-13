@@ -86,6 +86,7 @@ export interface AcademicRecord {
   generalAverage: string;
   remarks: string;
   status: string;
+  academicYearId?: string;
 }
 
 export interface LearnerMovement {

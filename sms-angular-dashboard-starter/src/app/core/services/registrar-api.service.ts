@@ -173,6 +173,18 @@ export class RegistrarApiService {
     return this.http.get<AcademicRecord[]>(`${this.baseUrl}/academic-records`, this.buildParams(ayId));
   }
 
+  createAcademicRecord(payload: Partial<AcademicRecord>): Observable<AcademicRecord> {
+    return this.http.post<AcademicRecord>(`${this.baseUrl}/academic-records`, payload);
+  }
+
+  updateAcademicRecord(id: string, payload: Partial<AcademicRecord>): Observable<AcademicRecord> {
+    return this.http.patch<AcademicRecord>(`${this.baseUrl}/academic-records/${id}`, payload);
+  }
+
+  deleteAcademicRecord(id: string): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/academic-records/${id}`);
+  }
+
   getDocumentRequests(ayId?: string): Observable<DocumentRequest[]> {
     return this.http.get<DocumentRequest[]>(`${this.baseUrl}/document-requests`, this.buildParams(ayId));
   }

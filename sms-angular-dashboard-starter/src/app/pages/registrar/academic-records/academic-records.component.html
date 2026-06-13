@@ -1,52 +1,271 @@
-<section class="page-shell">
-  <div class="border-b border-violet-100/60 bg-white px-6 py-4 shrink-0 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between z-10 rounded-2xl shadow-card">
+<section class="academic-records page-shell">
+  <div class="ptoast"
+       [class.ptoast-show]="toast.show"
+       [ngClass]="{
+         'ptoast-success': toast.type === 'success',
+         'ptoast-error': toast.type === 'error',
+         'ptoast-info': toast.type === 'info'
+       }">
+    <span class="material-icons">{{ toast.type === 'error' ? 'error' : toast.type === 'info' ? 'info' : 'check_circle' }}</span>
     <div>
-      <p class="text-[10px] font-extrabold uppercase tracking-widest text-violet-500 mb-0.5">Registrar Module</p>
-      <h1 class="text-xl font-extrabold tracking-tight text-slate-900">📚 Academic Records</h1>
-      <p class="text-xs font-semibold text-slate-500 mt-0.5">
-        Maintain validated grade history, general average, promotion remarks, and records used for SF9 and SF10 preparation.
-      </p>
-    </div>
-    <div class="flex flex-wrap gap-2">
-      <button class="action-secondary !py-2 !px-3 !text-xs"><span class="material-icons text-[16px]">upload_file</span> Import Grades</button>
-      <button class="action-primary !py-2 !px-3 !text-xs"><span class="material-icons text-[16px]">fact_check</span> Validate Records</button>
+      <strong>{{ toast.title }}</strong>
+      <p>{{ toast.message }}</p>
     </div>
   </div>
 
-  <section class="table-card">
-    <div class="table-header flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+  <header class="records-hero">
+    <div>
+      <p class="records-kicker">Registrar Module</p>
+      <h1>Academic Records</h1>
+      <p>Validate learner academic history, promotion remarks, and school-year records used for SF9 and SF10 preparation.</p>
+    </div>
+    <div class="hero-actions">
+      <button type="button" class="secondary-action" (click)="printRecords()">
+        <span class="material-icons">print</span>
+        Print View
+      </button>
+      <button type="button" class="secondary-action" (click)="exportCsv()">
+        <span class="material-icons">download</span>
+        Export CSV
+      </button>
+      <button type="button" class="primary-action" (click)="openCreateModal()">
+        <span class="material-icons">add_circle</span>
+        Add Record
+      </button>
+    </div>
+  </header>
+
+  <div class="records-stats">
+    <article class="stat-card stat-total">
+      <span class="material-icons">history_edu</span>
       <div>
-        <h2 class="text-base font-extrabold text-slate-900">Learner Academic History</h2>
-        <p class="mt-0.5 text-xs font-semibold text-slate-500">Uses “General Average” instead of GPA.</p>
+        <p>Total Records</p>
+        <strong>{{ stats.total }}</strong>
       </div>
-      <button class="action-secondary !py-2 !px-3 !text-xs"><span class="material-icons text-[16px]">print</span> Print SF10 Draft</button>
+    </article>
+    <article class="stat-card">
+      <span class="material-icons">verified</span>
+      <div>
+        <p>Validated</p>
+        <strong>{{ stats.validated }}</strong>
+      </div>
+    </article>
+    <article class="stat-card">
+      <span class="material-icons">rate_review</span>
+      <div>
+        <p>For Review</p>
+        <strong>{{ stats.forReview }}</strong>
+      </div>
+    </article>
+    <article class="stat-card">
+      <span class="material-icons">trending_up</span>
+      <div>
+        <p>Promoted</p>
+        <strong>{{ stats.promoted }}</strong>
+      </div>
+    </article>
+    <article class="stat-card">
+      <span class="material-icons">priority_high</span>
+      <div>
+        <p>Retained / Incomplete</p>
+        <strong>{{ stats.retainedOrIncomplete }}</strong>
+      </div>
+    </article>
+  </div>
+
+  <section class="records-panel">
+    <div class="records-toolbar">
+      <div>
+        <h2>Learner Academic History</h2>
+        <p>{{ filteredRecords.length }} records shown across selected school-year boundaries</p>
+      </div>
+      <div class="records-filters">
+        <label class="record-search">
+          <span class="material-icons">search</span>
+          <input
+            [(ngModel)]="searchTerm"
+            name="academicSearch"
+            placeholder="Search learner, remarks, grade, section..." />
+        </label>
+        <select [(ngModel)]="selectedGrade" name="academicGrade">
+          <option *ngFor="let grade of grades" [value]="grade">{{ grade }}</option>
+        </select>
+        <select [(ngModel)]="selectedYear" name="academicYear">
+          <option *ngFor="let year of schoolYears" [value]="year">{{ year }}</option>
+        </select>
+        <select [(ngModel)]="selectedStatus" name="academicStatus">
+          <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+        </select>
+      </div>
     </div>
 
-    <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-slate-200/80">
-        <thead class="bg-white">
+    <div *ngIf="isLoading" class="records-state">
+      <span class="material-icons animate-spin">sync</span>
+      Loading academic records...
+    </div>
+
+    <div *ngIf="!isLoading && filteredRecords.length === 0" class="records-state">
+      <span class="material-icons">plagiarism</span>
+      No academic records match the current filters.
+    </div>
+
+    <div *ngIf="!isLoading && filteredRecords.length > 0" class="records-desktop-table">
+      <table>
+        <thead>
           <tr>
-            <th class="table-th">Learner</th>
-            <th class="table-th">School Year</th>
-            <th class="table-th">Grade / Section</th>
-            <th class="table-th">General Average</th>
-            <th class="table-th">Remarks</th>
-            <th class="table-th">Status</th>
-            <th class="table-th">Action</th>
+            <th>Learner</th>
+            <th>School Year</th>
+            <th>Grade / Section</th>
+            <th>General Average</th>
+            <th>Remarks</th>
+            <th>Status</th>
+            <th>Actions</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-violet-100/60 bg-white">
-          <tr *ngFor="let record of records; trackBy: trackRecord" class="hover:bg-violet-50/50 transition-colors">
-            <td class="table-td font-extrabold text-slate-800">{{ record.studentName }}</td>
-            <td class="table-td">{{ record.schoolYear }}</td>
-            <td class="table-td">{{ record.gradeLevel }}<br /><span class="text-[10px] font-bold text-slate-400">{{ record.section }}</span></td>
-            <td class="table-td"><span class="text-base font-extrabold text-slate-800">{{ record.generalAverage }}</span></td>
-            <td class="table-td text-xs">{{ record.remarks }}</td>
-            <td class="table-td"><span class="status-pill" [ngClass]="statusClass(record.status)">{{ record.status }}</span></td>
-            <td class="table-td"><button class="rounded-lg border border-violet-200 bg-white px-3 py-1.5 text-xs font-extrabold text-violet-600 shadow-sm hover:bg-violet-50 transition-colors">Open</button></td>
+        <tbody>
+          <tr *ngFor="let record of filteredRecords; trackBy: trackRecord">
+            <td>
+              <div class="learner-cell">
+                <span>{{ record.studentName.charAt(0) }}</span>
+                <div>
+                  <strong>{{ record.studentName }}</strong>
+                  <small>{{ record.gradeLevel }} academic history</small>
+                </div>
+              </div>
+            </td>
+            <td>{{ record.schoolYear }}</td>
+            <td>
+              <strong>{{ record.gradeLevel }}</strong>
+              <small>{{ record.section || 'No section' }}</small>
+            </td>
+            <td>
+              <span class="average-score">{{ record.generalAverage }}</span>
+            </td>
+            <td class="remarks-cell">{{ record.remarks }}</td>
+            <td>
+              <span class="status-pill" [ngClass]="statusClass(record.status)">{{ statusTone(record.status) }}</span>
+            </td>
+            <td>
+              <div class="row-actions">
+                <button type="button" title="Edit" (click)="openEditModal(record)">
+                  <span class="material-icons">edit</span>
+                </button>
+                <button type="button" title="Validate" (click)="validateRecord(record)" [disabled]="statusTone(record.status) === 'Validated'">
+                  <span class="material-icons">fact_check</span>
+                </button>
+                <button type="button" title="Delete" (click)="deleteRecord(record)">
+                  <span class="material-icons">delete</span>
+                </button>
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
+
+    <div *ngIf="!isLoading && filteredRecords.length > 0" class="records-mobile-grid">
+      <article *ngFor="let record of filteredRecords; trackBy: trackRecord" class="record-card">
+        <div class="record-card-head">
+          <div>
+            <p>{{ record.schoolYear }}</p>
+            <h3>{{ record.studentName }}</h3>
+          </div>
+          <span class="status-pill" [ngClass]="statusClass(record.status)">{{ statusTone(record.status) }}</span>
+        </div>
+        <div class="record-card-body">
+          <div>
+            <span>Grade / Section</span>
+            <strong>{{ record.gradeLevel }} · {{ record.section || 'No section' }}</strong>
+          </div>
+          <div>
+            <span>General Average</span>
+            <strong>{{ record.generalAverage }}</strong>
+          </div>
+          <div class="card-wide">
+            <span>Remarks</span>
+            <strong>{{ record.remarks }}</strong>
+          </div>
+        </div>
+        <div class="record-card-actions">
+          <button type="button" (click)="openEditModal(record)">Edit</button>
+          <button type="button" (click)="validateRecord(record)" [disabled]="statusTone(record.status) === 'Validated'">Validate</button>
+        </div>
+      </article>
+    </div>
   </section>
+
+  <section class="timeline-panel" *ngIf="!isLoading && filteredRecords.length > 0">
+    <div class="timeline-head">
+      <div>
+        <h2>Validation Timeline</h2>
+        <p>Recent records ordered by school year and learner name.</p>
+      </div>
+    </div>
+    <div class="timeline-list">
+      <article *ngFor="let record of filteredRecords.slice(0, 6)">
+        <span class="timeline-dot"></span>
+        <div>
+          <p>{{ record.schoolYear }} · {{ record.gradeLevel }}</p>
+          <h3>{{ record.studentName }}</h3>
+          <small>{{ record.remarks }} · Average {{ record.generalAverage }}</small>
+        </div>
+        <span class="status-pill" [ngClass]="statusClass(record.status)">{{ statusTone(record.status) }}</span>
+      </article>
+    </div>
+  </section>
+
+  <div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+    <section class="record-modal" (click)="$event.stopPropagation()">
+      <header>
+        <div>
+          <p>{{ modalMode === 'create' ? 'New Academic Record' : 'Edit Academic Record' }}</p>
+          <h2>{{ modalMode === 'create' ? 'Add Learner Academic History' : formData.studentName }}</h2>
+        </div>
+        <button type="button" (click)="closeModal()">
+          <span class="material-icons">close</span>
+        </button>
+      </header>
+
+      <form class="record-form" (ngSubmit)="saveRecord()" #recordForm="ngForm">
+        <label>
+          Learner Name
+          <input [(ngModel)]="formData.studentName" name="studentName" required />
+        </label>
+        <label>
+          School Year
+          <input [(ngModel)]="formData.schoolYear" name="schoolYear" required />
+        </label>
+        <label>
+          Grade Level
+          <select [(ngModel)]="formData.gradeLevel" name="gradeLevel" required>
+            <option value="" disabled>Select grade</option>
+            <option *ngFor="let grade of grades" [value]="grade" [disabled]="grade === 'All'">{{ grade }}</option>
+          </select>
+        </label>
+        <label>
+          Section
+          <input [(ngModel)]="formData.section" name="section" />
+        </label>
+        <label>
+          General Average
+          <input [(ngModel)]="formData.generalAverage" name="generalAverage" required />
+        </label>
+        <label>
+          Status
+          <select [(ngModel)]="formData.status" name="status" required>
+            <option *ngFor="let status of statuses" [value]="status" [disabled]="status === 'All'">{{ status }}</option>
+          </select>
+        </label>
+        <label class="form-wide">
+          Remarks
+          <textarea [(ngModel)]="formData.remarks" name="remarks" rows="3"></textarea>
+        </label>
+
+        <footer>
+          <button type="button" class="modal-ghost" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="modal-primary" [disabled]="recordForm.invalid">Save Record</button>
+        </footer>
+      </form>
+    </section>
+  </div>
 </section>
