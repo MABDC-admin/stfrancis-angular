@@ -1,0 +1,61 @@
+<section class="floating-chat" [ngClass]="{ 'is-open': chat.isOpen(), 'has-unread': chat.hasUnread() }" aria-label="SFXSAI live chat">
+  <div class="chat-panel" *ngIf="chat.isOpen()">
+    <header class="chat-header">
+      <div class="chat-avatar">
+        <span class="material-icons">support_agent</span>
+      </div>
+      <div>
+        <p class="chat-kicker">SFXSAI Live Chat</p>
+        <h3>Support Desk</h3>
+        <span class="chat-status"><i></i> Online now</span>
+      </div>
+      <button type="button" class="icon-button" (click)="chat.close()" aria-label="Close chat">
+        <span class="material-icons">close</span>
+      </button>
+    </header>
+
+    <div #messageList class="chat-messages">
+      <article
+        *ngFor="let message of chat.messages()"
+        class="chat-message"
+        [ngClass]="{
+          'from-user': message.source === 'local',
+          'from-support': message.source !== 'local'
+        }"
+      >
+        <div class="message-meta">
+          <strong>{{ message.senderName }}</strong>
+          <span>{{ message.senderRole }}</span>
+        </div>
+        <p>{{ message.body }}</p>
+        <time>{{ formatTime(message.sentAt) }}</time>
+      </article>
+    </div>
+
+    <form class="chat-compose" (ngSubmit)="send()">
+      <label>
+        <span class="sr-only">Message</span>
+        <textarea
+          #messageInput
+          [(ngModel)]="draftText"
+          name="floatingChatMessage"
+          rows="2"
+          placeholder="Write a message..."
+          (ngModelChange)="onInput($event)"
+          (keydown)="onKeydown($event)"
+        ></textarea>
+      </label>
+      <button type="submit" aria-label="Send message">
+        <span class="material-icons">send</span>
+      </button>
+    </form>
+    <p class="chat-error" *ngIf="error()">{{ error() }}</p>
+  </div>
+
+  <button type="button" class="chat-launcher" (click)="chat.toggle()" aria-label="Open live chat">
+    <span class="launcher-glow"></span>
+    <span class="material-icons">{{ chat.isOpen() ? 'chat_bubble' : 'forum' }}</span>
+    <strong *ngIf="!chat.isOpen()">Chat</strong>
+    <small *ngIf="chat.unreadCount()">{{ chat.unreadCount() }}</small>
+  </button>
+</section>
