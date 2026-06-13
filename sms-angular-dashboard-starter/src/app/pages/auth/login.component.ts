@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { loadRememberedEmail, saveRememberedEmail } from './login-remember.util';
 
 @Component({
   selector: 'app-login',
@@ -70,6 +71,18 @@ import { AuthService } from '../../core/services/auth.service';
               name="password" 
               required>
           </div>
+
+          <label class="remember-option w-full sm:w-auto">
+            <input
+              class="remember-checkbox"
+              type="checkbox"
+              [(ngModel)]="rememberMe"
+              name="rememberMe">
+            <span class="remember-box">
+              <span class="material-icons remember-check">check</span>
+            </span>
+            <span class="remember-text">Remember me</span>
+          </label>
           
           <div class="w-full sm:w-auto mt-2 sm:mt-0">
             <button 
@@ -93,21 +106,101 @@ import { AuthService } from '../../core/services/auth.service';
         </div>
       </div>
     </div>
-  `
+  `,
+  styles: [`
+    .remember-option {
+      align-items: center;
+      align-self: stretch;
+      color: rgb(6 95 70);
+      cursor: pointer;
+      display: flex;
+      font-size: 0.78rem;
+      font-weight: 800;
+      gap: 0.45rem;
+      justify-content: center;
+      line-height: 1;
+      min-height: 2.15rem;
+      padding: 0.15rem 0.1rem;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .remember-checkbox {
+      height: 1px;
+      opacity: 0;
+      position: absolute;
+      width: 1px;
+    }
+
+    .remember-box {
+      align-items: center;
+      background: rgb(255 255 255 / 0.26);
+      border: 1px solid rgb(16 185 129 / 0.42);
+      border-radius: 0.45rem;
+      box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.28);
+      display: flex;
+      height: 1.25rem;
+      justify-content: center;
+      transition: all 160ms ease;
+      width: 1.25rem;
+    }
+
+    .remember-check {
+      color: white;
+      font-size: 0.95rem;
+      opacity: 0;
+      transform: scale(0.75);
+      transition: all 160ms ease;
+    }
+
+    .remember-checkbox:checked + .remember-box {
+      background: rgb(16 185 129);
+      border-color: rgb(5 150 105);
+      box-shadow: 0 8px 20px rgb(16 185 129 / 0.25);
+    }
+
+    .remember-checkbox:checked + .remember-box .remember-check {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .remember-checkbox:focus-visible + .remember-box {
+      outline: 2px solid rgb(16 185 129);
+      outline-offset: 2px;
+    }
+
+    .remember-text {
+      filter: drop-shadow(0 1px 1px rgb(255 255 255 / 0.22));
+    }
+
+    @media (max-width: 639px) {
+      .remember-option {
+        justify-content: flex-start;
+        min-height: auto;
+        padding: 0.2rem 0;
+      }
+    }
+  `]
 })
 export class LoginComponent implements OnInit {
   private authService = inject(AuthService);
+  private readonly storage = window.localStorage;
   
   credentials = {
     email: '',
     password: ''
   };
   
+  rememberMe = false;
   isLoading = false;
   showLogin = false;
   error = '';
 
   ngOnInit() {
+    const rememberedEmail = loadRememberedEmail(this.storage);
+    this.credentials.email = rememberedEmail;
+    this.rememberMe = rememberedEmail.length > 0;
+
     setTimeout(() => {
       this.showLogin = true;
     }, 5000);
@@ -119,6 +212,7 @@ export class LoginComponent implements OnInit {
     
     this.authService.login(this.credentials).subscribe({
       next: () => {
+        saveRememberedEmail(this.storage, this.credentials.email, this.rememberMe);
         this.isLoading = false;
       },
       error: (err) => {
