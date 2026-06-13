@@ -1,4 +1,149 @@
-<section class="page-shell" *ngIf="student">
+<section class="page-shell learner-hub" *ngIf="!isDetailMode">
+    <div class="hub-hero">
+      <div>
+        <p class="hub-kicker">Registrar Module</p>
+        <h1>Learner Profile Hub</h1>
+        <p>Find any learner profile, review clearance health, and open the full registrar dossier.</p>
+      </div>
+      <div class="hub-hero-actions">
+        <a routerLink="/registrar/student-masterlist" class="hub-secondary-action">
+          <span class="material-icons">table_rows</span>
+          Masterlist
+        </a>
+        <a routerLink="/registrar/enrollment" class="hub-primary-action">
+          <span class="material-icons">how_to_reg</span>
+          Enrollment
+        </a>
+      </div>
+    </div>
+
+    <div class="hub-stats">
+      <article class="hub-stat hub-stat-total">
+        <span class="material-icons">groups</span>
+        <div>
+          <p>Total Learners</p>
+          <strong>{{ hubStats.total }}</strong>
+        </div>
+      </article>
+      <article class="hub-stat">
+        <span class="material-icons">verified_user</span>
+        <div>
+          <p>Officially Enrolled</p>
+          <strong>{{ hubStats.officiallyEnrolled }}</strong>
+        </div>
+      </article>
+      <article class="hub-stat">
+        <span class="material-icons">manage_search</span>
+        <div>
+          <p>Pending Review</p>
+          <strong>{{ hubStats.pendingReview }}</strong>
+        </div>
+      </article>
+      <article class="hub-stat">
+        <span class="material-icons">folder_alert</span>
+        <div>
+          <p>Document Issues</p>
+          <strong>{{ hubStats.documentIssues }}</strong>
+        </div>
+      </article>
+      <article class="hub-stat">
+        <span class="material-icons">account_balance_wallet</span>
+        <div>
+          <p>Finance Attention</p>
+          <strong>{{ hubStats.financeAttention }}</strong>
+        </div>
+      </article>
+    </div>
+
+    <section class="hub-panel">
+      <div class="hub-panel-head">
+        <div>
+          <h2>Profile Directory</h2>
+          <p>{{ filteredHubStudents.length }} learner profiles shown</p>
+        </div>
+        <div class="hub-filters">
+          <label class="hub-search">
+            <span class="material-icons">search</span>
+            <input
+              [(ngModel)]="hubSearch"
+              name="hubSearch"
+              placeholder="Search name, LRN, student no., contact, address..." />
+          </label>
+          <select [(ngModel)]="hubGrade" name="hubGrade">
+            <option *ngFor="let grade of hubGrades" [value]="grade">{{ grade }}</option>
+          </select>
+          <select [(ngModel)]="hubFinanceStatus" name="hubFinanceStatus">
+            <option *ngFor="let status of hubFinanceStatuses" [value]="status">{{ status }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div *ngIf="hubLoading" class="hub-state">
+        <span class="material-icons animate-spin">sync</span>
+        Loading learner profiles...
+      </div>
+
+      <div *ngIf="hubError" class="hub-state hub-state-error">
+        <span class="material-icons">error</span>
+        {{ hubError }}
+      </div>
+
+      <div *ngIf="!hubLoading && !hubError && filteredHubStudents.length === 0" class="hub-state">
+        <span class="material-icons">person_search</span>
+        No learner profile matches the current filters.
+      </div>
+
+      <div *ngIf="!hubLoading && !hubError && filteredHubStudents.length > 0" class="hub-grid">
+        <article *ngFor="let learner of filteredHubStudents" class="learner-card">
+          <div class="learner-card-main">
+            <div class="learner-avatar">
+              <img
+                *ngIf="$any(learner).photoUrl"
+                [src]="$any(learner).photoUrl"
+                [alt]="learnerName(learner) + ' photo'" />
+              <span *ngIf="!$any(learner).photoUrl">{{ learner.firstName.charAt(0) }}{{ learner.lastName.charAt(0) }}</span>
+            </div>
+            <div class="learner-identity">
+              <p class="learner-no">{{ learner.studentNo }} · {{ learner.studentType }}</p>
+              <h3>{{ learnerName(learner) }}</h3>
+              <p class="learner-meta">LRN {{ learner.lrn || 'Not encoded' }}</p>
+            </div>
+          </div>
+
+          <div class="learner-card-details">
+            <div>
+              <span>Grade & Section</span>
+              <strong>{{ learner.gradeLevel }}<ng-container *ngIf="learner.section"> · {{ learner.section }}</ng-container></strong>
+            </div>
+            <div>
+              <span>Adviser</span>
+              <strong>{{ learner.adviser || 'Unassigned' }}</strong>
+            </div>
+            <div class="learner-contact">
+              <span>Contact</span>
+              <strong>{{ learner.contactNo || 'No contact number' }}</strong>
+              <small>{{ learner.address || learner.phAddress || learner.uaeAddress || 'No address recorded' }}</small>
+            </div>
+          </div>
+
+          <div class="learner-status-strip">
+            <span class="status-pill" [ngClass]="statusClass(learner.enrollmentStatus)">{{ learner.enrollmentStatus }}</span>
+            <span class="status-pill" [ngClass]="statusClass(learner.documentStatus)">{{ learner.documentStatus }}</span>
+            <span class="status-pill" [ngClass]="statusClass(learner.financeStatus)">{{ learner.financeStatus }}</span>
+          </div>
+
+          <div class="learner-card-actions">
+            <a [routerLink]="detailLinkFor(learner)" class="learner-open">
+              Open Profile
+              <span class="material-icons">arrow_forward</span>
+            </a>
+          </div>
+        </article>
+      </div>
+    </section>
+  </section>
+
+<section class="page-shell" *ngIf="isDetailMode && student">
   <div class="fixed right-6 top-24 z-[120] transition-all duration-300 flex w-80 overflow-hidden rounded-xl border border-violet-100 bg-white shadow-[0_18px_50px_-20px_rgba(15,23,42,0.35)]"
        [class.translate-y-0]="toast.show"
        [class.opacity-100]="toast.show"

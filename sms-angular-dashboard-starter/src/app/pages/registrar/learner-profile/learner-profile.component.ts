@@ -1,9 +1,13 @@
-import { Component, HostListener, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, HostListener, inject, OnInit } from '@angular/core';
 import { NgClass, NgFor, NgIf, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { filter, switchMap } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RegistrarApiService } from '../../../core/services/registrar-api.service';
+import { StudentRecord } from '../../../core/models/registrar.models';
 import { buildRegistrarClearancePayload } from './learner-profile-clearance.util';
+import { buildLearnerProfileHubStats, filterLearnerProfiles, learnerFullName } from './learner-profile-hub.util';
 import { shouldCloseModalOnKey } from './learner-profile-modal.util';
 
 @Component({
@@ -16,8 +20,23 @@ import { shouldCloseModalOnKey } from './learner-profile-modal.util';
 export class LearnerProfileComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly api = inject(RegistrarApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   student: any | null = null;
+  isDetailMode = false;
+  hubStudents: StudentRecord[] = [];
+  hubSearch = '';
+  hubGrade = 'All';
+  hubFinanceStatus = 'All';
+  hubLoading = false;
+  hubError = '';
+  hubGrades: string[] = [
+    'All',
+    'Nursery', 'K2',
+    'G1', 'G2', 'G3', 'G4', 'G5', 'G6',
+    'G7', 'G8', 'G9', 'G10', 'G11', 'G12'
+  ];
+  hubFinanceStatuses = ['All', 'Unassessed', 'With Balance', 'Partially Paid', 'Cleared'];
   enrollments: any[] = [];
   documents: any[] = [];
   academicHistory: any[] = [];
@@ -102,6 +121,8 @@ export class LearnerProfileComponent implements OnInit {
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
+    this.isDetailMode = !!id;
+
     if (id) {
       this.api.getStudentById(id).subscribe(res => {
         this.student = res;
@@ -112,7 +133,53 @@ export class LearnerProfileComponent implements OnInit {
       this.api.getSections().subscribe(sections => {
         this.sections = sections;
       });
+      return;
     }
+
+    this.loadLearnerHub();
+  }
+
+  get filteredHubStudents(): StudentRecord[] {
+    return filterLearnerProfiles(this.hubStudents, this.hubSearch, this.hubGrade, this.hubFinanceStatus);
+  }
+
+  get hubStats() {
+    return buildLearnerProfileHubStats(this.hubStudents);
+  }
+
+  learnerName(learner: StudentRecord): string {
+    return learnerFullName(learner);
+  }
+
+  detailLinkFor(learner: StudentRecord): string[] {
+    const portal = this.route.snapshot.paramMap.get('portal') || 'registrar';
+    return [`/${portal}/learner-profile`, learner.id || ''];
+  }
+
+  private loadLearnerHub() {
+    this.hubLoading = true;
+    this.hubError = '';
+
+    this.api.activeAcademicYear$.pipe(
+      takeUntilDestroyed(this.destroyRef),
+      filter(ay => !!ay),
+      switchMap(ay => this.api.getStudents(ay.id))
+    ).subscribe({
+      next: (students) => {
+        this.hubStudents = students;
+        this.hubLoading = false;
+      },
+      error: () => {
+        this.hubError = 'Unable to load learner profiles.';
+        this.hubLoading = false;
+      }
+    });
+
+    this.api.studentUpdated$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((updatedStudent) => {
+        this.hubStudents = this.hubStudents.map((student) => student.id === updatedStudent.id ? updatedStudent : student);
+      });
   }
 
   loadRelatedData() {
