@@ -72,19 +72,7 @@ import { loadRememberedEmail, saveRememberedEmail } from './login-remember.util'
               required>
           </div>
 
-          <label class="remember-option w-full sm:w-auto">
-            <input
-              class="remember-checkbox"
-              type="checkbox"
-              [(ngModel)]="rememberMe"
-              name="rememberMe">
-            <span class="remember-box">
-              <span class="material-icons remember-check">check</span>
-            </span>
-            <span class="remember-text">Remember me</span>
-          </label>
-          
-          <div class="w-full sm:w-auto mt-2 sm:mt-0">
+          <div class="w-full sm:w-auto mt-2 sm:mt-0 signin-group">
             <button 
               class="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-3 sm:py-[6px] px-4 rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_20px_rgba(16,185,129,0.5)] transition-all flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed text-sm" 
               type="submit"
@@ -93,6 +81,18 @@ import { loadRememberedEmail, saveRememberedEmail } from './login-remember.util'
               <span class="material-icons text-base animate-spin" *ngIf="isLoading">sync</span>
               <span class="hidden sm:inline">{{ isLoading ? 'Auth...' : 'Sign In' }}</span>
             </button>
+
+            <label class="remember-option">
+              <input
+                class="remember-checkbox"
+                type="checkbox"
+                [(ngModel)]="rememberMe"
+                name="rememberMe">
+              <span class="remember-box">
+                <span class="material-icons remember-check">check</span>
+              </span>
+              <span class="remember-text">Remember me</span>
+            </label>
           </div>
         </form>
 
@@ -108,9 +108,15 @@ import { loadRememberedEmail, saveRememberedEmail } from './login-remember.util'
     </div>
   `,
   styles: [`
+    .signin-group {
+      align-items: center;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
     .remember-option {
       align-items: center;
-      align-self: stretch;
       color: rgb(6 95 70);
       cursor: pointer;
       display: flex;
@@ -119,8 +125,7 @@ import { loadRememberedEmail, saveRememberedEmail } from './login-remember.util'
       gap: 0.45rem;
       justify-content: center;
       line-height: 1;
-      min-height: 2.15rem;
-      padding: 0.15rem 0.1rem;
+      min-height: 1.25rem;
       user-select: none;
       white-space: nowrap;
     }
@@ -174,10 +179,12 @@ import { loadRememberedEmail, saveRememberedEmail } from './login-remember.util'
     }
 
     @media (max-width: 639px) {
+      .signin-group {
+        align-items: stretch;
+      }
+
       .remember-option {
-        justify-content: flex-start;
-        min-height: auto;
-        padding: 0.2rem 0;
+        justify-content: center;
       }
     }
   `]
