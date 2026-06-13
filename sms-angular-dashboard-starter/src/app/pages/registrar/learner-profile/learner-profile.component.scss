@@ -33,7 +33,6 @@
   color: #0f172a;
   font-size: clamp(24px, 3vw, 34px);
   font-weight: 950;
-  letter-spacing: 0;
   line-height: 1.05;
 }
 
@@ -170,6 +169,20 @@
   display: grid;
   grid-template-columns: minmax(220px, 1fr) 130px 160px;
   gap: 10px;
+  position: relative;
+}
+
+.search-arrow-indicator {
+  animation: searchArrowFloat 1.45s ease-in-out infinite;
+}
+
+@keyframes searchArrowFloat {
+  0%, 100% {
+    transform: translate(-4px, -50%);
+  }
+  50% {
+    transform: translate(6px, -50%);
+  }
 }
 
 .hub-search,
@@ -202,11 +215,6 @@
   font-size: 13px;
   font-weight: 800;
   outline: 0;
-}
-
-.hub-search input::placeholder {
-  color: #94a3b8;
-  font-weight: 700;
 }
 
 .hub-state {
@@ -668,6 +676,10 @@
 
   .hub-filters {
     grid-template-columns: 1fr;
+  }
+
+  .search-arrow-indicator {
+    display: none;
   }
 
   .hub-grid {
