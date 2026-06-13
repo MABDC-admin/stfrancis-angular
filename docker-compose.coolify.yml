@@ -1,0 +1,33 @@
+services:
+  api:
+    build:
+      context: ./sms-nestjs-backend
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      STORAGE_DIR: /app/storage
+      STORAGE_TMP_DIR: /app/storage/.tmp
+    volumes:
+      - sfxsai_uploads:/app/storage
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://127.0.0.1:3000', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: ./sms-angular-dashboard-starter
+      dockerfile: Dockerfile
+    depends_on:
+      - api
+    ports:
+      - "80"
+
+volumes:
+  sfxsai_uploads:

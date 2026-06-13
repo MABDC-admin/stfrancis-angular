@@ -1,0 +1,9 @@
+node_modules
+dist
+.angular
+.cache
+coverage
+*.log
+*.err.log
+.env
+.env.*

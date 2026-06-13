@@ -1,0 +1,13 @@
+node_modules
+dist
+coverage
+*.log
+*.err.log
+.env
+.env.*
+dev.db
+prisma/dev.db
+storage
+uploads
+tmp
+temp
