@@ -9,6 +9,20 @@ export interface FloatingChatMessage {
   sentAt: string;
 }
 
+export interface BackendChatMessage {
+  id: string;
+  body: string;
+  senderName: string;
+  senderRole: string;
+  source: string;
+  createdAt: string;
+}
+
+export interface BackendChatConversation {
+  id: string;
+  messages?: BackendChatMessage[];
+}
+
 export interface BuildChatMessageInput {
   body: string;
   senderName: string;
@@ -49,4 +63,34 @@ export function calculateUnreadCount(messages: FloatingChatMessage[], isOpen: bo
   }
 
   return messages.filter(message => message.source === 'remote' || message.source === 'system').length;
+}
+
+export function mapBackendConversationToFloatingMessages(
+  conversation: BackendChatConversation,
+  currentUserEmail: string,
+): FloatingChatMessage[] {
+  const email = currentUserEmail.trim().toLowerCase();
+
+  return normalizeChatMessages(
+    (conversation.messages ?? []).map(message => ({
+      id: message.id,
+      body: message.body,
+      senderName: message.senderName,
+      senderRole: message.senderRole,
+      source: mapBackendMessageSource(message, email),
+      sentAt: message.createdAt,
+    })),
+  );
+}
+
+function mapBackendMessageSource(message: BackendChatMessage, currentUserEmail: string): ChatMessageSource {
+  if (message.source === 'SYSTEM') {
+    return 'system';
+  }
+
+  if (message.source === 'USER' && message.senderName.trim().toLowerCase() === currentUserEmail) {
+    return 'local';
+  }
+
+  return 'remote';
 }

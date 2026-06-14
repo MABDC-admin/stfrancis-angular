@@ -19,6 +19,7 @@ import { AuthModule } from './auth/auth.module';
 import { FinanceModule } from './finance/finance.module';
 import { IntegrationModule } from './integration/integration.module';
 import { StorageModule } from './storage/storage.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { StorageModule } from './storage/storage.module';
     FinanceModule,
     IntegrationModule,
     StorageModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [

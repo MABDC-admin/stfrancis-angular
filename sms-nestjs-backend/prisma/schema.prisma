@@ -194,6 +194,8 @@ model User {
   encodedPayments    Payment[] @relation("PaymentEncodedBy")
   receiptAudits      PaymentReceiptAudit[] @relation("ReceiptEditedBy")
   integrationLogs    IntegrationLog[] @relation("IntegrationPerformedBy")
+  chatConversations  ChatConversation[] @relation("ChatConversationOwner")
+  chatMessages       ChatMessage[] @relation("ChatMessageSender")
 }
 
 model StoredFile {
@@ -374,4 +376,35 @@ model IntegrationLog {
   performedById  String?
   performedBy    User?    @relation("IntegrationPerformedBy", fields: [performedById], references: [id])
   createdAt      DateTime @default(now())
+}
+
+model ChatConversation {
+  id          String   @id @default(uuid())
+  ownerUserId String
+  ownerUser   User     @relation("ChatConversationOwner", fields: [ownerUserId], references: [id])
+  subject     String   @default("SFXSAI Support Chat")
+  status      String   @default("OPEN")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  messages ChatMessage[]
+
+  @@index([ownerUserId, status])
+}
+
+model ChatMessage {
+  id             String   @id @default(uuid())
+  conversationId String
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderUserId   String?
+  senderUser     User?    @relation("ChatMessageSender", fields: [senderUserId], references: [id])
+  senderName     String
+  senderRole     String
+  body           String
+  source         String
+  createdAt      DateTime @default(now())
+  readAt         DateTime?
+
+  @@index([conversationId, createdAt])
+  @@index([senderUserId])
 }
