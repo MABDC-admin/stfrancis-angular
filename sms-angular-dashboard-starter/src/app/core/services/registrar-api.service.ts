@@ -73,6 +73,12 @@ export class RegistrarApiService {
     return this.http.get<StudentRecord[]>(`${this.baseUrl}/students`, this.buildParams(ayId));
   }
 
+  searchStudents(query: string, ayId?: string): Observable<StudentRecord[]> {
+    let params: any = { search: query };
+    if (ayId) params.ayId = ayId;
+    return this.http.get<StudentRecord[]>(`${this.baseUrl}/students`, { params });
+  }
+
   getStudentById(id: string): Observable<StudentRecord> {
     return this.http.get<StudentRecord>(`${this.baseUrl}/students/${id}`);
   }
@@ -147,6 +153,10 @@ export class RegistrarApiService {
 
   getDepedForms(ayId?: string): Observable<DepEdFormRecord[]> {
     return this.http.get<DepEdFormRecord[]>(`${this.baseUrl}/deped-forms`, this.buildParams(ayId));
+  }
+
+  getTeachers(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/sections/meta/teachers`);
   }
 
   getSections(ayId?: string): Observable<SectionRecord[]> {

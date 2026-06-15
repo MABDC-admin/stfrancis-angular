@@ -21,6 +21,7 @@ import { IntegrationModule } from './integration/integration.module';
 import { StorageModule } from './storage/storage.module';
 import { ChatModule } from './chat/chat.module';
 import { TeacherModule } from './teacher/teacher.module';
+import { CalendarEventsModule } from './calendar-events/calendar-events.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { TeacherModule } from './teacher/teacher.module';
     StorageModule,
     ChatModule,
     TeacherModule,
+    CalendarEventsModule,
   ],
   controllers: [AppController],
   providers: [

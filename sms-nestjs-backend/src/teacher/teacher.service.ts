@@ -109,6 +109,7 @@ export class TeacherService {
         department: profile?.department ?? '',
         phone: profile?.phone ?? '',
         advisoryClass: profile?.advisoryClass ?? 'No advisory class assigned',
+        assignedGradeLevel: profile?.assignedGradeLevel ?? null,
       },
       classes: classes.map(item => ({
         id: item.id,
@@ -187,6 +188,7 @@ export class TeacherService {
     department?: string;
     phone?: string;
     advisoryClass?: string;
+    assignedGradeLevel?: string;
   }) {
     const name = this.requireText(profile.name, 'Teacher name is required.');
     const email = this.requireText(profile.email, 'Teacher email is required.');
@@ -200,6 +202,7 @@ export class TeacherService {
         department: profile.department?.trim() ?? '',
         phone: profile.phone?.trim() ?? '',
         advisoryClass: profile.advisoryClass?.trim() ?? '',
+        assignedGradeLevel: profile.assignedGradeLevel?.trim() ?? null,
       },
       update: {
         name,
@@ -207,6 +210,7 @@ export class TeacherService {
         department: profile.department?.trim() ?? '',
         phone: profile.phone?.trim() ?? '',
         advisoryClass: profile.advisoryClass?.trim() ?? '',
+        assignedGradeLevel: profile.assignedGradeLevel?.trim() ?? null,
       },
     });
   }

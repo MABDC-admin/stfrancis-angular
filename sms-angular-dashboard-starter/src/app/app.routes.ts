@@ -516,6 +516,13 @@ export const appRoutes: Routes = [
         data: { roles: ['ADMIN'], pageTitle: 'Academic Year Management', pageSubtitle: 'Configure the school years and set the active academic year' }
       },
       {
+        path: ':portal/calendar',
+        loadComponent: () => import('./pages/calendar/calendar.component').then(m => m.CalendarPageComponent),
+        canActivate: [roleGuard],
+        title: 'School Calendar | SFXSAI',
+        data: { roles: ['ADMIN', 'REGISTRAR', 'PRINCIPAL', 'TEACHER', 'STUDENT'], pageTitle: 'School Calendar', pageSubtitle: 'View and manage holidays, exams, and events' }
+      },
+      {
         path: ':portal',
         pathMatch: 'full',
         redirectTo: ':portal/dashboard'

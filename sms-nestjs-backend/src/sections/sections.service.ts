@@ -15,6 +15,13 @@ export class SectionsService {
     });
   }
 
+  getTeachers() {
+    return this.prisma.user.findMany({
+      where: { role: 'TEACHER' },
+      include: { teacherProfile: true }
+    });
+  }
+
   findOne(id: string) {
     return this.prisma.section.findUnique({ where: { id } });
   }
