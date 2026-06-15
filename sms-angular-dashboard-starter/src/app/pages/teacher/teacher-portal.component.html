@@ -1,25 +1,4 @@
-<div class="teacher-layout">
-  <!-- Sidebar Navigation -->
-  <aside class="teacher-sidebar">
-    <div class="sidebar-brand">
-      <span class="material-icons">school</span>
-      <h2>SFXSAI</h2>
-    </div>
-    <div class="sidebar-nav-groups">
-      <div class="nav-group" *ngFor="let group of navGroups">
-        <p class="nav-group-title">{{ group.title }}</p>
-        <nav>
-          <a *ngFor="let item of group.items" [routerLink]="['/teacher', item.route]" [ngClass]="{ active: currentView() === item.route }">
-            <span class="material-icons">{{ item.icon }}</span>
-            {{ item.label }}
-          </a>
-        </nav>
-      </div>
-    </div>
-  </aside>
-
-  <!-- Main Content -->
-  <main class="teacher-main">
+<div class="teacher-shell">
   <div
     class="teacher-toast"
     [ngClass]="{
@@ -37,22 +16,25 @@
       <h1>{{ state().teacher.name }}</h1>
       <p>{{ teacherMeta() }}</p>
     </div>
-    
+    <div class="hero-actions">
+      <a routerLink="/teacher/dll"><span class="material-icons">add_task</span> Add Lesson</a>
+      <a routerLink="/teacher/attendance"><span class="material-icons">fact_check</span> Take Attendance</a>
+      <a routerLink="/teacher/resources"><span class="material-icons">upload_file</span> Upload Resource</a>
+    </div>
   </section>
 
-  
+  <nav class="module-strip">
+    <a
+      *ngFor="let module of modules"
+      [routerLink]="['/teacher', module.route]"
+      [ngClass]="{ active: currentView() === module.route }"
+    >
+      <span class="material-icons">{{ module.icon }}</span>
+      {{ module.label }}
+    </a>
+  </nav>
 
   <section *ngIf="currentView() === 'dashboard'" class="teacher-grid">
-    <article class="panel wide quick-actions-panel">
-      <div class="panel-heading">
-        <div><p class="eyebrow">Shortcuts</p><h2>Quick Actions</h2></div>
-      </div>
-      <div class="quick-actions-grid">
-        <a routerLink="/teacher/dll" class="action-btn"><span class="material-icons">add_task</span> Add Lesson</a>
-        <a routerLink="/teacher/attendance" class="action-btn"><span class="material-icons">fact_check</span> Take Attendance</a>
-        <a routerLink="/teacher/resources" class="action-btn"><span class="material-icons">upload_file</span> Upload Resource</a>
-      </div>
-    </article>
     <article class="metric-card emerald">
       <span class="material-icons">class</span>
       <small>My Classes</small>
@@ -126,7 +108,6 @@
       <label>Department <input [(ngModel)]="profileForm.department" name="department" /></label>
       <label>Phone <input [(ngModel)]="profileForm.phone" name="phone" /></label>
       <label>Advisory Class <input [(ngModel)]="profileForm.advisoryClass" name="advisoryClass" /></label>
-      <label>Assigned Grade Level <input [(ngModel)]="profileForm.assignedGradeLevel" name="assignedGradeLevel" placeholder="e.g. Grade 7" /></label>
       <button class="primary" type="submit"><span class="material-icons">save</span> Save Profile</button>
     </form>
     <div class="assigned-subjects">
@@ -516,5 +497,4 @@
       <label><input type="checkbox" /> Dark theme preview</label>
     </div>
   </section>
-  </main>
 </div>
