@@ -368,6 +368,13 @@ td small {
   object-fit: cover;
 }
 
+.learner-avatar.large {
+  flex-basis: 4.2rem;
+  width: 4.2rem;
+  height: 4.2rem;
+  border-radius: 18px;
+}
+
 .learner-copy {
   min-width: 0;
 }
@@ -462,6 +469,25 @@ td input {
   gap: 1rem;
 }
 
+.attendance-row {
+  cursor: pointer;
+  transition: 150ms ease;
+}
+
+.attendance-row:hover {
+  border-color: rgba(16, 185, 129, 0.38);
+  background: #f8fffc;
+  transform: translateY(-1px);
+}
+
+.attendance-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
 .attendance-list button {
   border: 1px solid #dbe7e2;
   border-radius: 999px;
@@ -477,6 +503,156 @@ td input {
   color: white;
   border-color: #047857;
 }
+
+.reason-field {
+  display: grid;
+  gap: 0.25rem;
+  min-width: min(15rem, 100%);
+  margin-left: 0.35rem;
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.reason-field input {
+  min-height: 2.3rem;
+  font-size: 0.8rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.attendance-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(7px);
+}
+
+.attendance-profile-dialog {
+  position: relative;
+  width: min(66rem, 96vw);
+  max-height: min(45rem, 92vh);
+  overflow: auto;
+  border: 1px solid rgba(187, 247, 208, 0.58);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top left, rgba(209, 250, 229, 0.95), transparent 28rem),
+    linear-gradient(180deg, #ffffff, #f8fffc);
+  box-shadow: 0 34px 90px -42px rgba(15, 23, 42, 0.82);
+  padding: 1.15rem;
+}
+
+.dialog-close {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  width: 2.45rem;
+  height: 2.45rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid #dbe7e2;
+  border-radius: 12px;
+  background: white;
+  color: #475569;
+}
+
+.attendance-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding-right: 3rem;
+}
+
+.attendance-profile-header h2 {
+  margin: 0.2rem 0;
+  font-size: 1.45rem;
+  font-weight: 950;
+}
+
+.attendance-total-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 1rem 0;
+}
+
+.attendance-total-grid span {
+  border: 1px solid #dbe7e2;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.86);
+  padding: 0.8rem;
+}
+
+.attendance-total-grid small,
+.year-calendar-grid small {
+  display: block;
+  color: #64748b;
+  font-weight: 850;
+}
+
+.attendance-total-grid strong {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.attendance-dialog-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(20rem, 0.92fr);
+  gap: 1rem;
+}
+
+.attendance-dialog-grid article {
+  border: 1px solid #dbe7e2;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 0.9rem;
+}
+
+.compact-heading {
+  margin-bottom: 0.65rem;
+}
+
+.year-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.year-calendar-grid > div {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fbfdff;
+  padding: 0.65rem;
+}
+
+.calendar-dots {
+  display: flex;
+  gap: 0.2rem;
+  height: 0.55rem;
+  margin: 0.5rem 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eef6f2;
+}
+
+.calendar-dots b {
+  display: block;
+  min-width: 0.25rem;
+  max-width: 100%;
+  border-radius: inherit;
+}
+
+.calendar-dots .present { background: #10b981; }
+.calendar-dots .late { background: #f59e0b; }
+.calendar-dots .absent { background: #ef4444; }
 
 .resource-list > div {
   display: grid;

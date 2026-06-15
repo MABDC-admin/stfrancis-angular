@@ -32,6 +32,15 @@ type StudentRow = {
   photoUrl?: string | null;
 };
 
+type AttendanceRecordRow = {
+  id: string;
+  classId: string;
+  studentId: string;
+  date: Date;
+  status: string;
+  reason?: string | null;
+};
+
 type ClassAssignmentRow = {
   id: string;
   sectionId?: string | null;
@@ -70,7 +79,7 @@ export class TeacherService {
       this.prisma.teacherAttendanceRecord.findMany({
         where: { teacherUserId },
         orderBy: [{ date: 'desc' }, { updatedAt: 'desc' }],
-      }),
+      }) as Promise<AttendanceRecordRow[]>,
       this.prisma.teacherGradeRecord.findMany({
         where: { teacherUserId },
         orderBy: [{ classId: 'asc' }, { studentId: 'asc' }, { quarter: 'asc' }],
@@ -125,6 +134,7 @@ export class TeacherService {
         studentId: record.studentId,
         date: this.toDateOnly(record.date),
         status: record.status,
+        reason: record.reason ?? '',
       })),
       grades: grades.map(record => ({
         id: record.id,
@@ -206,11 +216,15 @@ export class TeacherService {
     studentId?: string;
     date?: string;
     status?: AttendanceStatus;
+    reason?: string;
   }) {
     const classId = this.requireText(body.classId, 'Class is required.');
     const studentId = this.requireText(body.studentId, 'Student is required.');
     const date = this.parseDate(body.date, 'Attendance date is required.');
     const status = this.requireOneOf(body.status, ['Present', 'Absent', 'Late', 'Excused'], 'Attendance status is invalid.');
+    const reason = status === 'Absent' || status === 'Excused'
+      ? (body.reason ?? '').trim()
+      : '';
 
     return this.prisma.teacherAttendanceRecord.upsert({
       where: {
@@ -227,8 +241,9 @@ export class TeacherService {
         studentId,
         date,
         status,
+        reason,
       },
-      update: { status },
+      update: { status, reason },
     });
   }
 

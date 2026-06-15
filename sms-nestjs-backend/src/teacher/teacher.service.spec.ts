@@ -128,14 +128,16 @@ describe('TeacherService', () => {
     const prisma = createPrisma();
     (prisma.teacherAttendanceRecord as { upsert: MockFn }).upsert.mockResolvedValue({
       id: 'attendance-1',
-      status: 'Late',
+      status: 'Absent',
+      reason: 'Sick',
     });
 
     await service(prisma).markAttendance('teacher-user-1', {
       classId: 'class-1',
       studentId: 'student-1',
       date: '2026-06-15',
-      status: 'Late',
+      status: 'Absent',
+      reason: 'Sick',
     });
 
     expect((prisma.teacherAttendanceRecord as { upsert: MockFn }).upsert).toHaveBeenCalledWith({
@@ -149,10 +151,35 @@ describe('TeacherService', () => {
       },
       create: expect.objectContaining({
         teacherUserId: 'teacher-user-1',
-        status: 'Late',
+        status: 'Absent',
+        reason: 'Sick',
       }),
-      update: { status: 'Late' },
+      update: { status: 'Absent', reason: 'Sick' },
     });
+  });
+
+  it('clears attendance reason when learner is present', async () => {
+    const prisma = createPrisma();
+    (prisma.teacherAttendanceRecord as { upsert: MockFn }).upsert.mockResolvedValue({
+      id: 'attendance-2',
+      status: 'Present',
+      reason: '',
+    });
+
+    await service(prisma).markAttendance('teacher-user-1', {
+      classId: 'class-1',
+      studentId: 'student-1',
+      date: '2026-06-15',
+      status: 'Present',
+      reason: 'Old reason',
+    });
+
+    expect((prisma.teacherAttendanceRecord as { upsert: MockFn }).upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({ status: 'Present', reason: '' }),
+        update: { status: 'Present', reason: '' },
+      }),
+    );
   });
 
   it('rejects incomplete resources and deletes only records owned by the teacher', async () => {

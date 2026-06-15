@@ -3,6 +3,7 @@ export type ResourceType = 'PDF' | 'Video' | 'Document' | 'Link';
 export type Quarter = 'Q1' | 'Q2' | 'Q3' | 'Q4';
 
 export const DEFAULT_FEMALE_LEARNER_AVATAR = 'assets/learner-default-female.png';
+export const DEFAULT_MALE_LEARNER_AVATAR = 'assets/learner-default-male.png';
 
 export interface AuthenticatedPortalUser {
   email?: string;
@@ -45,6 +46,7 @@ export interface AttendanceRecord {
   studentId: string;
   date: string;
   status: AttendanceStatus;
+  reason?: string;
 }
 
 export interface GradeRecord {
@@ -146,6 +148,38 @@ export function buildAttendanceSummary(records: AttendanceRecord[]): Record<Atte
   );
 }
 
+export function buildLearnerAttendanceInsights(
+  records: AttendanceRecord[],
+  studentId: string,
+  year: number,
+  monthIndex: number,
+) {
+  const emptyTotals = (): Record<AttendanceStatus, number> => ({ Present: 0, Absent: 0, Late: 0, Excused: 0 });
+  const studentRecords = records
+    .filter(record => record.studentId === studentId)
+    .sort((first, second) => first.date.localeCompare(second.date));
+  const yearMonths = Array.from({ length: 12 }, emptyTotals);
+  const monthRecords: AttendanceRecord[] = [];
+
+  for (const record of studentRecords) {
+    const date = new Date(`${record.date}T00:00:00`);
+    if (date.getFullYear() !== year) {
+      continue;
+    }
+
+    yearMonths[date.getMonth()][record.status] += 1;
+    if (date.getMonth() === monthIndex) {
+      monthRecords.push(record);
+    }
+  }
+
+  return {
+    totals: buildAttendanceSummary(monthRecords),
+    monthRecords,
+    yearMonths,
+  };
+}
+
 export function filterTeacherResources(resources: TeacherResource[], query: string): TeacherResource[] {
   const term = query.trim().toLowerCase();
   if (!term) {
@@ -201,7 +235,15 @@ export function teacherStudentAvatarSource(student: Pick<TeacherStudent, 'gender
     return uploadedPhoto;
   }
 
-  return student.gender?.trim().toLowerCase() === 'female' ? DEFAULT_FEMALE_LEARNER_AVATAR : '';
+  const gender = student.gender?.trim().toLowerCase();
+  if (gender === 'female') {
+    return DEFAULT_FEMALE_LEARNER_AVATAR;
+  }
+  if (gender === 'male') {
+    return DEFAULT_MALE_LEARNER_AVATAR;
+  }
+
+  return '';
 }
 
 export function buildTeacherPortalInitialState(user?: AuthenticatedPortalUser | null): TeacherPortalState {

@@ -1,10 +1,12 @@
-import { NgClass, NgFor, NgIf } from '@angular/common';
+import { DatePipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
+  AttendanceRecord,
   AttendanceStatus,
+  buildLearnerAttendanceInsights,
   buildAttendanceSummary,
   buildTeacherDashboardSummary,
   buildTeacherStudentInitials,
@@ -37,7 +39,7 @@ type TeacherView =
 @Component({
   selector: 'app-teacher-portal',
   standalone: true,
-  imports: [FormsModule, NgClass, NgFor, NgIf, RouterLink],
+  imports: [DatePipe, FormsModule, NgClass, NgFor, NgIf, RouterLink],
   templateUrl: './teacher-portal.component.html',
   styleUrl: './teacher-portal.component.scss',
 })
@@ -51,6 +53,7 @@ export class TeacherPortalComponent implements OnInit {
   readonly selectedClassId = signal('');
   readonly selectedQuarter = signal<Quarter>('Q1');
   readonly attendanceDate = signal(new Date().toISOString().slice(0, 10));
+  readonly selectedAttendanceStudentId = signal<string | null>(null);
   readonly resourceSearch = signal('');
 
   profileForm = { ...this.state().teacher };
@@ -63,6 +66,18 @@ export class TeacherPortalComponent implements OnInit {
 
   readonly selectedClass = computed(() => this.state().classes.find(section => section.id === this.selectedClassId()) ?? this.state().classes[0] ?? null);
   readonly selectedClassStudents = computed(() => this.studentsForClass(this.selectedClass()?.id));
+  readonly selectedAttendanceStudent = computed(() =>
+    this.state().students.find(student => student.id === this.selectedAttendanceStudentId()) ?? null,
+  );
+  readonly selectedAttendanceInsights = computed(() => {
+    const selectedDate = new Date(`${this.attendanceDate()}T00:00:00`);
+    return buildLearnerAttendanceInsights(
+      this.state().attendance,
+      this.selectedAttendanceStudentId() ?? '',
+      selectedDate.getFullYear(),
+      selectedDate.getMonth(),
+    );
+  });
   readonly hasClasses = computed(() => this.state().classes.length > 0);
   readonly selectedClassSectionName = computed(() => this.selectedClass()?.section || 'No class selected');
   readonly selectedClassSubjectName = computed(() => this.selectedClass()?.subject || 'Class');
@@ -82,6 +97,7 @@ export class TeacherPortalComponent implements OnInit {
   readonly resourceTypes: ResourceType[] = ['PDF', 'Video', 'Document', 'Link'];
   readonly buildTeacherStudentInitials = buildTeacherStudentInitials;
   readonly learnerAvatarSource = teacherStudentAvatarSource;
+  readonly monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   readonly modules = [
     { label: 'Dashboard', route: 'dashboard', icon: 'space_dashboard' },
     { label: 'Profile', route: 'profile', icon: 'badge' },
@@ -123,18 +139,43 @@ export class TeacherPortalComponent implements OnInit {
   }
 
   attendanceFor(studentId: string): AttendanceStatus {
+    return this.attendanceRecordFor(studentId)?.status ?? 'Present';
+  }
+
+  attendanceReasonFor(studentId: string): string {
+    return this.attendanceRecordFor(studentId)?.reason ?? '';
+  }
+
+  attendanceRecordFor(studentId: string): AttendanceRecord | undefined {
     return this.state().attendance.find(record =>
       record.classId === this.selectedClass()?.id &&
       record.studentId === studentId &&
       record.date === this.attendanceDate()
-    )?.status ?? 'Present';
+    );
   }
 
-  setAttendance(studentId: string, status: AttendanceStatus) {
+  setAttendance(studentId: string, status: AttendanceStatus, reason = this.attendanceReasonFor(studentId)) {
     const section = this.selectedClass();
     if (!section) return;
-    this.teacherStore.markAttendance(section.id, studentId, this.attendanceDate(), status);
+    this.teacherStore.markAttendance(section.id, studentId, this.attendanceDate(), status, reason);
     this.showToast('success', 'Attendance updated.');
+  }
+
+  updateAttendanceReason(studentId: string, reason: string) {
+    const status = this.attendanceFor(studentId);
+    if (status !== 'Absent' && status !== 'Excused') {
+      return;
+    }
+
+    this.setAttendance(studentId, status, reason);
+  }
+
+  openAttendanceDialog(student: TeacherStudent) {
+    this.selectedAttendanceStudentId.set(student.id);
+  }
+
+  closeAttendanceDialog() {
+    this.selectedAttendanceStudentId.set(null);
   }
 
   gradeFor(studentId: string): GradeRecord | undefined {

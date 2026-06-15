@@ -188,7 +188,15 @@
       <p>No fake attendance rows are shown. Assign a class first, then learners can be marked present, absent, late, or excused.</p>
     </div>
     <div class="attendance-list">
-      <div *ngFor="let student of selectedClassStudents()">
+      <div
+        *ngFor="let student of selectedClassStudents()"
+        class="attendance-row"
+        (click)="openAttendanceDialog(student)"
+        (keydown.enter)="openAttendanceDialog(student)"
+        (keydown.space)="openAttendanceDialog(student); $event.preventDefault()"
+        role="button"
+        tabindex="0"
+      >
         <div class="learner-identity">
           <span class="learner-avatar">
             <img *ngIf="learnerAvatarSource(student); else attendanceLearnerInitials" [src]="learnerAvatarSource(student)" [alt]="student.name + ' photo'" />
@@ -196,10 +204,18 @@
           </span>
           <span class="learner-copy"><strong>{{ student.name }}</strong><small>{{ student.studentNo }}</small></span>
         </div>
-        <div>
-          <button *ngFor="let status of attendanceStatuses" [ngClass]="{ active: attendanceFor(student.id) === status }" (click)="setAttendance(student.id, status)">
+        <div class="attendance-actions">
+          <button *ngFor="let status of attendanceStatuses" [ngClass]="{ active: attendanceFor(student.id) === status }" (click)="setAttendance(student.id, status); $event.stopPropagation()">
             {{ status }}
           </button>
+          <label *ngIf="attendanceFor(student.id) === 'Absent' || attendanceFor(student.id) === 'Excused'" class="reason-field" (click)="$event.stopPropagation()">
+            <span>Reason</span>
+            <input
+              [ngModel]="attendanceReasonFor(student.id)"
+              (ngModelChange)="updateAttendanceReason(student.id, $event)"
+              placeholder="Add reason..."
+            />
+          </label>
         </div>
       </div>
     </div>
@@ -209,6 +225,74 @@
       <p>This class has no linked learner roster yet.</p>
     </div>
   </section>
+
+  <div *ngIf="selectedAttendanceStudent() as student" class="attendance-dialog-backdrop" (click)="closeAttendanceDialog()">
+    <section class="attendance-profile-dialog" (click)="$event.stopPropagation()">
+      <button class="dialog-close" type="button" aria-label="Close attendance profile" (click)="closeAttendanceDialog()">
+        <span class="material-icons">close</span>
+      </button>
+      <header class="attendance-profile-header">
+        <span class="learner-avatar large">
+          <img *ngIf="learnerAvatarSource(student); else attendanceDialogInitials" [src]="learnerAvatarSource(student)" [alt]="student.name + ' photo'" />
+          <ng-template #attendanceDialogInitials>{{ buildTeacherStudentInitials(student) }}</ng-template>
+        </span>
+        <div>
+          <p class="eyebrow">Learner Attendance</p>
+          <h2>{{ student.name }}</h2>
+          <small>{{ selectedClassSectionName() }} • {{ student.studentNo }}</small>
+        </div>
+      </header>
+
+      <div class="attendance-total-grid">
+        <span><small>Present</small><strong>{{ selectedAttendanceInsights().totals.Present }}</strong></span>
+        <span><small>Late</small><strong>{{ selectedAttendanceInsights().totals.Late }}</strong></span>
+        <span><small>Absent</small><strong>{{ selectedAttendanceInsights().totals.Absent }}</strong></span>
+        <span><small>Excused</small><strong>{{ selectedAttendanceInsights().totals.Excused }}</strong></span>
+      </div>
+
+      <div class="attendance-dialog-grid">
+        <article>
+          <div class="panel-heading compact-heading">
+            <div><p class="eyebrow">Monthly Attendance</p><h2>{{ attendanceDate() | date:'MMMM yyyy' }}</h2></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Date</th><th>Status</th><th>Reason</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let record of selectedAttendanceInsights().monthRecords">
+                  <td>{{ record.date | date:'MMM d, yyyy' }}</td>
+                  <td><span class="pill">{{ record.status }}</span></td>
+                  <td>{{ record.reason || '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div *ngIf="!selectedAttendanceInsights().monthRecords.length" class="empty-state compact-empty">
+            <span class="material-icons">event_available</span>
+            <strong>No monthly records yet</strong>
+            <p>Attendance marks for the selected month will appear here.</p>
+          </div>
+        </article>
+
+        <article>
+          <div class="panel-heading compact-heading">
+            <div><p class="eyebrow">Yearly Calendar</p><h2>{{ attendanceDate() | date:'yyyy' }}</h2></div>
+          </div>
+          <div class="year-calendar-grid">
+            <div *ngFor="let month of selectedAttendanceInsights().yearMonths; let index = index">
+              <strong>{{ monthNames[index] }}</strong>
+              <span class="calendar-dots">
+                <b class="present" [style.width.%]="month.Present * 18"></b>
+                <b class="late" [style.width.%]="month.Late * 18"></b>
+                <b class="absent" [style.width.%]="month.Absent * 18"></b>
+              </span>
+              <small>P {{ month.Present }} • L {{ month.Late }} • A {{ month.Absent }}</small>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </div>
 
   <section *ngIf="currentView() === 'grades'" class="panel">
     <div class="panel-heading">

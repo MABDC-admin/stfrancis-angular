@@ -6,6 +6,8 @@ import {
   buildTeacherPortalInitialState,
   buildTeacherStudentInitials,
   DEFAULT_FEMALE_LEARNER_AVATAR,
+  DEFAULT_MALE_LEARNER_AVATAR,
+  buildLearnerAttendanceInsights,
   teacherStudentAvatarSource,
   calculateQuarterAverage,
   filterTeacherResources,
@@ -20,7 +22,9 @@ const classes = [
 const attendance = [
   { id: 'a1', classId: 'class-1', studentId: 's1', date: '2026-06-13', status: 'Present' },
   { id: 'a2', classId: 'class-1', studentId: 's2', date: '2026-06-13', status: 'Late' },
-  { id: 'a3', classId: 'class-2', studentId: 's3', date: '2026-06-12', status: 'Absent' },
+  { id: 'a3', classId: 'class-2', studentId: 's3', date: '2026-06-12', status: 'Absent', reason: 'Sick' },
+  { id: 'a4', classId: 'class-1', studentId: 's1', date: '2026-01-10', status: 'Late' },
+  { id: 'a5', classId: 'class-1', studentId: 's1', date: '2026-06-14', status: 'Excused', reason: 'Medical appointment' },
 ];
 
 const grades = [
@@ -46,9 +50,19 @@ assert.equal(calculateQuarterAverage({ written: null, performance: 91, exam: 92 
 assert.deepEqual(buildAttendanceSummary(attendance), {
   Present: 1,
   Absent: 1,
-  Late: 1,
-  Excused: 0,
+  Late: 2,
+  Excused: 1,
 });
+
+const insights = buildLearnerAttendanceInsights(attendance, 's1', 2026, 5);
+assert.deepEqual(insights.totals, { Present: 1, Late: 0, Absent: 0, Excused: 1 });
+assert.deepEqual(
+  insights.monthRecords.map(record => `${record.date}:${record.status}:${record.reason ?? ''}`),
+  ['2026-06-13:Present:', '2026-06-14:Excused:Medical appointment'],
+);
+assert.equal(insights.yearMonths[0].Late, 1);
+assert.equal(insights.yearMonths[5].Present, 1);
+assert.equal(insights.yearMonths[5].Excused, 1);
 
 assert.deepEqual(
   filterTeacherResources(resources, 'safety').map(resource => resource.id),
@@ -83,6 +97,10 @@ assert.equal(
 );
 assert.equal(
   teacherStudentAvatarSource({ name: 'Juan Santos', studentNo: 'SFX-003', gender: 'Male', photoUrl: '' }),
+  DEFAULT_MALE_LEARNER_AVATAR,
+);
+assert.equal(
+  teacherStudentAvatarSource({ name: 'Learner', studentNo: 'SFX-004', gender: '', photoUrl: '' }),
   '',
 );
 

@@ -40,8 +40,8 @@ export class TeacherPortalService {
     this.mutate('patch', 'profile', profile);
   }
 
-  markAttendance(classId: string, studentId: string, date: string, status: AttendanceStatus) {
-    this.mutate('post', 'attendance', { classId, studentId, date, status });
+  markAttendance(classId: string, studentId: string, date: string, status: AttendanceStatus, reason = '') {
+    this.mutate('post', 'attendance', { classId, studentId, date, status, reason });
   }
 
   upsertGrade(classId: string, studentId: string, quarter: Quarter, written: number | null, performance: number | null, exam: number | null) {
