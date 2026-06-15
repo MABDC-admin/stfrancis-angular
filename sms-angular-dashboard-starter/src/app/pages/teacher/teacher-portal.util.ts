@@ -33,6 +33,7 @@ export interface TeacherStudent {
   gradeLevel: string;
   guardian: string;
   contact: string;
+  photoUrl?: string;
 }
 
 export interface AttendanceRecord {
@@ -172,6 +173,23 @@ export function buildTeacherDisplayName(user?: AuthenticatedPortalUser | null): 
   }
 
   return user?.email?.trim() || 'Teacher';
+}
+
+export function buildTeacherStudentInitials(student: Pick<TeacherStudent, 'name' | 'studentNo'>): string {
+  const nameParts = student.name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (nameParts.length >= 2) {
+    return `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase();
+  }
+
+  if (nameParts.length === 1) {
+    return nameParts[0].slice(0, 2).toUpperCase();
+  }
+
+  return student.studentNo.trim()[0]?.toUpperCase() || 'L';
 }
 
 export function buildTeacherPortalInitialState(user?: AuthenticatedPortalUser | null): TeacherPortalState {

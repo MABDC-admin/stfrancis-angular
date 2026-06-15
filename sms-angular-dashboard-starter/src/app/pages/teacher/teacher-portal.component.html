@@ -145,7 +145,15 @@
           <thead><tr><th>Student</th><th>Guardian</th><th>Contact</th><th>Performance</th></tr></thead>
           <tbody>
             <tr *ngFor="let student of selectedClassStudents()">
-              <td><strong>{{ student.name }}</strong><small>{{ student.studentNo }}</small></td>
+              <td>
+                <div class="learner-identity">
+                  <span class="learner-avatar">
+                    <img *ngIf="student.photoUrl; else learnerInitials" [src]="student.photoUrl" [alt]="student.name + ' photo'" />
+                    <ng-template #learnerInitials>{{ buildTeacherStudentInitials(student) }}</ng-template>
+                  </span>
+                  <span class="learner-copy"><strong>{{ student.name }}</strong><small>{{ student.studentNo }}</small></span>
+                </div>
+              </td>
               <td>{{ student.guardian }}</td>
               <td>{{ student.contact }}</td>
               <td><span class="pill">{{ averageFor(student.id) ?? 'Pending' }}</span></td>
@@ -181,7 +189,13 @@
     </div>
     <div class="attendance-list">
       <div *ngFor="let student of selectedClassStudents()">
-        <strong>{{ student.name }}</strong>
+        <div class="learner-identity">
+          <span class="learner-avatar">
+            <img *ngIf="student.photoUrl; else attendanceLearnerInitials" [src]="student.photoUrl" [alt]="student.name + ' photo'" />
+            <ng-template #attendanceLearnerInitials>{{ buildTeacherStudentInitials(student) }}</ng-template>
+          </span>
+          <span class="learner-copy"><strong>{{ student.name }}</strong><small>{{ student.studentNo }}</small></span>
+        </div>
         <div>
           <button *ngFor="let status of attendanceStatuses" [ngClass]="{ active: attendanceFor(student.id) === status }" (click)="setAttendance(student.id, status)">
             {{ status }}
@@ -213,7 +227,15 @@
         <thead><tr><th>Student</th><th>Written</th><th>Performance</th><th>Exam</th><th>Average</th></tr></thead>
         <tbody>
           <tr *ngFor="let student of selectedClassStudents()">
-            <td><strong>{{ student.name }}</strong><small>{{ student.studentNo }}</small></td>
+            <td>
+              <div class="learner-identity">
+                <span class="learner-avatar">
+                  <img *ngIf="student.photoUrl; else gradeLearnerInitials" [src]="student.photoUrl" [alt]="student.name + ' photo'" />
+                  <ng-template #gradeLearnerInitials>{{ buildTeacherStudentInitials(student) }}</ng-template>
+                </span>
+                <span class="learner-copy"><strong>{{ student.name }}</strong><small>{{ student.studentNo }}</small></span>
+              </div>
+            </td>
             <td><input type="number" min="0" max="100" [ngModel]="gradeValue(student.id, 'written')" (ngModelChange)="updateGrade(student.id, 'written', $event)" /></td>
             <td><input type="number" min="0" max="100" [ngModel]="gradeValue(student.id, 'performance')" (ngModelChange)="updateGrade(student.id, 'performance', $event)" /></td>
             <td><input type="number" min="0" max="100" [ngModel]="gradeValue(student.id, 'exam')" (ngModelChange)="updateGrade(student.id, 'exam', $event)" /></td>

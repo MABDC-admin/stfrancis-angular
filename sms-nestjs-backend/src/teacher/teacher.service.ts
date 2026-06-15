@@ -28,6 +28,7 @@ type StudentRow = {
   section?: string | null;
   guardian?: string | null;
   contactNo?: string | null;
+  photoUrl?: string | null;
 };
 
 type ClassAssignmentRow = {
@@ -114,6 +115,7 @@ export class TeacherService {
         gradeLevel: student.gradeLevel,
         guardian: student.guardian ?? '',
         contact: student.contactNo ?? '',
+        photoUrl: student.photoUrl ?? '',
       })),
       attendance: attendance.map(record => ({
         id: record.id,

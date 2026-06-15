@@ -4,6 +4,7 @@ import {
   buildAttendanceSummary,
   buildTeacherDashboardSummary,
   buildTeacherPortalInitialState,
+  buildTeacherStudentInitials,
   calculateQuarterAverage,
   filterTeacherResources,
   isLegacyTeacherSeedState,
@@ -66,6 +67,10 @@ assert.equal(
   buildTeacherDisplayName({ email: 'teacher1@sfxsai.com' }),
   'teacher1@sfxsai.com',
 );
+
+assert.equal(buildTeacherStudentInitials({ name: 'Juan Dela Cruz', studentNo: 'SFX-001' }), 'JC');
+assert.equal(buildTeacherStudentInitials({ name: '  ', studentNo: 'SFX-2026-2027-001' }), 'S');
+assert.equal(buildTeacherStudentInitials({ name: '', studentNo: '' }), 'L');
 
 const emptyTeacherState = buildTeacherPortalInitialState({ email: 'teacher1@sfxsai.com' });
 assert.equal(emptyTeacherState.teacher.email, 'teacher1@sfxsai.com');

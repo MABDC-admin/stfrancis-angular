@@ -90,6 +90,7 @@ describe('TeacherService', () => {
         section: 'St. Clare',
         guardian: 'Maria Dela Cruz',
         contactNo: '09990000000',
+        photoUrl: '/storage/students/student-1/photo.jpg',
       },
     ]);
 
@@ -116,6 +117,7 @@ describe('TeacherService', () => {
         name: 'Juan Dela Cruz',
         studentNo: 'SFX-001',
         gradeLevel: 'G7',
+        photoUrl: '/storage/students/student-1/photo.jpg',
       }),
     );
   });

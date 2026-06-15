@@ -7,6 +7,7 @@ import {
   AttendanceStatus,
   buildAttendanceSummary,
   buildTeacherDashboardSummary,
+  buildTeacherStudentInitials,
   calculateQuarterAverage,
   filterTeacherResources,
   GradeRecord,
@@ -78,6 +79,7 @@ export class TeacherPortalComponent implements OnInit {
   readonly attendanceStatuses: AttendanceStatus[] = ['Present', 'Absent', 'Late', 'Excused'];
   readonly quarters: Quarter[] = ['Q1', 'Q2', 'Q3', 'Q4'];
   readonly resourceTypes: ResourceType[] = ['PDF', 'Video', 'Document', 'Link'];
+  readonly buildTeacherStudentInitials = buildTeacherStudentInitials;
   readonly modules = [
     { label: 'Dashboard', route: 'dashboard', icon: 'space_dashboard' },
     { label: 'Profile', route: 'profile', icon: 'badge' },
