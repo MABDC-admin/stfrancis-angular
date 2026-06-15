@@ -16,6 +16,7 @@ import {
   TeacherClass,
   TeacherPortalState,
   TeacherStudent,
+  teacherStudentAvatarSource,
 } from './teacher-portal.util';
 import { TeacherPortalService } from './teacher-portal.service';
 
@@ -80,6 +81,7 @@ export class TeacherPortalComponent implements OnInit {
   readonly quarters: Quarter[] = ['Q1', 'Q2', 'Q3', 'Q4'];
   readonly resourceTypes: ResourceType[] = ['PDF', 'Video', 'Document', 'Link'];
   readonly buildTeacherStudentInitials = buildTeacherStudentInitials;
+  readonly learnerAvatarSource = teacherStudentAvatarSource;
   readonly modules = [
     { label: 'Dashboard', route: 'dashboard', icon: 'space_dashboard' },
     { label: 'Profile', route: 'profile', icon: 'badge' },

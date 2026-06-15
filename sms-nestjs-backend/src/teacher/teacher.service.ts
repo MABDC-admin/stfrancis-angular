@@ -25,6 +25,7 @@ type StudentRow = {
   lastName: string;
   studentNo: string;
   gradeLevel: string;
+  gender?: string | null;
   section?: string | null;
   guardian?: string | null;
   contactNo?: string | null;
@@ -113,6 +114,7 @@ export class TeacherService {
         name: this.studentName(student),
         studentNo: student.studentNo,
         gradeLevel: student.gradeLevel,
+        gender: student.gender ?? '',
         guardian: student.guardian ?? '',
         contact: student.contactNo ?? '',
         photoUrl: student.photoUrl ?? '',

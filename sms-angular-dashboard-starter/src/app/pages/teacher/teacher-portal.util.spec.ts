@@ -5,6 +5,8 @@ import {
   buildTeacherDashboardSummary,
   buildTeacherPortalInitialState,
   buildTeacherStudentInitials,
+  DEFAULT_FEMALE_LEARNER_AVATAR,
+  teacherStudentAvatarSource,
   calculateQuarterAverage,
   filterTeacherResources,
   isLegacyTeacherSeedState,
@@ -71,6 +73,18 @@ assert.equal(
 assert.equal(buildTeacherStudentInitials({ name: 'Juan Dela Cruz', studentNo: 'SFX-001' }), 'JC');
 assert.equal(buildTeacherStudentInitials({ name: '  ', studentNo: 'SFX-2026-2027-001' }), 'S');
 assert.equal(buildTeacherStudentInitials({ name: '', studentNo: '' }), 'L');
+assert.equal(
+  teacherStudentAvatarSource({ name: 'Maria Santos', studentNo: 'SFX-002', gender: 'Female', photoUrl: '' }),
+  DEFAULT_FEMALE_LEARNER_AVATAR,
+);
+assert.equal(
+  teacherStudentAvatarSource({ name: 'Maria Santos', studentNo: 'SFX-002', gender: 'FEMALE', photoUrl: '/storage/custom.jpg' }),
+  '/storage/custom.jpg',
+);
+assert.equal(
+  teacherStudentAvatarSource({ name: 'Juan Santos', studentNo: 'SFX-003', gender: 'Male', photoUrl: '' }),
+  '',
+);
 
 const emptyTeacherState = buildTeacherPortalInitialState({ email: 'teacher1@sfxsai.com' });
 assert.equal(emptyTeacherState.teacher.email, 'teacher1@sfxsai.com');

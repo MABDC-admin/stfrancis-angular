@@ -2,6 +2,8 @@ export type AttendanceStatus = 'Present' | 'Absent' | 'Late' | 'Excused';
 export type ResourceType = 'PDF' | 'Video' | 'Document' | 'Link';
 export type Quarter = 'Q1' | 'Q2' | 'Q3' | 'Q4';
 
+export const DEFAULT_FEMALE_LEARNER_AVATAR = 'assets/learner-default-female.png';
+
 export interface AuthenticatedPortalUser {
   email?: string;
   name?: string;
@@ -31,6 +33,7 @@ export interface TeacherStudent {
   name: string;
   studentNo: string;
   gradeLevel: string;
+  gender?: string;
   guardian: string;
   contact: string;
   photoUrl?: string;
@@ -190,6 +193,15 @@ export function buildTeacherStudentInitials(student: Pick<TeacherStudent, 'name'
   }
 
   return student.studentNo.trim()[0]?.toUpperCase() || 'L';
+}
+
+export function teacherStudentAvatarSource(student: Pick<TeacherStudent, 'gender' | 'photoUrl'>): string {
+  const uploadedPhoto = student.photoUrl?.trim();
+  if (uploadedPhoto) {
+    return uploadedPhoto;
+  }
+
+  return student.gender?.trim().toLowerCase() === 'female' ? DEFAULT_FEMALE_LEARNER_AVATAR : '';
 }
 
 export function buildTeacherPortalInitialState(user?: AuthenticatedPortalUser | null): TeacherPortalState {

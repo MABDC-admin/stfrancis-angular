@@ -88,6 +88,7 @@ describe('TeacherService', () => {
         studentNo: 'SFX-001',
         gradeLevel: 'G7',
         section: 'St. Clare',
+        gender: 'Female',
         guardian: 'Maria Dela Cruz',
         contactNo: '09990000000',
         photoUrl: '/storage/students/student-1/photo.jpg',
@@ -117,6 +118,7 @@ describe('TeacherService', () => {
         name: 'Juan Dela Cruz',
         studentNo: 'SFX-001',
         gradeLevel: 'G7',
+        gender: 'Female',
         photoUrl: '/storage/students/student-1/photo.jpg',
       }),
     );

@@ -148,7 +148,7 @@
               <td>
                 <div class="learner-identity">
                   <span class="learner-avatar">
-                    <img *ngIf="student.photoUrl; else learnerInitials" [src]="student.photoUrl" [alt]="student.name + ' photo'" />
+                    <img *ngIf="learnerAvatarSource(student); else learnerInitials" [src]="learnerAvatarSource(student)" [alt]="student.name + ' photo'" />
                     <ng-template #learnerInitials>{{ buildTeacherStudentInitials(student) }}</ng-template>
                   </span>
                   <span class="learner-copy"><strong>{{ student.name }}</strong><small>{{ student.studentNo }}</small></span>
@@ -191,7 +191,7 @@
       <div *ngFor="let student of selectedClassStudents()">
         <div class="learner-identity">
           <span class="learner-avatar">
-            <img *ngIf="student.photoUrl; else attendanceLearnerInitials" [src]="student.photoUrl" [alt]="student.name + ' photo'" />
+            <img *ngIf="learnerAvatarSource(student); else attendanceLearnerInitials" [src]="learnerAvatarSource(student)" [alt]="student.name + ' photo'" />
             <ng-template #attendanceLearnerInitials>{{ buildTeacherStudentInitials(student) }}</ng-template>
           </span>
           <span class="learner-copy"><strong>{{ student.name }}</strong><small>{{ student.studentNo }}</small></span>
@@ -230,7 +230,7 @@
             <td>
               <div class="learner-identity">
                 <span class="learner-avatar">
-                  <img *ngIf="student.photoUrl; else gradeLearnerInitials" [src]="student.photoUrl" [alt]="student.name + ' photo'" />
+                  <img *ngIf="learnerAvatarSource(student); else gradeLearnerInitials" [src]="learnerAvatarSource(student)" [alt]="student.name + ' photo'" />
                   <ng-template #gradeLearnerInitials>{{ buildTeacherStudentInitials(student) }}</ng-template>
                 </span>
                 <span class="learner-copy"><strong>{{ student.name }}</strong><small>{{ student.studentNo }}</small></span>
