@@ -98,21 +98,6 @@ export class TeacherPortalComponent implements OnInit {
   readonly buildTeacherStudentInitials = buildTeacherStudentInitials;
   readonly learnerAvatarSource = teacherStudentAvatarSource;
   readonly monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  readonly modules = [
-    { label: 'Dashboard', route: 'dashboard', icon: 'space_dashboard' },
-    { label: 'Profile', route: 'profile', icon: 'badge' },
-    { label: 'My Classes', route: 'classes', icon: 'class' },
-    { label: 'Attendance', route: 'attendance', icon: 'fact_check' },
-    { label: 'Grades', route: 'grades', icon: 'leaderboard' },
-    { label: 'Schedule', route: 'schedule', icon: 'calendar_month' },
-    { label: 'Resources', route: 'resources', icon: 'folder' },
-    { label: 'DLL', route: 'dll', icon: 'menu_book' },
-    { label: 'Announcements', route: 'announcements', icon: 'campaign' },
-    { label: 'Messages', route: 'messages', icon: 'chat' },
-    { label: 'Analytics', route: 'analytics', icon: 'query_stats' },
-    { label: 'Settings', route: 'settings', icon: 'settings' },
-  ];
-
   ngOnInit(): void {
     this.teacherStore.state$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(state => {
       this.state.set(state);

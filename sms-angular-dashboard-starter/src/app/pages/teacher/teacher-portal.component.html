@@ -23,17 +23,6 @@
     </div>
   </section>
 
-  <nav class="module-strip">
-    <a
-      *ngFor="let module of modules"
-      [routerLink]="['/teacher', module.route]"
-      [ngClass]="{ active: currentView() === module.route }"
-    >
-      <span class="material-icons">{{ module.icon }}</span>
-      {{ module.label }}
-    </a>
-  </nav>
-
   <section *ngIf="currentView() === 'dashboard'" class="teacher-grid">
     <article class="metric-card emerald">
       <span class="material-icons">class</span>
