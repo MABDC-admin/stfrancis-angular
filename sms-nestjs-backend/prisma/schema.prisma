@@ -91,6 +91,8 @@ model Section {
   status         String
   academicYearId String?
   academicYear   AcademicYear? @relation(fields: [academicYearId], references: [id])
+
+  teacherClassAssignments TeacherClassAssignment[]
 }
 
 model AcademicRecord {
@@ -177,6 +179,7 @@ model AcademicYear {
   feeTemplates           FeeTemplate[]
   studentAssessments     StudentAssessment[]
   payments               Payment[]
+  teacherClassAssignments TeacherClassAssignment[]
 }
 
 model User {
@@ -196,6 +199,139 @@ model User {
   integrationLogs    IntegrationLog[] @relation("IntegrationPerformedBy")
   chatConversations  ChatConversation[] @relation("ChatConversationOwner")
   chatMessages       ChatMessage[] @relation("ChatMessageSender")
+  teacherProfile        TeacherProfile? @relation("TeacherProfileUser")
+  teacherClasses        TeacherClassAssignment[] @relation("TeacherClassTeacher")
+  teacherAttendance     TeacherAttendanceRecord[] @relation("TeacherAttendanceTeacher")
+  teacherGrades         TeacherGradeRecord[] @relation("TeacherGradeTeacher")
+  teacherResources      TeacherResource[] @relation("TeacherResourceTeacher")
+  teacherLessonLogs     TeacherLessonLog[] @relation("TeacherLessonLogTeacher")
+  teacherAnnouncements  TeacherAnnouncement[] @relation("TeacherAnnouncementTeacher")
+  teacherDirectMessages TeacherDirectMessage[] @relation("TeacherDirectMessageTeacher")
+}
+
+model TeacherProfile {
+  id             String   @id @default(uuid())
+  teacherUserId  String   @unique
+  teacher        User     @relation("TeacherProfileUser", fields: [teacherUserId], references: [id], onDelete: Cascade)
+  name           String
+  email          String
+  department     String?
+  phone          String?
+  advisoryClass  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model TeacherClassAssignment {
+  id             String   @id @default(uuid())
+  teacherUserId  String
+  teacher        User     @relation("TeacherClassTeacher", fields: [teacherUserId], references: [id], onDelete: Cascade)
+  academicYearId String?
+  academicYear   AcademicYear? @relation(fields: [academicYearId], references: [id])
+  sectionId      String?
+  section        Section? @relation(fields: [sectionId], references: [id])
+  sectionName    String
+  subject        String
+  schedule       String
+  room           String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([teacherUserId])
+  @@index([academicYearId])
+  @@index([sectionId])
+}
+
+model TeacherAttendanceRecord {
+  id             String   @id @default(uuid())
+  teacherUserId  String
+  teacher        User     @relation("TeacherAttendanceTeacher", fields: [teacherUserId], references: [id], onDelete: Cascade)
+  classId        String
+  studentId      String
+  date           DateTime
+  status         String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([teacherUserId, classId, studentId, date])
+  @@index([teacherUserId, classId])
+}
+
+model TeacherGradeRecord {
+  id             String   @id @default(uuid())
+  teacherUserId  String
+  teacher        User     @relation("TeacherGradeTeacher", fields: [teacherUserId], references: [id], onDelete: Cascade)
+  classId        String
+  studentId      String
+  quarter        String
+  written        Float?
+  performance    Float?
+  exam           Float?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([teacherUserId, classId, studentId, quarter])
+  @@index([teacherUserId, classId])
+}
+
+model TeacherResource {
+  id             String   @id @default(uuid())
+  teacherUserId  String
+  teacher        User     @relation("TeacherResourceTeacher", fields: [teacherUserId], references: [id], onDelete: Cascade)
+  classId        String
+  title          String
+  type           String
+  subject        String
+  size           String   @default("Pending upload")
+  uploadedAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([teacherUserId, classId])
+}
+
+model TeacherLessonLog {
+  id             String   @id @default(uuid())
+  teacherUserId  String
+  teacher        User     @relation("TeacherLessonLogTeacher", fields: [teacherUserId], references: [id], onDelete: Cascade)
+  classId        String
+  date           DateTime
+  objectives     String
+  activities     String
+  materials      String
+  remarks        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([teacherUserId, classId, date])
+}
+
+model TeacherAnnouncement {
+  id             String   @id @default(uuid())
+  teacherUserId  String
+  teacher        User     @relation("TeacherAnnouncementTeacher", fields: [teacherUserId], references: [id], onDelete: Cascade)
+  audience       String
+  title          String
+  body           String
+  postedAt       DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([teacherUserId, postedAt])
+}
+
+model TeacherDirectMessage {
+  id             String   @id @default(uuid())
+  teacherUserId  String
+  teacher        User     @relation("TeacherDirectMessageTeacher", fields: [teacherUserId], references: [id], onDelete: Cascade)
+  thread         String
+  sender         String
+  audience       String
+  message        String
+  sentAt         DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@index([teacherUserId, sentAt])
 }
 
 model StoredFile {

@@ -20,6 +20,7 @@ import { FinanceModule } from './finance/finance.module';
 import { IntegrationModule } from './integration/integration.module';
 import { StorageModule } from './storage/storage.module';
 import { ChatModule } from './chat/chat.module';
+import { TeacherModule } from './teacher/teacher.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ChatModule } from './chat/chat.module';
     IntegrationModule,
     StorageModule,
     ChatModule,
+    TeacherModule,
   ],
   controllers: [AppController],
   providers: [

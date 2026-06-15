@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, catchError, of, tap } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { environment } from '../../../environments/environment';
 import {
   AttendanceStatus,
   buildTeacherPortalInitialState,
@@ -12,114 +14,98 @@ import {
   TeacherPortalState,
 } from './teacher-portal.util';
 
-const STORAGE_KEY = 'sfxsai.teacher.portal.state.v2';
 const LEGACY_STORAGE_KEY = 'sfxsai.teacher.portal.state.v1';
 
 @Injectable({ providedIn: 'root' })
 export class TeacherPortalService {
+  private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
-  private readonly stateSubject = new BehaviorSubject<TeacherPortalState>(this.loadState());
+  private readonly apiUrl = `${environment.apiUrl}/teacher`;
+  private readonly stateSubject = new BehaviorSubject<TeacherPortalState>(
+    buildTeacherPortalInitialState(this.currentUser()),
+  );
   readonly state$ = this.stateSubject.asObservable();
+
+  constructor() {
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+    this.loadPortal();
+  }
 
   snapshot(): TeacherPortalState {
     return this.stateSubject.value;
   }
 
   updateTeacherProfile(profile: TeacherPortalState['teacher']) {
-    this.patch({ teacher: profile });
     this.auth.updateCurrentUser({ name: profile.name, email: profile.email });
+    this.mutate('patch', 'profile', profile);
   }
 
   markAttendance(classId: string, studentId: string, date: string, status: AttendanceStatus) {
-    const current = this.snapshot();
-    const existing = current.attendance.find(record => record.classId === classId && record.studentId === studentId && record.date === date);
-    const attendance = existing
-      ? current.attendance.map(record => record.id === existing.id ? { ...record, status } : record)
-      : [...current.attendance, { id: crypto.randomUUID(), classId, studentId, date, status }];
-    this.patch({ attendance });
+    this.mutate('post', 'attendance', { classId, studentId, date, status });
   }
 
   upsertGrade(classId: string, studentId: string, quarter: Quarter, written: number | null, performance: number | null, exam: number | null) {
-    const current = this.snapshot();
-    const existing = current.grades.find(grade => grade.classId === classId && grade.studentId === studentId && grade.quarter === quarter);
-    const nextGrade = { id: existing?.id ?? crypto.randomUUID(), classId, studentId, quarter, written, performance, exam };
-    const grades = existing
-      ? current.grades.map(grade => grade.id === existing.id ? nextGrade : grade)
-      : [...current.grades, nextGrade];
-    this.patch({ grades });
+    this.mutate('post', 'grades', { classId, studentId, quarter, written, performance, exam });
   }
 
   addResource(classId: string, title: string, type: ResourceType, subject: string) {
-    this.patch({
-      resources: [
-        ...this.snapshot().resources,
-        { id: crypto.randomUUID(), classId, title, type, subject, size: 'Pending upload', uploadedAt: new Date().toISOString().slice(0, 10) },
-      ],
-    });
+    this.mutate('post', 'resources', { classId, title, type, subject });
   }
 
   deleteResource(id: string) {
-    this.patch({ resources: this.snapshot().resources.filter(resource => resource.id !== id) });
+    this.deleteAndRefresh(`resources/${id}`);
   }
 
   addDll(entry: Omit<DailyLessonLog, 'id'>) {
-    this.patch({ dlls: [{ ...entry, id: crypto.randomUUID() }, ...this.snapshot().dlls] });
+    this.mutate('post', 'dlls', entry);
   }
 
   deleteDll(id: string) {
-    this.patch({ dlls: this.snapshot().dlls.filter(dll => dll.id !== id) });
+    this.deleteAndRefresh(`dlls/${id}`);
   }
 
   addAnnouncement(audience: string, title: string, body: string) {
-    this.patch({
-      announcements: [{ id: crypto.randomUUID(), audience, title, body, postedAt: new Date().toISOString().slice(0, 10) }, ...this.snapshot().announcements],
-    });
+    this.mutate('post', 'announcements', { audience, title, body });
   }
 
   deleteAnnouncement(id: string) {
-    this.patch({ announcements: this.snapshot().announcements.filter(announcement => announcement.id !== id) });
+    this.deleteAndRefresh(`announcements/${id}`);
   }
 
   sendMessage(thread: string, audience: TeacherMessage['audience'], message: string) {
-    this.patch({
-      messages: [{ id: crypto.randomUUID(), thread, sender: 'You', audience, message, sentAt: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) }, ...this.snapshot().messages],
-    });
+    this.mutate('post', 'messages', { thread, audience, message });
   }
 
-  private patch(partial: Partial<TeacherPortalState>) {
-    const state = { ...this.snapshot(), ...partial };
-    this.stateSubject.next(state);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  loadPortal() {
+    this.http.get<TeacherPortalState>(`${this.apiUrl}/portal`).pipe(
+      tap(state => this.stateSubject.next(this.normalizeState(state, this.snapshot()))),
+      catchError(() => of(null)),
+    ).subscribe();
   }
 
-  private loadState(): TeacherPortalState {
-    localStorage.removeItem(LEGACY_STORAGE_KEY);
-    const fallback = buildTeacherPortalInitialState(this.currentUser());
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) {
-      return fallback;
-    }
+  private mutate(method: 'post' | 'patch', path: string, body: unknown) {
+    const request = method === 'post'
+      ? this.http.post<TeacherPortalState>(`${this.apiUrl}/${path}`, body)
+      : this.http.patch<TeacherPortalState>(`${this.apiUrl}/${path}`, body);
 
-    try {
-      const state = JSON.parse(stored) as TeacherPortalState;
-      if (!state || typeof state !== 'object') {
-        localStorage.removeItem(STORAGE_KEY);
-        return fallback;
-      }
+    request.pipe(
+      tap(state => this.stateSubject.next(this.normalizeState(state, this.snapshot()))),
+      catchError(() => of(null)),
+    ).subscribe();
+  }
 
-      if (isLegacyTeacherSeedState(state)) {
-        localStorage.removeItem(STORAGE_KEY);
-        return fallback;
-      }
-
-      return this.normalizeState(state, fallback);
-    } catch {
-      localStorage.removeItem(STORAGE_KEY);
-      return fallback;
-    }
+  private deleteAndRefresh(path: string) {
+    this.http.delete<TeacherPortalState>(`${this.apiUrl}/${path}`).pipe(
+      tap(state => this.stateSubject.next(this.normalizeState(state, this.snapshot()))),
+      catchError(() => of(null)),
+    ).subscribe();
   }
 
   private normalizeState(state: TeacherPortalState, fallback: TeacherPortalState): TeacherPortalState {
+    if (isLegacyTeacherSeedState(state)) {
+      return fallback;
+    }
+
     return {
       teacher: { ...fallback.teacher, ...(state.teacher ?? {}) },
       classes: Array.isArray(state.classes) ? state.classes : [],
