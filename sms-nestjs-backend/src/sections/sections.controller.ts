@@ -26,11 +26,6 @@ export class SectionsController {
     return this.sectionsService.findAll(ayId);
   }
 
-  @Get('meta/teachers')
-  getTeachers() {
-    return this.sectionsService.getTeachers();
-  }
-
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.sectionsService.findOne(id);

@@ -23,8 +23,8 @@ export class StudentsController {
 
   @Get()
   @Roles('REGISTRAR', 'FINANCE')
-  findAll(@Query('ayId') ayId?: string, @Query('search') search?: string) {
-    return this.studentsService.findAll(ayId, search);
+  findAll(@Query('ayId') ayId?: string) {
+    return this.studentsService.findAll(ayId);
   }
 
   @Get(':id')

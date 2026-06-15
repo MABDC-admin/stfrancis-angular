@@ -24,7 +24,6 @@ export class SectionAssignmentComponent implements OnInit {
   sections: SectionRecord[] = [];
   allStudents: StudentRecord[] = [];
   unassignedStudents: StudentRecord[] = [];
-  teachers: any[] = [];
 
   // Assign Modal State
   isAssignModalOpen = false;
@@ -45,8 +44,6 @@ export class SectionAssignmentComponent implements OnInit {
   readonly displayGradeLevel = displayGradeLevel;
 
   ngOnInit() {
-    this.api.getTeachers().subscribe(t => this.teachers = t);
-
     this.api.activeAcademicYear$.pipe(
       takeUntilDestroyed(this.destroyRef),
       filter(ay => !!ay),
@@ -164,49 +161,24 @@ export class SectionAssignmentComponent implements OnInit {
         .filter(([_, isSelected]) => isSelected)
         .map(([id]) => id);
 
-      const doAssign = (secId: string) => {
-        this.api.batchAssignStudentsToSection(secId, selectedIds).subscribe({
-          next: () => {
-            // Re-fetch all data to show live DB state
-            this.refreshSections();
-            
-            // Re-fetch students and update the lists
-            const ayId = this.api.getActiveAcademicYearId();
-            if (ayId) {
-              this.api.getStudents(ayId).subscribe(students => {
-                this.allStudents = students;
-                this.unassignedStudents = students.filter(s => !s.section && (s.enrollmentStatus === 'Officially Enrolled' || s.enrollmentStatus === 'Pending Review'));
-              });
-            }
-            
-            this.closeAssignModal();
-          },
-          error: (err) => console.error('Failed to assign students', err)
-        });
-      };
-
-      if (section.id.startsWith('mock-sec-')) {
-        // Create the section first
-        const payload: Partial<SectionRecord> = {
-          gradeLevel: section.gradeLevel,
-          sectionName: section.sectionName,
-          adviser: 'TBA',
-          room: 'TBA',
-          capacity: 40,
-          enrolled: 0,
-          availableSlots: 40,
-          status: 'Open',
-          academicYearId: this.api.getActiveAcademicYearId()
-        };
-        this.api.createSection(payload).subscribe({
-          next: (newSec) => {
-            if (newSec.id) doAssign(newSec.id);
-          },
-          error: (err) => console.error('Failed to auto-create section', err)
-        });
-      } else {
-        doAssign(section.id);
-      }
+      this.api.batchAssignStudentsToSection(section.id, selectedIds).subscribe({
+        next: () => {
+          // Re-fetch all data to show live DB state
+          this.refreshSections();
+          
+          // Re-fetch students and update the lists
+          const ayId = this.api.getActiveAcademicYearId();
+          if (ayId) {
+            this.api.getStudents(ayId).subscribe(students => {
+              this.allStudents = students;
+              this.unassignedStudents = students.filter(s => !s.section && (s.enrollmentStatus === 'Officially Enrolled' || s.enrollmentStatus === 'Pending Review'));
+            });
+          }
+          
+          this.closeAssignModal();
+        },
+        error: (err) => console.error('Failed to assign students', err)
+      });
     }
   }
 

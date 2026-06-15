@@ -18,7 +18,6 @@ export interface TeacherProfile {
   department: string;
   phone: string;
   advisoryClass: string;
-  assignedGradeLevel?: string | null;
 }
 
 export interface TeacherClass {

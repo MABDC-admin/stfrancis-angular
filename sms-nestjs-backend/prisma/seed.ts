@@ -119,14 +119,9 @@ async function main() {
   // 3. Seed Students
   const statuses = ['Enrolled', 'Enrolled', 'Withdrawn', 'Enrolled'];
   for (let i = 1; i <= 15; i++) {
-    // Distribute enrollment dates over the last 6 months
-    const date = new Date();
-    date.setMonth(date.getMonth() - (i % 6));
-    date.setDate(date.getDate() - (i * 2));
-
     await prisma.student.upsert({
       where: { lrn: `LRN${100000 + i}` },
-      update: { documentStatus: 'Incomplete', enrollmentSubmittedAt: date },
+      update: {},
       create: {
         studentNo: `STU-2026-${i.toString().padStart(3, '0')}`,
         lrn: `LRN${100000 + i}`,
@@ -135,36 +130,28 @@ async function main() {
         gradeLevel: `Grade ${(i % 6) + 7}`,
         studentType: 'Regular',
         enrollmentStatus: statuses[i % 4],
-        documentStatus: 'Incomplete',
-        financeStatus: 'Paid',
-        enrollmentSubmittedAt: date
+        documentStatus: 'Complete',
+        financeStatus: 'Paid'
       }
     });
   }
 
   // 4. Seed Sections
-  const sectionsData = [
-    { gradeLevel: 'Grade 10', sectionName: 'Grade 10 - Rizal', capacity: 40, enrolled: 38 },
-    { gradeLevel: 'Grade 10', sectionName: 'Grade 10 - Mabini', capacity: 40, enrolled: 40 },
-    { gradeLevel: 'Grade 9', sectionName: 'Grade 9 - Bonifacio', capacity: 35, enrolled: 30 },
-    { gradeLevel: 'Grade 8', sectionName: 'Grade 8 - Luna', capacity: 45, enrolled: 22 },
-    { gradeLevel: 'Grade 7', sectionName: 'Grade 7 - Aguinaldo', capacity: 50, enrolled: 12 },
-  ];
-
-  for (const s of sectionsData) {
-    const existingSection = await prisma.section.findFirst({ where: { sectionName: s.sectionName }});
-    if (!existingSection) {
-      await prisma.section.create({
-        data: {
-          gradeLevel: s.gradeLevel,
-          sectionName: s.sectionName,
-          capacity: s.capacity,
-          enrolled: s.enrolled,
-          availableSlots: s.capacity - s.enrolled,
-          status: 'Active'
-        }
-      });
-    }
+  // Using an id or just create since Section has no unique field except id.
+  // Wait, I will just create them directly, but maybe delete all first to avoid duplicates?
+  // Let's just create if not exists by looking up first.
+  const existingSection = await prisma.section.findFirst({ where: { sectionName: 'Grade 10 - Rizal' }});
+  if (!existingSection) {
+    await prisma.section.create({
+      data: {
+        gradeLevel: 'Grade 10',
+        sectionName: 'Grade 10 - Rizal',
+        capacity: 40,
+        enrolled: 35,
+        availableSlots: 5,
+        status: 'Active'
+      }
+    });
   }
 
   // 5. Seed Enrollment Applications
@@ -181,29 +168,6 @@ async function main() {
         financeStatus: 'Unpaid'
       }
     });
-  }
-
-  // 6. Seed Document Requests
-  const docsData = [
-    { requestNo: 'REQ-001', studentName: 'Student 1 Test', documentType: 'Form 137', requestedAt: new Date() },
-    { requestNo: 'REQ-002', studentName: 'Student 5 Test', documentType: 'Good Moral', requestedAt: new Date(Date.now() - 86400000) },
-    { requestNo: 'REQ-003', studentName: 'Student 12 Test', documentType: 'Certificate of Enrollment', requestedAt: new Date(Date.now() - 172800000) },
-  ];
-
-  for (const d of docsData) {
-    const existingReq = await prisma.documentRequest.findUnique({ where: { requestNo: d.requestNo } });
-    if (!existingReq) {
-      await prisma.documentRequest.create({
-        data: {
-          requestNo: d.requestNo,
-          studentName: d.studentName,
-          documentType: d.documentType,
-          paymentStatus: 'Paid',
-          requestStatus: 'Processing',
-          requestedAt: d.requestedAt
-        }
-      });
-    }
   }
 
   console.log('Seeding complete!');

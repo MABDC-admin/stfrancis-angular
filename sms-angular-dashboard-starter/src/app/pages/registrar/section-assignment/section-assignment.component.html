@@ -236,12 +236,7 @@
         
         <div>
           <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-500 mb-1">Adviser Name</label>
-          <select [(ngModel)]="sectionFormData.adviser" class="w-full form-input rounded-xl bg-slate-50 border-slate-200">
-            <option value="">-- Select Adviser --</option>
-            <option *ngFor="let t of teachers" [value]="t.teacherProfile ? t.teacherProfile.firstName + ' ' + t.teacherProfile.lastName : t.email">
-              {{ t.teacherProfile ? (t.teacherProfile.firstName + ' ' + t.teacherProfile.lastName) : t.email }}
-            </option>
-          </select>
+          <input type="text" [(ngModel)]="sectionFormData.adviser" class="w-full form-input rounded-xl bg-slate-50 border-slate-200" placeholder="Full name of Adviser">
         </div>
 
         <div class="grid grid-cols-2 gap-4">
