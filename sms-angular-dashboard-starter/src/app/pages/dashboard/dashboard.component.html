@@ -1,6 +1,12 @@
 <section class="space-y-7">
-  <div class="relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-violet-800 to-indigo-900 p-4 sm:p-6 flex items-center shadow-lg border border-violet-700">
-    <app-portal-video-backdrop tone="deep" />
+  <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-800 to-indigo-900 p-4 sm:p-6 flex items-center shadow-lg border border-violet-700">
+    <!-- Video placed at the end part with a tightly constrained width to make it smaller, perfectly masked on the left -->
+    <div class="absolute inset-y-0 right-0 w-[40%] max-w-[300px] pointer-events-none" 
+         style="-webkit-mask-image: linear-gradient(to right, transparent 0%, black 50%); mask-image: linear-gradient(to right, transparent 0%, black 50%);">
+      <video autoplay loop muted playsinline [muted]="true" [autoplay]="true" class="w-full h-full object-cover object-center opacity-80 mix-blend-luminosity">
+        <source src="/assets/hero-banner.mp4" type="video/mp4" />
+      </video>
+    </div>
     
     <div class="relative z-10 max-w-xl">
       <p class="text-[10px] font-extrabold uppercase tracking-widest text-violet-300">{{ activeAcademicYearCode }}</p>

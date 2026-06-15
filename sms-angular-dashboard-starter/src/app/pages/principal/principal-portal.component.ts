@@ -13,7 +13,6 @@ import {
 } from './principal-portal.util';
 import { PrincipalPortalService, PrincipalPortalState } from './principal-portal.service';
 import { displayGradeLevel, gradeLevelMatches, normalizeGradeLevel } from '../../core/data/grade-levels';
-import { PortalVideoBackdropComponent } from '../../shared/portal-video-backdrop/portal-video-backdrop.component';
 
 type PrincipalView =
   | 'dashboard'
@@ -32,7 +31,7 @@ type PrincipalView =
 @Component({
   selector: 'app-principal-portal',
   standalone: true,
-  imports: [FormsModule, NgClass, NgFor, NgIf, RouterLink, PortalVideoBackdropComponent],
+  imports: [FormsModule, NgClass, NgFor, NgIf, RouterLink],
   templateUrl: './principal-portal.component.html',
   styleUrl: './principal-portal.component.scss',
 })

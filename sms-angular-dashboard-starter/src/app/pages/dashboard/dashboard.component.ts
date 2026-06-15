@@ -17,12 +17,11 @@ import { buildUpcomingBirthdays, UpcomingBirthday } from './dashboard-birthdays.
 import { buildRegistrarDashboardMetrics } from './registrar-dashboard-metrics.util';
 import { FinancePdfExportButtonComponent } from '../../shared/pdf-export/finance-pdf-export-button.component';
 import { displayGradeLevel } from '../../core/data/grade-levels';
-import { PortalVideoBackdropComponent } from '../../shared/portal-video-backdrop/portal-video-backdrop.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [NgFor, NgIf, LowerCasePipe, NgClass, RouterLink, StatCardComponent, FinancePdfExportButtonComponent, PortalVideoBackdropComponent],
+  imports: [NgFor, NgIf, LowerCasePipe, NgClass, RouterLink, StatCardComponent, FinancePdfExportButtonComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })

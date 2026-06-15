@@ -5,7 +5,6 @@
 }
 
 .hub-hero {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -18,11 +17,6 @@
     #ffffff;
   box-shadow: 0 22px 60px rgba(15, 23, 42, 0.08);
   padding: 22px 24px;
-}
-
-.hub-hero > *:not(app-portal-video-backdrop) {
-  position: relative;
-  z-index: 1;
 }
 
 .hub-kicker {

@@ -13,12 +13,11 @@ import {
   normalizeAcademicStatus,
   sortAcademicRecords
 } from './academic-records.util';
-import { PortalVideoBackdropComponent } from '../../../shared/portal-video-backdrop/portal-video-backdrop.component';
 
 @Component({
   selector: 'app-academic-records',
   standalone: true,
-  imports: [NgFor, NgIf, NgClass, FormsModule, PortalVideoBackdropComponent],
+  imports: [NgFor, NgIf, NgClass, FormsModule],
   templateUrl: './academic-records.component.html',
   styleUrl: './academic-records.component.scss'
 })

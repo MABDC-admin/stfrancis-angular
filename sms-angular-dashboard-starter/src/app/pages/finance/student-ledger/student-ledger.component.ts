@@ -10,12 +10,11 @@ import { StudentRecord } from '../../../core/models/registrar.models';
 import { FinancePdfExportButtonComponent } from '../../../shared/pdf-export/finance-pdf-export-button.component';
 import { buildDiscountBreakdown } from '../finance-discount.util';
 import { displayGradeLevel } from '../../../core/data/grade-levels';
-import { PortalVideoBackdropComponent } from '../../../shared/portal-video-backdrop/portal-video-backdrop.component';
 
 @Component({
   selector: 'app-student-ledger',
   standalone: true,
-  imports: [CommonModule, FormsModule, DecimalPipe, DatePipe, FinancePdfExportButtonComponent, PortalVideoBackdropComponent],
+  imports: [CommonModule, FormsModule, DecimalPipe, DatePipe, FinancePdfExportButtonComponent],
   templateUrl: './student-ledger.component.html',
   styleUrl: './student-ledger.component.scss'
 })

@@ -15,20 +15,12 @@
 }
 
 .finance-header {
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   align-items: center;
   padding: 1.25rem;
   margin-bottom: 1rem;
-}
-
-.finance-header > *:not(app-portal-video-backdrop) {
-  position: relative;
-  z-index: 1;
 }
 
 .finance-header-actions {

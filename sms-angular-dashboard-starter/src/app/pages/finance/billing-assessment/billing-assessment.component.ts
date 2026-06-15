@@ -14,12 +14,11 @@ import { FinancePdfExportButtonComponent } from '../../../shared/pdf-export/fina
 import { FinanceNotificationService } from '../../../core/services/finance-notification.service';
 import { buildDiscountBreakdown } from '../finance-discount.util';
 import { displayGradeLevel } from '../../../core/data/grade-levels';
-import { PortalVideoBackdropComponent } from '../../../shared/portal-video-backdrop/portal-video-backdrop.component';
 
 @Component({
   selector: 'app-billing-assessment',
   standalone: true,
-  imports: [CommonModule, FormsModule, DecimalPipe, FinancePdfExportButtonComponent, PortalVideoBackdropComponent],
+  imports: [CommonModule, FormsModule, DecimalPipe, FinancePdfExportButtonComponent],
   templateUrl: './billing-assessment.component.html',
   styleUrl: './billing-assessment.component.scss'
 })

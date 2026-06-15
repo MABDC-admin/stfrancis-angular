@@ -17,7 +17,6 @@ import {
   TeacherStudent,
 } from './teacher-portal.util';
 import { TeacherPortalService } from './teacher-portal.service';
-import { PortalVideoBackdropComponent } from '../../shared/portal-video-backdrop/portal-video-backdrop.component';
 
 type TeacherView =
   | 'dashboard'
@@ -36,7 +35,7 @@ type TeacherView =
 @Component({
   selector: 'app-teacher-portal',
   standalone: true,
-  imports: [FormsModule, NgClass, NgFor, NgIf, RouterLink, PortalVideoBackdropComponent],
+  imports: [FormsModule, NgClass, NgFor, NgIf, RouterLink],
   templateUrl: './teacher-portal.component.html',
   styleUrl: './teacher-portal.component.scss',
 })

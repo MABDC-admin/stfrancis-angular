@@ -20,7 +20,6 @@ import {
 } from './student-portal.util';
 import { StudentPortalService, StudentPortalState } from './student-portal.service';
 import { displayGradeLevel } from '../../core/data/grade-levels';
-import { PortalVideoBackdropComponent } from '../../shared/portal-video-backdrop/portal-video-backdrop.component';
 
 type StudentView =
   | 'dashboard'
@@ -40,7 +39,7 @@ type StudentView =
 @Component({
   selector: 'app-student-portal',
   standalone: true,
-  imports: [FormsModule, NgClass, NgFor, NgIf, RouterLink, PortalVideoBackdropComponent],
+  imports: [FormsModule, NgClass, NgFor, NgIf, RouterLink],
   templateUrl: './student-portal.component.html',
   styleUrl: './student-portal.component.scss',
 })
