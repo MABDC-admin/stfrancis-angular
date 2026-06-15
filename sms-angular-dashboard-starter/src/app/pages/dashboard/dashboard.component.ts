@@ -16,6 +16,7 @@ import { shouldShowRegistrarOverview } from './dashboard-visibility.util';
 import { buildUpcomingBirthdays, UpcomingBirthday } from './dashboard-birthdays.util';
 import { buildRegistrarDashboardMetrics } from './registrar-dashboard-metrics.util';
 import { FinancePdfExportButtonComponent } from '../../shared/pdf-export/finance-pdf-export-button.component';
+import { displayGradeLevel } from '../../core/data/grade-levels';
 
 @Component({
   selector: 'app-dashboard',
@@ -38,6 +39,7 @@ export class DashboardComponent implements OnInit {
   upcomingBirthdays: UpcomingBirthday[] = [];
   formatPeso = formatPeso;
   shouldShowRegistrarOverview = shouldShowRegistrarOverview;
+  readonly displayGradeLevel = displayGradeLevel;
 
   ngOnInit() {
     this.role = this.authService.getUserRole();

@@ -3,6 +3,7 @@ import { NgClass, NgFor, NgIf, NgStyle } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RegistrarApiService } from '../../../core/services/registrar-api.service';
 import { SectionRecord, StudentRecord } from '../../../core/models/registrar.models';
+import { displayGradeLevel, gradeLevelMatches, gradeLevelOptions } from '../../../core/data/grade-levels';
 
 @Component({
   selector: 'app-classes',
@@ -14,8 +15,9 @@ import { SectionRecord, StudentRecord } from '../../../core/models/registrar.mod
 export class ClassesComponent implements OnInit {
   private api = inject(RegistrarApiService);
 
-  gradeLevels = ['Kindergarten', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'];
-  activeGrade = 'Grade 7';
+  gradeLevels = gradeLevelOptions;
+  activeGrade = 'G7';
+  readonly displayGradeLevel = displayGradeLevel;
 
   allSections: SectionRecord[] = [];
   filteredSections: SectionRecord[] = [];
@@ -44,7 +46,7 @@ export class ClassesComponent implements OnInit {
 
   filterByGrade(grade: string) {
     this.activeGrade = grade;
-    this.filteredSections = this.allSections.filter(s => s.gradeLevel === grade);
+    this.filteredSections = this.allSections.filter(s => gradeLevelMatches(s.gradeLevel, grade));
     this.selectedSection = this.filteredSections.length > 0 ? this.filteredSections[0] : null;
     if (this.selectedSection) {
       this.loadLearners(this.selectedSection.id);

@@ -17,7 +17,7 @@
         <span>Student</span>
         <select [(ngModel)]="selectedStudentId" (change)="loadLedger()">
           <option value="">Select student</option>
-          <option *ngFor="let student of students" [value]="student.id">{{ student.lastName }}, {{ student.firstName }} - {{ student.gradeLevel }}</option>
+          <option *ngFor="let student of students" [value]="student.id">{{ student.lastName }}, {{ student.firstName }} - {{ displayGradeLevel(student.gradeLevel) }}</option>
         </select>
       </label>
       <div class="summary-card"><span>Net</span><strong>₱{{ ledger?.netAmount || 0 | number:'1.2-2' }}</strong></div>

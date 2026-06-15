@@ -11,6 +11,8 @@ export interface PrincipalTeacher {
   status: string;
 }
 
+import { normalizeGradeLevel } from '../../core/data/grade-levels';
+
 export interface PrincipalStudent {
   id: string;
   name: string;
@@ -82,7 +84,8 @@ export function buildExecutiveSummary(
 
 export function buildGradeEnrollment(students: PrincipalStudent[]): Array<{ gradeLevel: string; total: number }> {
   const counts = students.reduce<Record<string, number>>((acc, student) => {
-    acc[student.gradeLevel] = (acc[student.gradeLevel] ?? 0) + 1;
+    const gradeLevel = normalizeGradeLevel(student.gradeLevel);
+    acc[gradeLevel] = (acc[gradeLevel] ?? 0) + 1;
     return acc;
   }, {});
 

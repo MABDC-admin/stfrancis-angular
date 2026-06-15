@@ -2,6 +2,21 @@ export type AttendanceStatus = 'Present' | 'Absent' | 'Late' | 'Excused';
 export type ResourceType = 'PDF' | 'Video' | 'Document' | 'Link';
 export type Quarter = 'Q1' | 'Q2' | 'Q3' | 'Q4';
 
+export interface AuthenticatedPortalUser {
+  email?: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+export interface TeacherProfile {
+  name: string;
+  email: string;
+  department: string;
+  phone: string;
+  advisoryClass: string;
+}
+
 export interface TeacherClass {
   id: string;
   section: string;
@@ -46,6 +61,45 @@ export interface TeacherResource {
   subject: string;
   size: string;
   uploadedAt: string;
+}
+
+export interface TeacherAnnouncement {
+  id: string;
+  audience: string;
+  title: string;
+  body: string;
+  postedAt: string;
+}
+
+export interface DailyLessonLog {
+  id: string;
+  classId: string;
+  date: string;
+  objectives: string;
+  activities: string;
+  materials: string;
+  remarks: string;
+}
+
+export interface TeacherMessage {
+  id: string;
+  thread: string;
+  sender: string;
+  audience: 'Student' | 'Parent' | 'Admin';
+  message: string;
+  sentAt: string;
+}
+
+export interface TeacherPortalState {
+  teacher: TeacherProfile;
+  classes: TeacherClass[];
+  students: TeacherStudent[];
+  attendance: AttendanceRecord[];
+  grades: GradeRecord[];
+  resources: TeacherResource[];
+  dlls: DailyLessonLog[];
+  announcements: TeacherAnnouncement[];
+  messages: TeacherMessage[];
 }
 
 export interface DashboardSummary {
@@ -99,5 +153,51 @@ export function filterTeacherResources(resources: TeacherResource[], query: stri
       .join(' ')
       .toLowerCase()
       .includes(term),
+  );
+}
+
+export function buildTeacherDisplayName(user?: AuthenticatedPortalUser | null): string {
+  const explicitName = user?.name?.trim();
+  if (explicitName) {
+    return explicitName;
+  }
+
+  const fullName = [user?.firstName, user?.lastName]
+    .map(part => part?.trim())
+    .filter(Boolean)
+    .join(' ');
+
+  if (fullName) {
+    return fullName;
+  }
+
+  return user?.email?.trim() || 'Teacher';
+}
+
+export function buildTeacherPortalInitialState(user?: AuthenticatedPortalUser | null): TeacherPortalState {
+  return {
+    teacher: {
+      name: buildTeacherDisplayName(user),
+      email: user?.email?.trim() || '',
+      department: '',
+      phone: '',
+      advisoryClass: 'No advisory class assigned',
+    },
+    classes: [],
+    students: [],
+    attendance: [],
+    grades: [],
+    resources: [],
+    dlls: [],
+    announcements: [],
+    messages: [],
+  };
+}
+
+export function isLegacyTeacherSeedState(state: Pick<TeacherPortalState, 'teacher' | 'students' | 'classes'>): boolean {
+  return (
+    (state.teacher?.department === 'Basic Education' && state.teacher?.phone === '0917 100 2026') ||
+    state.classes?.some(section => section.id.startsWith('class-g')) ||
+    state.students?.some(student => /^stu-\d{3}$/.test(student.id))
   );
 }

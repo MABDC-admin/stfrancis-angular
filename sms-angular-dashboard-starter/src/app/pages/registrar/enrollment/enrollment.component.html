@@ -104,7 +104,7 @@
                 <p class="font-extrabold text-slate-800">{{ app.studentName }}</p>
                 <p class="mt-0.5 text-[10px] font-bold tracking-wide text-slate-400">{{ app.studentType }}</p>
               </td>
-              <td class="table-td text-slate-600 text-[13px] font-semibold">{{ app.gradeLevel }}</td>
+              <td class="table-td text-slate-600 text-[13px] font-semibold">{{ displayGradeLevel(app.gradeLevel) }}</td>
               <td class="table-td"><span class="status-pill" [ngClass]="statusClass(app.status)">{{ app.status }}</span></td>
               <td class="table-td"><span class="status-pill" [ngClass]="statusClass(app.documentStatus)">{{ app.documentStatus }}</span></td>
               <td class="table-td">
@@ -183,7 +183,7 @@
           <div>
             <h4 class="text-lg font-extrabold text-slate-800">{{ app.studentName }}</h4>
             <div class="mt-1 flex items-center gap-2">
-              <span class="rounded-md bg-slate-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-slate-600 shadow-sm border border-slate-200">{{ app.gradeLevel }}</span>
+              <span class="rounded-md bg-slate-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-slate-600 shadow-sm border border-slate-200">{{ displayGradeLevel(app.gradeLevel) }}</span>
               <span class="rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-emerald-700 border border-emerald-100">{{ app.studentType }}</span>
             </div>
           </div>

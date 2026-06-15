@@ -12,6 +12,7 @@ import {
   subjectPerformance,
 } from './principal-portal.util';
 import { PrincipalPortalService, PrincipalPortalState } from './principal-portal.service';
+import { displayGradeLevel, gradeLevelMatches, normalizeGradeLevel } from '../../core/data/grade-levels';
 
 type PrincipalView =
   | 'dashboard'
@@ -48,7 +49,7 @@ export class PrincipalPortalComponent implements OnInit {
   profileForm = { ...this.state().principal };
   announcementForm = { audience: 'Entire school' as PrincipalAudience, title: '', body: '', pinned: false, scheduledFor: '2026-06-17 08:00' };
   messageForm = { recipient: 'Faculty Group', channel: 'Teacher' as const, body: '' };
-  settingsForm = { academicYear: 'SY2026-2027', gradeConfig: 'Nursery, G1-G12', roleMode: 'View and audit only' };
+  settingsForm = { academicYear: 'SY2026-2027', gradeConfig: 'Nursery, Kindergarten 2, Grade 1-Grade 12', roleMode: 'View and audit only' };
 
   readonly modules = [
     { label: 'Executive Dashboard', route: 'dashboard', icon: 'space_dashboard' },
@@ -70,12 +71,13 @@ export class PrincipalPortalComponent implements OnInit {
   readonly atRiskStudents = computed(() => findAtRiskStudents(this.filteredStudents()));
   readonly teacherWorkload = computed(() => sortTeachersByWorkload(this.state().teachers));
   readonly subjectLeaders = computed(() => subjectPerformance(this.filteredSubjects()));
-  readonly gradeLevels = computed(() => ['All', ...Array.from(new Set(this.state().students.map(student => student.gradeLevel)))]);
+  readonly gradeLevels = computed(() => ['All', ...Array.from(new Set(this.state().students.map(student => normalizeGradeLevel(student.gradeLevel))))]);
   readonly subjects = computed(() => ['All', ...Array.from(new Set(this.state().subjects.map(subject => subject.subject)))]);
   readonly filteredStudents = computed(() => {
     const grade = this.gradeFilter();
-    return grade === 'All' ? this.state().students : this.state().students.filter(student => student.gradeLevel === grade);
+    return grade === 'All' ? this.state().students : this.state().students.filter(student => gradeLevelMatches(student.gradeLevel, grade));
   });
+  readonly displayGradeLevel = displayGradeLevel;
   readonly filteredSubjects = computed(() => {
     const subject = this.subjectFilter();
     return subject === 'All' ? this.state().subjects : this.state().subjects.filter(item => item.subject === subject);

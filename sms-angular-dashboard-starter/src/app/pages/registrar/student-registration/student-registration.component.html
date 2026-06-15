@@ -82,7 +82,7 @@
             <label>
               <span class="form-label">🎓 Grade Level <span class="text-rose-400">*</span></span>
               <select class="form-input" [(ngModel)]="draft.gradeLevel" name="gradeLevel">
-                <option *ngFor="let grade of gradeLevels">{{ grade }}</option>
+                <option *ngFor="let grade of gradeLevels" [value]="grade.value">{{ grade.label }}</option>
               </select>
             </label>
 

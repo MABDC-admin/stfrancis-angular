@@ -88,7 +88,7 @@
             placeholder="Search learner, remarks, grade, section..." />
         </label>
         <select [(ngModel)]="selectedGrade" name="academicGrade">
-          <option *ngFor="let grade of grades" [value]="grade">{{ grade }}</option>
+          <option *ngFor="let grade of grades" [value]="grade.value">{{ grade.label }}</option>
         </select>
         <select [(ngModel)]="selectedYear" name="academicYear">
           <option *ngFor="let year of schoolYears" [value]="year">{{ year }}</option>
@@ -129,13 +129,13 @@
                 <span>{{ record.studentName.charAt(0) }}</span>
                 <div>
                   <strong>{{ record.studentName }}</strong>
-                  <small>{{ record.gradeLevel }} academic history</small>
+                  <small>{{ displayGradeLevel(record.gradeLevel) }} academic history</small>
                 </div>
               </div>
             </td>
             <td>{{ record.schoolYear }}</td>
             <td>
-              <strong>{{ record.gradeLevel }}</strong>
+              <strong>{{ displayGradeLevel(record.gradeLevel) }}</strong>
               <small>{{ record.section || 'No section' }}</small>
             </td>
             <td>
@@ -175,7 +175,7 @@
         <div class="record-card-body">
           <div>
             <span>Grade / Section</span>
-            <strong>{{ record.gradeLevel }} · {{ record.section || 'No section' }}</strong>
+            <strong>{{ displayGradeLevel(record.gradeLevel) }} · {{ record.section || 'No section' }}</strong>
           </div>
           <div>
             <span>General Average</span>
@@ -205,7 +205,7 @@
       <article *ngFor="let record of filteredRecords.slice(0, 6)">
         <span class="timeline-dot"></span>
         <div>
-          <p>{{ record.schoolYear }} · {{ record.gradeLevel }}</p>
+          <p>{{ record.schoolYear }} · {{ displayGradeLevel(record.gradeLevel) }}</p>
           <h3>{{ record.studentName }}</h3>
           <small>{{ record.remarks }} · Average {{ record.generalAverage }}</small>
         </div>
@@ -239,7 +239,7 @@
           Grade Level
           <select [(ngModel)]="formData.gradeLevel" name="gradeLevel" required>
             <option value="" disabled>Select grade</option>
-            <option *ngFor="let grade of grades" [value]="grade" [disabled]="grade === 'All'">{{ grade }}</option>
+            <option *ngFor="let grade of grades" [value]="grade.value" [disabled]="grade.value === 'All'">{{ grade.label }}</option>
           </select>
         </label>
         <label>

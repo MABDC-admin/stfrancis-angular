@@ -11,6 +11,7 @@ import { shouldBlockEnrollmentReview } from './enrollment-review.util';
 import { filterEnrollmentApplications } from './enrollment-search.util';
 import { FormsModule } from '@angular/forms';
 import { GlobalSearchService } from '../../../core/services/global-search.service';
+import { displayGradeLevel } from '../../../core/data/grade-levels';
 
 @Component({
   selector: 'app-enrollment',
@@ -33,6 +34,7 @@ export class EnrollmentComponent implements OnInit {
   isApproving = false;
   blockedReviewNotice: { applicationId: string; title: string; message: string } | null = null;
   searchQuery = '';
+  readonly displayGradeLevel = displayGradeLevel;
 
   requiredDocuments = [
     'PSA Birth Certificate (Original)',

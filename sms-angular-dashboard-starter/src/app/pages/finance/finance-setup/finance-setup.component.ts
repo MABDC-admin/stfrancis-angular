@@ -6,6 +6,7 @@ import { forkJoin } from 'rxjs';
 import { FeeTemplateLineItem, FeeType } from '../../../core/models/finance.models';
 import { FinanceApiService } from '../../../core/services/finance-api.service';
 import { RegistrarApiService } from '../../../core/services/registrar-api.service';
+import { displayGradeLevel, gradeLevelOptions } from '../../../core/data/grade-levels';
 import { FinancePdfExportButtonComponent } from '../../../shared/pdf-export/finance-pdf-export-button.component';
 
 @Component({
@@ -30,7 +31,8 @@ export class FinanceSetupComponent implements OnInit {
   templateLineItems: FeeTemplateLineItem[] = [];
   message = '';
   error = '';
-  grades = ['Nursery', 'K2', 'G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9', 'G10', 'G11', 'G12'];
+  grades = gradeLevelOptions;
+  readonly displayGradeLevel = displayGradeLevel;
 
   ngOnInit() {
     this.registrar.activeAcademicYear$

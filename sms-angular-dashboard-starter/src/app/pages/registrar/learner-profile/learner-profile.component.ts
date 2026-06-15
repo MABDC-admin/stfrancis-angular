@@ -9,6 +9,7 @@ import { StudentRecord } from '../../../core/models/registrar.models';
 import { buildRegistrarClearancePayload } from './learner-profile-clearance.util';
 import { buildLearnerProfileHubStats, filterLearnerProfiles, learnerFullName } from './learner-profile-hub.util';
 import { shouldCloseModalOnKey } from './learner-profile-modal.util';
+import { displayGradeLevel, gradeLevelMatches, gradeLevelOptions } from '../../../core/data/grade-levels';
 
 @Component({
   selector: 'app-learner-profile',
@@ -30,12 +31,8 @@ export class LearnerProfileComponent implements OnInit {
   hubFinanceStatus = 'All';
   hubLoading = false;
   hubError = '';
-  hubGrades: string[] = [
-    'All',
-    'Nursery', 'K2',
-    'G1', 'G2', 'G3', 'G4', 'G5', 'G6',
-    'G7', 'G8', 'G9', 'G10', 'G11', 'G12'
-  ];
+  hubGrades = [{ value: 'All', label: 'All grade levels' }, ...gradeLevelOptions];
+  readonly displayGradeLevel = displayGradeLevel;
   hubFinanceStatuses = ['All', 'Unassessed', 'With Balance', 'Partially Paid', 'Cleared'];
   enrollments: any[] = [];
   documents: any[] = [];
@@ -310,7 +307,7 @@ export class LearnerProfileComponent implements OnInit {
   }
 
   get availableSections() {
-    return this.sections.filter(s => s.gradeLevel === this.student?.gradeLevel);
+    return this.sections.filter(s => gradeLevelMatches(s.gradeLevel, this.student?.gradeLevel));
   }
 
   openModal(type: 'sibling' | 'academic' | 'behavior' | 'fee' | 'edit-info' | 'move-section') {

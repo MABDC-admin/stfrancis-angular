@@ -30,7 +30,7 @@
         <label class="flex h-9 items-center gap-1.5 rounded-xl border border-violet-100 bg-white px-2.5 shadow-sm focus-within:border-violet-500 focus-within:ring-1 focus-within:ring-violet-500 transition-shadow">
           <span class="material-icons text-slate-400 text-[16px]">filter_list</span>
           <select #gradeSelect class="bg-transparent text-[13px] font-bold text-slate-700 outline-none pr-1 cursor-pointer" (change)="selectedGrade = gradeSelect.value" [value]="selectedGrade">
-            <option *ngFor="let grade of grades" [value]="grade">{{ grade }}</option>
+            <option *ngFor="let grade of grades" [value]="grade.value">{{ grade.label }}</option>
           </select>
         </label>
         
@@ -76,7 +76,7 @@
                 <p class="mt-1 text-[11px] font-semibold leading-snug text-slate-500">{{ student.address || student.phAddress || 'No address recorded' }}</p>
               </div>
             </td>
-            <td class="table-td">{{ student.gradeLevel }}<br /><span class="text-xs text-slate-400">{{ student.section }}</span></td>
+            <td class="table-td">{{ displayGradeLevel(student.gradeLevel) }}<br /><span class="text-xs text-slate-400">{{ student.section }}</span></td>
             <td class="table-td">{{ student.adviser }}</td>
             <td class="table-td"><span class="status-pill" [ngClass]="statusClass(student.enrollmentStatus)">{{ student.enrollmentStatus }}</span></td>
             <td class="table-td"><span class="status-pill" [ngClass]="statusClass(student.documentStatus)">{{ student.documentStatus }}</span></td>

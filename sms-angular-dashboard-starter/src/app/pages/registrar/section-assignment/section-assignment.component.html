@@ -35,7 +35,7 @@
             <div class="flex items-start justify-between gap-3 relative z-10">
               <div>
                 <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide bg-slate-100 text-slate-500 mb-2 inline-block">
-                  {{ section.gradeLevel }}
+                  {{ displayGradeLevel(section.gradeLevel) }}
                 </span>
                 <h3 class="text-xl font-extrabold text-slate-900">{{ section.sectionName }}</h3>
                 <p class="mt-0.5 text-sm font-semibold text-slate-500 flex items-center gap-1.5">
@@ -111,7 +111,7 @@
                   {{ student.lastName }}, {{ student.firstName }}
                 </p>
                 <div class="flex items-center gap-2 mt-0.5">
-                  <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">{{ student.gradeLevel }}</span>
+                  <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">{{ displayGradeLevel(student.gradeLevel) }}</span>
                   <span class="w-1 h-1 rounded-full bg-slate-200"></span>
                   <span class="text-[10px] font-extrabold uppercase tracking-widest" [ngClass]="student.studentType === 'Transferee' ? 'text-amber-500' : 'text-emerald-500'">
                     {{ student.studentType }}
@@ -162,7 +162,7 @@
           <div>
             <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-500 mb-2">Select Grade Level</label>
             <select [(ngModel)]="assignGradeLevel" (change)="onGradeChange()" class="w-full form-input rounded-xl bg-slate-50 border-slate-200">
-              <option *ngFor="let grade of availableGrades" [value]="grade">{{ grade }}</option>
+              <option *ngFor="let grade of availableGrades" [value]="grade">{{ displayGradeLevel(grade) }}</option>
             </select>
           </div>
           <div>
@@ -225,12 +225,7 @@
         <div>
           <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-500 mb-1">Grade Level</label>
           <select [(ngModel)]="sectionFormData.gradeLevel" class="w-full form-input rounded-xl bg-slate-50 border-slate-200">
-            <option value="Grade 7">Grade 7</option>
-            <option value="Grade 8">Grade 8</option>
-            <option value="Grade 9">Grade 9</option>
-            <option value="Grade 10">Grade 10</option>
-            <option value="Grade 11">Grade 11</option>
-            <option value="Grade 12">Grade 12</option>
+            <option *ngFor="let grade of gradeLevels" [value]="grade.value">{{ grade.label }}</option>
           </select>
         </div>
         
@@ -272,7 +267,7 @@
       <div class="flex items-start justify-between p-6 border-b border-violet-50 bg-gradient-to-r from-violet-50/50 to-fuchsia-50/50 shrink-0">
         <div>
           <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide bg-violet-100 text-violet-600 mb-2 inline-block">
-            {{ viewingSection.gradeLevel }}
+            {{ displayGradeLevel(viewingSection.gradeLevel) }}
           </span>
           <h2 class="text-2xl font-extrabold text-slate-900">{{ viewingSection.sectionName }}</h2>
           <p class="mt-1 text-sm font-semibold text-slate-500 flex items-center gap-2">

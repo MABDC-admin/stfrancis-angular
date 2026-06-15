@@ -5,6 +5,7 @@ import { filter, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AcademicRecord } from '../../../core/models/registrar.models';
 import { RegistrarApiService } from '../../../core/services/registrar-api.service';
+import { displayGradeLevel, gradeLevelOptions } from '../../../core/data/grade-levels';
 import {
   AcademicRecordStatus,
   buildAcademicRecordStats,
@@ -42,12 +43,8 @@ export class AcademicRecordsComponent implements OnInit {
     type: 'success' as 'success' | 'error' | 'info'
   };
 
-  readonly grades = [
-    'All',
-    'Nursery', 'K2',
-    'G1', 'G2', 'G3', 'G4', 'G5', 'G6',
-    'G7', 'G8', 'G9', 'G10', 'G11', 'G12'
-  ];
+  readonly grades = [{ value: 'All', label: 'All grade levels' }, ...gradeLevelOptions];
+  readonly displayGradeLevel = displayGradeLevel;
   readonly statuses = ['All', 'Validated', 'For Review', 'Promoted', 'Retained', 'Incomplete'];
 
   ngOnInit() {
@@ -170,7 +167,7 @@ export class AcademicRecordsComponent implements OnInit {
     const rows = this.filteredRecords.map((record) => [
       record.studentName,
       record.schoolYear,
-      record.gradeLevel,
+      displayGradeLevel(record.gradeLevel),
       record.section,
       record.generalAverage,
       record.remarks,

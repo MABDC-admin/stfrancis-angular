@@ -13,6 +13,7 @@ import { buildBatchAssessmentPayloads } from './assessment-batch.util';
 import { FinancePdfExportButtonComponent } from '../../../shared/pdf-export/finance-pdf-export-button.component';
 import { FinanceNotificationService } from '../../../core/services/finance-notification.service';
 import { buildDiscountBreakdown } from '../finance-discount.util';
+import { displayGradeLevel } from '../../../core/data/grade-levels';
 
 @Component({
   selector: 'app-billing-assessment',
@@ -41,6 +42,7 @@ export class BillingAssessmentComponent implements OnInit {
   loading = false;
   message = '';
   error = '';
+  readonly displayGradeLevel = displayGradeLevel;
 
   ngOnInit() {
     this.registrar.activeAcademicYear$

@@ -1,6 +1,7 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
+import { dashboardPathForRole } from './role-redirect.util';
 
 export const roleGuard: CanActivateFn = (route, state) => {
   const auth = inject(AuthService);
@@ -15,8 +16,7 @@ export const roleGuard: CanActivateFn = (route, state) => {
   }
 
   if (expectedRoles && !expectedRoles.includes(userRole) && userRole !== 'ADMIN') {
-    // Redirect to dashboard if unauthorized but logged in
-    router.navigate(['/registrar-finance/dashboard']);
+    router.navigate([dashboardPathForRole(userRole)]);
     return false;
   }
 

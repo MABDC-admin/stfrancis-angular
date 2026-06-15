@@ -8,7 +8,7 @@
     <div>
       <p class="eyebrow">Learner Portal</p>
       <h1>{{ state().profile.name }}</h1>
-      <p>{{ state().profile.gradeLevel }} - {{ state().profile.section }} • Adviser: {{ state().profile.adviser }}</p>
+      <p>{{ displayGradeLevel(state().profile.gradeLevel) }} - {{ state().profile.section }} • Adviser: {{ state().profile.adviser }}</p>
     </div>
     <div class="hero-actions">
       <a routerLink="/student/classes"><span class="material-icons">class</span> View Classes</a>
@@ -81,7 +81,7 @@
     <form class="form-grid" (ngSubmit)="saveProfile()">
       <label>Name <input [(ngModel)]="profileForm.name" name="studentName" readonly /></label>
       <label>Student No. <input [(ngModel)]="profileForm.studentNo" name="studentNo" readonly /></label>
-      <label>Grade & Section <input [value]="profileForm.gradeLevel + ' - ' + profileForm.section" readonly /></label>
+      <label>Grade & Section <input [value]="displayGradeLevel(profileForm.gradeLevel) + ' - ' + profileForm.section" readonly /></label>
       <label>Adviser <input [(ngModel)]="profileForm.adviser" name="adviser" readonly /></label>
       <label>Contact No. <input [(ngModel)]="profileForm.contact" name="contact" required /></label>
       <label>Guardian <input [(ngModel)]="profileForm.guardian" name="guardian" required /></label>

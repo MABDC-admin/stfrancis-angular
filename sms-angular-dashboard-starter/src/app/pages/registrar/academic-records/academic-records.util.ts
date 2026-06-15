@@ -1,4 +1,5 @@
 import type { AcademicRecord } from '../../../core/models/registrar.models';
+import { gradeLevelMatches, normalizeGradeLevel } from '../../../core/data/grade-levels';
 
 export type AcademicRecordStatus = 'Validated' | 'For Review' | 'Promoted' | 'Retained' | 'Incomplete';
 
@@ -38,7 +39,7 @@ export function filterAcademicRecords(
     ].filter(Boolean).join(' ').toLowerCase();
 
     const matchesQuery = !normalizedQuery || searchText.includes(normalizedQuery);
-    const matchesGrade = gradeLevel === 'All' || record.gradeLevel === gradeLevel;
+    const matchesGrade = gradeLevel === 'All' || gradeLevelMatches(record.gradeLevel, gradeLevel);
     const matchesYear = schoolYear === 'All' || record.schoolYear === schoolYear;
     const matchesStatus = status === 'All' || normalizeAcademicStatus(record.status) === status;
 
@@ -65,7 +66,7 @@ export function sortAcademicRecords(records: AcademicRecord[]): AcademicRecord[]
     const yearCompare = b.schoolYear.localeCompare(a.schoolYear);
     if (yearCompare !== 0) return yearCompare;
 
-    const gradeCompare = a.gradeLevel.localeCompare(b.gradeLevel, undefined, { numeric: true });
+    const gradeCompare = normalizeGradeLevel(a.gradeLevel).localeCompare(normalizeGradeLevel(b.gradeLevel), undefined, { numeric: true });
     if (gradeCompare !== 0) return gradeCompare;
 
     return a.studentName.localeCompare(b.studentName);

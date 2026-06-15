@@ -1,4 +1,5 @@
 import type { StudentRecord } from '../../../core/models/registrar.models';
+import { gradeLevelMatches } from '../../../core/data/grade-levels';
 
 export interface LearnerProfileHubStats {
   total: number;
@@ -43,7 +44,7 @@ export function filterLearnerProfiles(
     ].filter(Boolean).join(' ').toLowerCase();
 
     const matchesQuery = !normalizedQuery || searchText.includes(normalizedQuery);
-    const matchesGrade = gradeLevel === 'All' || learner.gradeLevel === gradeLevel;
+    const matchesGrade = gradeLevel === 'All' || gradeLevelMatches(learner.gradeLevel, gradeLevel);
     const matchesFinance = financeStatus === 'All' || learner.financeStatus === financeStatus;
 
     return matchesQuery && matchesGrade && matchesFinance;

@@ -7,6 +7,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RegistrarApiService } from '../../../core/services/registrar-api.service';
 import { StudentRecord } from '../../../core/models/registrar.models';
 import { replaceStudentInList } from './student-masterlist-realtime.util';
+import { displayGradeLevel, gradeLevelMatches, gradeLevelOptions } from '../../../core/data/grade-levels';
 
 @Component({
   selector: 'app-student-masterlist',
@@ -20,16 +21,12 @@ export class StudentMasterlistComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   students: StudentRecord[] = [];
   selectedGrade: string = 'All';
-  grades: string[] = [
-    'All',
-    'Nursery', 'K2', 
-    'G1', 'G2', 'G3', 'G4', 'G5', 'G6',
-    'G7', 'G8', 'G9', 'G10', 'G11', 'G12'
-  ];
+  grades = [{ value: 'All', label: 'All grade levels' }, ...gradeLevelOptions];
+  readonly displayGradeLevel = displayGradeLevel;
 
   get filteredStudents(): StudentRecord[] {
     if (this.selectedGrade === 'All') return this.students;
-    return this.students.filter(s => s.gradeLevel === this.selectedGrade);
+    return this.students.filter(s => gradeLevelMatches(s.gradeLevel, this.selectedGrade));
   }
 
   ngOnInit() {

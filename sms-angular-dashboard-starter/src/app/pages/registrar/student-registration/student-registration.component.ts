@@ -1,7 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule, NgClass, NgFor } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { gradeLevels, requiredDocumentChecklist, studentTypes } from '../../../core/data/registrar.mock';
+import { requiredDocumentChecklist, studentTypes } from '../../../core/data/registrar.mock';
+import { gradeLevelOptions } from '../../../core/data/grade-levels';
 import { RegistrarApiService } from '../../../core/services/registrar-api.service';
 import { Router } from '@angular/router';
 
@@ -16,7 +17,7 @@ export class StudentRegistrationComponent {
   private api = inject(RegistrarApiService);
   private router = inject(Router);
 
-  readonly gradeLevels = gradeLevels;
+  readonly gradeLevels = gradeLevelOptions;
   readonly studentTypes = studentTypes;
   readonly requiredDocuments = requiredDocumentChecklist;
 

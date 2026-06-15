@@ -47,7 +47,7 @@
     <section class="finance-panel">
       <h2 class="finance-title">Fee Template</h2>
       <div class="summary-strip">
-        <label class="field"><span>Grade Level</span><select [(ngModel)]="templateGradeLevel"><option *ngFor="let grade of grades" [value]="grade">{{ grade }}</option></select></label>
+        <label class="field"><span>Grade Level</span><select [(ngModel)]="templateGradeLevel"><option *ngFor="let grade of grades" [value]="grade.value">{{ grade.label }}</option></select></label>
         <label class="field"><span>Template Name</span><input [(ngModel)]="templateName" /></label>
         <div class="summary-card"><span>Total</span><strong>₱{{ templateTotal | number:'1.2-2' }}</strong></div>
         <div class="field"><span>Line</span><button class="secondary-btn" (click)="addTemplateLine()">Add Line</button></div>
@@ -74,7 +74,7 @@
       <thead><tr><th>Grade</th><th>Name</th><th>Lines</th><th>Status</th><th>Actions</th></tr></thead>
       <tbody>
         <tr *ngFor="let template of templates">
-          <td>{{ template.gradeLevel }}</td>
+          <td>{{ displayGradeLevel(template.gradeLevel) }}</td>
           <td>{{ template.name }}</td>
           <td>{{ template.lineItems?.length || 0 }}</td>
           <td><span class="status-pill" [class.clear]="template.isActive">{{ template.isActive ? 'Active' : 'Inactive' }}</span></td>

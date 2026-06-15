@@ -12,6 +12,7 @@ import {
   summarizeBilling,
 } from './billing-summary.util';
 import { FinancePdfExportButtonComponent } from '../../../shared/pdf-export/finance-pdf-export-button.component';
+import { displayGradeLevel } from '../../../core/data/grade-levels';
 
 @Component({
   selector: 'app-billing-summary',
@@ -33,6 +34,7 @@ export class BillingSummaryComponent implements OnInit {
   statusFilter = 'ALL';
   loading = false;
   error = '';
+  readonly displayGradeLevel = displayGradeLevel;
 
   ngOnInit() {
     this.registrar.activeAcademicYear$

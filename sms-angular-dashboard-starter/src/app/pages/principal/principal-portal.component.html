@@ -91,13 +91,13 @@
 
   <section *ngIf="currentView() === 'students'" class="principal-grid">
     <article class="panel">
-      <div class="panel-heading"><div><p class="eyebrow">Student Analytics</p><h2>Enrollment by Grade</h2></div><select [ngModel]="gradeFilter()" (ngModelChange)="gradeFilter.set($event)"><option *ngFor="let grade of gradeLevels()">{{ grade }}</option></select></div>
-      <div class="grade-bars"><div *ngFor="let item of gradeEnrollment()"><span>{{ item.gradeLevel }}</span><b><i [style.width.%]="item.total * 12"></i></b><strong>{{ item.total }}</strong></div></div>
+      <div class="panel-heading"><div><p class="eyebrow">Student Analytics</p><h2>Enrollment by Grade</h2></div><select [ngModel]="gradeFilter()" (ngModelChange)="gradeFilter.set($event)"><option *ngFor="let grade of gradeLevels()" [value]="grade">{{ grade === 'All' ? 'All grade levels' : displayGradeLevel(grade) }}</option></select></div>
+      <div class="grade-bars"><div *ngFor="let item of gradeEnrollment()"><span>{{ displayGradeLevel(item.gradeLevel) }}</span><b><i [style.width.%]="item.total * 12"></i></b><strong>{{ item.total }}</strong></div></div>
     </article>
     <article class="panel wide">
       <div class="panel-heading"><div><p class="eyebrow">Student Risk Register</p><h2>At-Risk & Top Performers</h2></div></div>
       <div class="split-list">
-        <div><h3>At-risk learners</h3><p *ngFor="let student of atRiskStudents()"><strong>{{ student.name }}</strong><span>{{ student.gradeLevel }} • Avg {{ student.average }} • Att {{ student.attendanceRate }}%</span></p></div>
+        <div><h3>At-risk learners</h3><p *ngFor="let student of atRiskStudents()"><strong>{{ student.name }}</strong><span>{{ displayGradeLevel(student.gradeLevel) }} • Avg {{ student.average }} • Att {{ student.attendanceRate }}%</span></p></div>
         <div><h3>Top performers</h3><p *ngFor="let student of filteredStudents().slice().sort().slice(0, 4)"><strong>{{ student.name }}</strong><span>{{ student.section }} • Avg {{ student.average }}</span></p></div>
       </div>
     </article>
@@ -107,7 +107,7 @@
     <div class="panel-heading"><div><p class="eyebrow">Class & Section Management</p><h2>All Sections</h2></div></div>
     <div class="section-grid">
       <article *ngFor="let section of state().classes">
-        <p class="eyebrow">{{ section.gradeLevel }} • {{ section.subject }}</p>
+        <p class="eyebrow">{{ displayGradeLevel(section.gradeLevel) }} • {{ section.subject }}</p>
         <h2>{{ section.section }}</h2>
         <span>Adviser: {{ section.adviser }}</span>
         <div class="mini-bars"><div><span>Enrollment</span><b [style.width.%]="section.enrollment * 10"></b><strong>{{ section.enrollment }}</strong></div><div><span>Average</span><b [style.width.%]="section.average"></b><strong>{{ section.average }}</strong></div><div><span>Attendance</span><b [style.width.%]="section.attendanceRate"></b><strong>{{ section.attendanceRate }}%</strong></div></div>
@@ -118,7 +118,7 @@
   <section *ngIf="currentView() === 'performance'" class="panel">
     <div class="panel-heading"><div><p class="eyebrow">Academic Performance</p><h2>Subject and Grade-Level Analytics</h2></div><select [ngModel]="subjectFilter()" (ngModelChange)="subjectFilter.set($event)"><option *ngFor="let subject of subjects()">{{ subject }}</option></select></div>
     <div class="performance-grid">
-      <div *ngFor="let subject of subjectLeaders()"><span>{{ subject.subject }}</span><strong>{{ subject.average }}</strong><small>{{ subject.gradeLevel }} • {{ subject.quarter }} • Pass {{ subject.passRate }}%</small><b><i [style.width.%]="subject.average"></i></b></div>
+      <div *ngFor="let subject of subjectLeaders()"><span>{{ subject.subject }}</span><strong>{{ subject.average }}</strong><small>{{ displayGradeLevel(subject.gradeLevel) }} • {{ subject.quarter }} • Pass {{ subject.passRate }}%</small><b><i [style.width.%]="subject.average"></i></b></div>
     </div>
   </section>
 
@@ -126,7 +126,7 @@
     <div class="panel-heading"><div><p class="eyebrow">Attendance Monitoring</p><h2>School-Wide and Chronic Absence Watch</h2></div></div>
     <div class="data-table compact">
       <div class="table-head"><span>Section</span><span>Adviser</span><span>Attendance</span><span>Signal</span></div>
-      <div *ngFor="let section of state().classes"><span>{{ section.gradeLevel }} - {{ section.section }}</span><span>{{ section.adviser }}</span><span><b class="bar"><i [style.width]="percent(section.attendanceRate)"></i></b>{{ section.attendanceRate }}%</span><span [ngClass]="{ danger: section.attendanceRate < 85 }">{{ section.attendanceRate < 85 ? 'Intervention' : 'Stable' }}</span></div>
+      <div *ngFor="let section of state().classes"><span>{{ displayGradeLevel(section.gradeLevel) }} - {{ section.section }}</span><span>{{ section.adviser }}</span><span><b class="bar"><i [style.width]="percent(section.attendanceRate)"></i></b>{{ section.attendanceRate }}%</span><span [ngClass]="{ danger: section.attendanceRate < 85 }">{{ section.attendanceRate < 85 ? 'Intervention' : 'Stable' }}</span></div>
     </div>
   </section>
 
@@ -137,7 +137,7 @@
       <div><span>Pending</span><strong>{{ summary().enrollmentStatus.pending }}</strong></div>
       <div><span>Dropped</span><strong>{{ summary().enrollmentStatus.dropped }}</strong></div>
     </div>
-    <div class="data-table compact"><div class="table-head"><span>Learner</span><span>Grade</span><span>Section</span><span>Status</span></div><div *ngFor="let student of state().students"><span>{{ student.name }}</span><span>{{ student.gradeLevel }}</span><span>{{ student.section }}</span><span>{{ student.status }}</span></div></div>
+    <div class="data-table compact"><div class="table-head"><span>Learner</span><span>Grade</span><span>Section</span><span>Status</span></div><div *ngFor="let student of state().students"><span>{{ student.name }}</span><span>{{ displayGradeLevel(student.gradeLevel) }}</span><span>{{ student.section }}</span><span>{{ student.status }}</span></div></div>
   </section>
 
   <section *ngIf="currentView() === 'announcements'" class="panel">

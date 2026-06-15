@@ -113,7 +113,7 @@
             <span class="birthday-date">{{ birthday.dateLabel }}</span>
             <div>
               <strong>{{ birthday.learnerName }}</strong>
-              <small>{{ birthday.gradeLevel }} · {{ birthday.daysUntil === 0 ? 'Today' : birthday.daysUntil + ' days' }}</small>
+              <small>{{ displayGradeLevel(birthday.gradeLevel) }} · {{ birthday.daysUntil === 0 ? 'Today' : birthday.daysUntil + ' days' }}</small>
             </div>
           </div>
         </div>

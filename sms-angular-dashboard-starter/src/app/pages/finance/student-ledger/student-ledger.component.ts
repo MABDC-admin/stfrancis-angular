@@ -9,6 +9,7 @@ import { StudentAssessment } from '../../../core/models/finance.models';
 import { StudentRecord } from '../../../core/models/registrar.models';
 import { FinancePdfExportButtonComponent } from '../../../shared/pdf-export/finance-pdf-export-button.component';
 import { buildDiscountBreakdown } from '../finance-discount.util';
+import { displayGradeLevel } from '../../../core/data/grade-levels';
 
 @Component({
   selector: 'app-student-ledger',
@@ -30,6 +31,7 @@ export class StudentLedgerComponent implements OnInit {
   ledger: StudentAssessment | null = null;
   message = '';
   error = '';
+  readonly displayGradeLevel = displayGradeLevel;
 
   ngOnInit() {
     this.route.queryParamMap

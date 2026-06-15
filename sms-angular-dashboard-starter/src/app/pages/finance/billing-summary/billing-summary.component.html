@@ -80,7 +80,7 @@
           </div>
           <div class="learner-copy">
             <strong>{{ row.learnerName }}</strong>
-            <small>{{ row.gradeLevel }} · {{ row.studentNo }} · LRN {{ row.lrn }}</small>
+            <small>{{ displayGradeLevel(row.gradeLevel) }} · {{ row.studentNo }} · LRN {{ row.lrn }}</small>
             <div class="discount-tags">
               <span *ngFor="let label of row.discountLabels" [class.none]="!row.hasDiscount">{{ label }}</span>
             </div>

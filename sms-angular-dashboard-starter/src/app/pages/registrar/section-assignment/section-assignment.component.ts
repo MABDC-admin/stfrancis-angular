@@ -6,6 +6,7 @@ import { combineLatest } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RegistrarApiService } from '../../../core/services/registrar-api.service';
 import { SectionRecord, StudentRecord } from '../../../core/models/registrar.models';
+import { displayGradeLevel, gradeLevelMatches, gradeLevelOptions, normalizeGradeLevel } from '../../../core/data/grade-levels';
 
 import { FormsModule } from '@angular/forms';
 
@@ -39,6 +40,8 @@ export class SectionAssignmentComponent implements OnInit {
   isViewSectionModalOpen = false;
   viewingSection: SectionRecord | null = null;
   enrolledStudents: StudentRecord[] = [];
+  readonly gradeLevels = gradeLevelOptions;
+  readonly displayGradeLevel = displayGradeLevel;
 
   ngOnInit() {
     this.api.activeAcademicYear$.pipe(
@@ -58,21 +61,27 @@ export class SectionAssignmentComponent implements OnInit {
         
         if (this.unassignedStudents.length === 0) {
           this.unassignedStudents = [
-            { id: '1', firstName: 'Mia', lastName: 'Santos', gradeLevel: 'Grade 7', studentType: 'Transferee', enrollmentStatus: 'Pending Review' } as StudentRecord,
-            { id: '2', firstName: 'Liam', lastName: 'Reyes', gradeLevel: 'Grade 7', studentType: 'Regular', enrollmentStatus: 'Officially Enrolled' } as StudentRecord,
-            { id: '3', firstName: 'Noah', lastName: 'Garcia', gradeLevel: 'Grade 1', studentType: 'Regular', enrollmentStatus: 'Pending Review' } as StudentRecord,
+            { id: '1', firstName: 'Mia', lastName: 'Santos', gradeLevel: 'G7', studentType: 'Transferee', enrollmentStatus: 'Pending Review' } as StudentRecord,
+            { id: '2', firstName: 'Liam', lastName: 'Reyes', gradeLevel: 'G7', studentType: 'Regular', enrollmentStatus: 'Officially Enrolled' } as StudentRecord,
+            { id: '3', firstName: 'Noah', lastName: 'Garcia', gradeLevel: 'G1', studentType: 'Regular', enrollmentStatus: 'Pending Review' } as StudentRecord,
           ];
         }
 
         // Ensure we have mock sections for the unassigned students' grade levels if the DB is empty
-        const missingGrades = new Set(this.unassignedStudents.map(s => s.gradeLevel));
-        this.sections.forEach(s => missingGrades.delete(s.gradeLevel));
+        const missingGrades = new Set(this.unassignedStudents.map(s => normalizeGradeLevel(s.gradeLevel)));
+        this.sections.forEach(section => {
+          for (const grade of Array.from(missingGrades)) {
+            if (gradeLevelMatches(section.gradeLevel, grade)) {
+              missingGrades.delete(grade);
+            }
+          }
+        });
         
         if (missingGrades.size > 0) {
           missingGrades.forEach(grade => {
             this.sections.push({
               id: `mock-sec-${grade.replace(/\s+/g, '-')}`,
-              sectionName: `${grade} - Newton`,
+              sectionName: `${displayGradeLevel(grade)} - Newton`,
               gradeLevel: grade,
               adviser: 'TBA',
               room: 'TBA',
@@ -104,16 +113,16 @@ export class SectionAssignmentComponent implements OnInit {
   // --- Assign Learners Logic ---
 
   get availableGrades(): string[] {
-    const grades = new Set(this.unassignedStudents.map(s => s.gradeLevel));
+    const grades = new Set(this.unassignedStudents.map(s => normalizeGradeLevel(s.gradeLevel)));
     return Array.from(grades);
   }
 
   get assignableSections(): SectionRecord[] {
-    return this.sections.filter(s => s.gradeLevel === this.assignGradeLevel);
+    return this.sections.filter(s => gradeLevelMatches(s.gradeLevel, this.assignGradeLevel));
   }
 
   get assignableStudents(): StudentRecord[] {
-    return this.unassignedStudents.filter(s => s.gradeLevel === this.assignGradeLevel);
+    return this.unassignedStudents.filter(s => gradeLevelMatches(s.gradeLevel, this.assignGradeLevel));
   }
 
   get selectedCount(): number {
@@ -193,7 +202,7 @@ export class SectionAssignmentComponent implements OnInit {
     } else {
       this.editingSectionId = null;
       this.sectionFormData = {
-        gradeLevel: 'Grade 7',
+        gradeLevel: 'G7',
         sectionName: '',
         adviser: '',
         room: '',

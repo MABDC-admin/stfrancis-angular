@@ -1,14 +1,17 @@
 import assert from 'node:assert/strict';
 import {
+  buildTeacherDisplayName,
   buildAttendanceSummary,
   buildTeacherDashboardSummary,
+  buildTeacherPortalInitialState,
   calculateQuarterAverage,
   filterTeacherResources,
+  isLegacyTeacherSeedState,
 } from './teacher-portal.util.ts';
 
 const classes = [
-  { id: 'class-1', section: 'G7 - St. Clare', subject: 'Mathematics', schedule: 'Mon 8:00 AM', room: 'Room 201', studentIds: ['s1', 's2'] },
-  { id: 'class-2', section: 'G8 - St. Agnes', subject: 'Science', schedule: 'Tue 9:00 AM', room: 'Room 204', studentIds: ['s3'] },
+  { id: 'class-1', section: 'Section A', subject: 'Mathematics', schedule: 'Mon 8:00 AM', room: 'Room 201', studentIds: ['s1', 's2'] },
+  { id: 'class-2', section: 'Section B', subject: 'Science', schedule: 'Tue 9:00 AM', room: 'Room 204', studentIds: ['s3'] },
 ];
 
 const attendance = [
@@ -52,4 +55,46 @@ assert.deepEqual(
 assert.deepEqual(
   filterTeacherResources(resources, 'math').map(resource => resource.id),
   ['r1'],
+);
+
+assert.equal(
+  buildTeacherDisplayName({ email: 'teacher1@sfxsai.com', firstName: 'Ivy', lastName: 'Ann' }),
+  'Ivy Ann',
+);
+
+assert.equal(
+  buildTeacherDisplayName({ email: 'teacher1@sfxsai.com' }),
+  'teacher1@sfxsai.com',
+);
+
+const emptyTeacherState = buildTeacherPortalInitialState({ email: 'teacher1@sfxsai.com' });
+assert.equal(emptyTeacherState.teacher.email, 'teacher1@sfxsai.com');
+assert.equal(emptyTeacherState.teacher.name, 'teacher1@sfxsai.com');
+assert.deepEqual(emptyTeacherState.classes, []);
+assert.deepEqual(emptyTeacherState.students, []);
+assert.deepEqual(emptyTeacherState.attendance, []);
+assert.deepEqual(emptyTeacherState.grades, []);
+assert.deepEqual(emptyTeacherState.resources, []);
+assert.deepEqual(emptyTeacherState.dlls, []);
+assert.deepEqual(emptyTeacherState.announcements, []);
+assert.deepEqual(emptyTeacherState.messages, []);
+assert.equal(emptyTeacherState.classes.length, 0);
+assert.equal(emptyTeacherState.students.length, 0);
+
+assert.equal(
+  isLegacyTeacherSeedState({
+    teacher: { name: 'Legacy Teacher', email: 'teacher1@sfxsai.com', department: 'Basic Education', phone: '0917 100 2026', advisoryClass: 'Legacy Advisory' },
+    classes: [{ id: 'class-g-legacy', section: 'Legacy Section', subject: 'Mathematics', schedule: 'Mon 8:00 AM', room: 'Room 201', studentIds: ['stu-999'] }],
+    students: [{ id: 'stu-999', name: 'Legacy Student', studentNo: 'SFX-2026-2027-999', gradeLevel: 'G7', guardian: '', contact: '' }],
+  }),
+  true,
+);
+
+assert.equal(
+  isLegacyTeacherSeedState({
+    teacher: emptyTeacherState.teacher,
+    classes: [],
+    students: [],
+  }),
+  false,
 );

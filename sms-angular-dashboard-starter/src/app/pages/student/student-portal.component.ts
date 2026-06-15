@@ -19,6 +19,7 @@ import {
   subjectAverage,
 } from './student-portal.util';
 import { StudentPortalService, StudentPortalState } from './student-portal.service';
+import { displayGradeLevel } from '../../core/data/grade-levels';
 
 type StudentView =
   | 'dashboard'
@@ -89,6 +90,7 @@ export class StudentPortalComponent implements OnInit {
   readonly unreadAnnouncements = computed(() => this.state().announcements.filter(item => !item.read).length);
   readonly pendingAssignments = computed(() => filterPendingAssignments(this.state().assignments));
   readonly completedAssignments = computed(() => this.state().assignments.filter(item => !isPendingAssignmentStatus(item.status)));
+  readonly displayGradeLevel = displayGradeLevel;
 
   ngOnInit(): void {
     this.store.state$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(state => {

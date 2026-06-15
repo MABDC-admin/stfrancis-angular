@@ -36,7 +36,7 @@
             <span class="learner-initials">{{ student.firstName.charAt(0) }}{{ student.lastName.charAt(0) }}</span>
             <span class="learner-meta">
               <strong>{{ student.lastName }}, {{ student.firstName }}</strong>
-              <small>{{ student.gradeLevel }} · {{ student.studentNo || student.lrn }}</small>
+              <small>{{ displayGradeLevel(student.gradeLevel) }} · {{ student.studentNo || student.lrn }}</small>
             </span>
           </label>
         </div>
@@ -50,7 +50,7 @@
         <select [(ngModel)]="selectedStudentId" (change)="startSingleEdit()">
           <option value="">Select learner to edit existing assessment</option>
           <option *ngFor="let option of studentOptions" [value]="option.student.id">
-            {{ option.student.lastName }}, {{ option.student.firstName }} - {{ option.student.gradeLevel }} - {{ option.status }}
+            {{ option.student.lastName }}, {{ option.student.firstName }} - {{ displayGradeLevel(option.student.gradeLevel) }} - {{ option.status }}
           </option>
         </select>
       </label>
@@ -74,7 +74,7 @@
         <span>Fee Template</span>
         <select [(ngModel)]="selectedTemplateId" (change)="applyTemplate()">
           <option value="">Select template</option>
-          <option *ngFor="let template of templates" [value]="template.id">{{ template.gradeLevel }} - {{ template.name }}</option>
+          <option *ngFor="let template of templates" [value]="template.id">{{ displayGradeLevel(template.gradeLevel) }} - {{ template.name }}</option>
         </select>
       </label>
 

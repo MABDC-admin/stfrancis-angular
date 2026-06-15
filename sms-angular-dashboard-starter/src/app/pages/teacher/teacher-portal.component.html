@@ -14,7 +14,7 @@
     <div>
       <p class="eyebrow">Teacher Portal</p>
       <h1>{{ state().teacher.name }}</h1>
-      <p>{{ state().teacher.department }} • {{ state().teacher.advisoryClass }} • SFXSAI</p>
+      <p>{{ teacherMeta() }}</p>
     </div>
     <div class="hero-actions">
       <a routerLink="/teacher/dll"><span class="material-icons">add_task</span> Add Lesson</a>
@@ -70,6 +70,11 @@
           <strong>{{ item.title }}</strong>
           <p>{{ item.body }}</p>
         </div>
+        <div *ngIf="!state().announcements.length" class="empty-state compact-empty">
+          <span class="material-icons">campaign</span>
+          <strong>No announcements yet</strong>
+          <p>Class announcements posted by this teacher will appear here.</p>
+        </div>
       </div>
     </article>
 
@@ -85,6 +90,11 @@
           <span>{{ item.schedule.split(' ')[0] }}</span>
           <strong>{{ item.subject }}</strong>
           <small>{{ item.section }} • {{ item.room }}</small>
+        </div>
+        <div *ngIf="!hasClasses()" class="empty-state compact-empty">
+          <span class="material-icons">event_busy</span>
+          <strong>No teaching schedule</strong>
+          <p>Assigned classes and rooms will populate this calendar.</p>
         </div>
       </div>
     </article>
@@ -102,6 +112,7 @@
     </form>
     <div class="assigned-subjects">
       <span *ngFor="let section of state().classes">{{ section.subject }} • {{ section.section }}</span>
+      <span *ngIf="!hasClasses()">No assigned subjects yet</span>
     </div>
   </section>
 
@@ -117,10 +128,15 @@
         <span>{{ classCompletionPercent(section) }}% graded</span>
       </div>
     </article>
-    <article class="panel wide">
+    <article *ngIf="!hasClasses()" class="panel wide empty-state">
+      <span class="material-icons">class</span>
+      <strong>No classes assigned yet</strong>
+      <p>This teacher portal is connected to the account, but no official class assignment records exist yet.</p>
+    </article>
+    <article *ngIf="hasClasses()" class="panel wide">
       <div class="panel-heading">
-        <div><p class="eyebrow">Class Management</p><h2>{{ selectedClass().section }}</h2></div>
-        <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event)">
+        <div><p class="eyebrow">Class Management</p><h2>{{ selectedClassSectionName() }}</h2></div>
+        <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event)" [disabled]="!hasClasses()">
           <option *ngFor="let section of state().classes" [value]="section.id">{{ section.section }} • {{ section.subject }}</option>
         </select>
       </div>
@@ -137,6 +153,11 @@
           </tbody>
         </table>
       </div>
+      <div *ngIf="!selectedClassStudents().length" class="empty-state compact-empty">
+        <span class="material-icons">person_search</span>
+        <strong>No learners in this class</strong>
+        <p>Learners will appear after registrar class assignment is completed.</p>
+      </div>
     </article>
   </section>
 
@@ -145,13 +166,18 @@
       <div><p class="eyebrow">Attendance Management</p><h2>Daily Marking</h2></div>
       <div class="inline-controls">
         <input type="date" [ngModel]="attendanceDate()" (ngModelChange)="attendanceDate.set($event)" />
-        <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event)">
+        <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event)" [disabled]="!hasClasses()">
           <option *ngFor="let section of state().classes" [value]="section.id">{{ section.section }}</option>
         </select>
       </div>
     </div>
     <div class="status-row">
       <span *ngFor="let status of attendanceStatuses">{{ status }} <strong>{{ attendanceSummary()[status] }}</strong></span>
+    </div>
+    <div *ngIf="!hasClasses()" class="empty-state">
+      <span class="material-icons">fact_check</span>
+      <strong>Attendance is waiting for class assignments</strong>
+      <p>No fake attendance rows are shown. Assign a class first, then learners can be marked present, absent, late, or excused.</p>
     </div>
     <div class="attendance-list">
       <div *ngFor="let student of selectedClassStudents()">
@@ -163,13 +189,18 @@
         </div>
       </div>
     </div>
+    <div *ngIf="hasClasses() && !selectedClassStudents().length" class="empty-state compact-empty">
+      <span class="material-icons">groups</span>
+      <strong>No learners available</strong>
+      <p>This class has no linked learner roster yet.</p>
+    </div>
   </section>
 
   <section *ngIf="currentView() === 'grades'" class="panel">
     <div class="panel-heading">
       <div><p class="eyebrow">Grades Management</p><h2>Quarterly Grade Sheet</h2></div>
       <div class="inline-controls">
-        <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event)">
+        <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event)" [disabled]="!hasClasses()">
           <option *ngFor="let section of state().classes" [value]="section.id">{{ section.section }} • {{ section.subject }}</option>
         </select>
         <select [ngModel]="selectedQuarter()" (ngModelChange)="selectedQuarter.set($event)">
@@ -178,7 +209,7 @@
       </div>
     </div>
     <div class="table-wrap">
-      <table>
+      <table *ngIf="selectedClassStudents().length">
         <thead><tr><th>Student</th><th>Written</th><th>Performance</th><th>Exam</th><th>Average</th></tr></thead>
         <tbody>
           <tr *ngFor="let student of selectedClassStudents()">
@@ -191,6 +222,11 @@
         </tbody>
       </table>
     </div>
+    <div *ngIf="!selectedClassStudents().length" class="empty-state">
+      <span class="material-icons">leaderboard</span>
+      <strong>No grade sheet available</strong>
+      <p>Grade input opens after assigned classes have learner rosters.</p>
+    </div>
   </section>
 
   <section *ngIf="currentView() === 'schedule'" class="panel">
@@ -202,6 +238,11 @@
         <p>{{ section.section }}</p>
         <small>{{ section.room }}</small>
       </div>
+      <div *ngIf="!hasClasses()" class="empty-state compact-empty">
+        <span class="material-icons">calendar_month</span>
+        <strong>No schedule published</strong>
+        <p>Weekly timetable entries will appear when class assignments are configured.</p>
+      </div>
     </div>
   </section>
 
@@ -210,7 +251,12 @@
       <div><p class="eyebrow">Learning Resources</p><h2>Materials Library</h2></div>
       <input class="search-input" placeholder="Search resources..." [ngModel]="resourceSearch()" (ngModelChange)="resourceSearch.set($event)" />
     </div>
-    <form class="form-grid compact" (ngSubmit)="addResource()">
+    <div *ngIf="!hasClasses()" class="empty-state">
+      <span class="material-icons">folder</span>
+      <strong>No resource library yet</strong>
+      <p>Resources are linked to official classes. Assign a class before uploading teaching materials.</p>
+    </div>
+    <form *ngIf="hasClasses()" class="form-grid compact" (ngSubmit)="addResource()">
       <input [(ngModel)]="resourceForm.title" name="resourceTitle" placeholder="Resource title" required />
       <select [(ngModel)]="resourceForm.type" name="resourceType"><option *ngFor="let type of resourceTypes" [value]="type">{{ type }}</option></select>
       <input [(ngModel)]="resourceForm.subject" name="resourceSubject" placeholder="Subject" required />
@@ -222,12 +268,22 @@
         <div><strong>{{ resource.title }}</strong><p>{{ resource.subject }} • {{ resource.type }} • {{ resource.size }}</p></div>
         <button (click)="teacherStore.deleteResource(resource.id)">Delete</button>
       </div>
+      <div *ngIf="hasClasses() && !filteredResources().length" class="empty-state compact-empty">
+        <span class="material-icons">description</span>
+        <strong>No resources found</strong>
+        <p>Add a resource or adjust the search term.</p>
+      </div>
     </div>
   </section>
 
   <section *ngIf="currentView() === 'dll'" class="panel">
     <div class="panel-heading"><div><p class="eyebrow">Daily Lesson Log</p><h2>Create DLL Entry</h2></div></div>
-    <form class="dll-form" (ngSubmit)="addDll()">
+    <div *ngIf="!hasClasses()" class="empty-state">
+      <span class="material-icons">menu_book</span>
+      <strong>No class selected for DLL</strong>
+      <p>Daily Lesson Logs require an official class assignment before entries can be saved.</p>
+    </div>
+    <form *ngIf="hasClasses()" class="dll-form" (ngSubmit)="addDll()">
       <textarea [(ngModel)]="dllForm.objectives" name="objectives" placeholder="Learning objectives" required></textarea>
       <textarea [(ngModel)]="dllForm.activities" name="activities" placeholder="Activities" required></textarea>
       <textarea [(ngModel)]="dllForm.materials" name="materials" placeholder="Materials used"></textarea>
@@ -236,9 +292,14 @@
     </form>
     <div class="timeline">
       <div *ngFor="let dll of state().dlls">
-        <strong>{{ dll.date }} • {{ selectedClass().subject }}</strong>
+        <strong>{{ dll.date }} • {{ selectedClassSubjectName() }}</strong>
         <p>{{ dll.objectives }}</p>
         <button (click)="teacherStore.deleteDll(dll.id)">Delete</button>
+      </div>
+      <div *ngIf="hasClasses() && !state().dlls.length" class="empty-state compact-empty">
+        <span class="material-icons">history_edu</span>
+        <strong>No DLL entries yet</strong>
+        <p>Saved lesson logs will be listed here.</p>
       </div>
     </div>
   </section>
@@ -261,6 +322,11 @@
         <p>{{ item.body }}</p>
         <button (click)="teacherStore.deleteAnnouncement(item.id)">Delete</button>
       </div>
+      <div *ngIf="!state().announcements.length" class="empty-state compact-empty">
+        <span class="material-icons">campaign</span>
+        <strong>No announcements posted</strong>
+        <p>Create a class or all-students announcement from the form above.</p>
+      </div>
     </div>
   </section>
 
@@ -278,6 +344,11 @@
         <span>{{ message.audience }} • {{ message.sentAt }}</span>
         <p>{{ message.message }}</p>
       </div>
+      <div *ngIf="!state().messages.length" class="empty-state compact-empty">
+        <span class="material-icons">chat</span>
+        <strong>No messages yet</strong>
+        <p>Messages sent by this teacher will appear in this thread list.</p>
+      </div>
     </div>
   </section>
 
@@ -287,11 +358,21 @@
       <div class="bar-list">
         <div *ngFor="let status of attendanceStatuses"><span>{{ status }}</span><b [style.width.%]="attendanceSummary()[status] * 20 + 12"></b><strong>{{ attendanceSummary()[status] }}</strong></div>
       </div>
+      <div *ngIf="!state().attendance.length" class="empty-state compact-empty">
+        <span class="material-icons">query_stats</span>
+        <strong>No attendance trend yet</strong>
+        <p>Attendance data will chart after daily marking starts.</p>
+      </div>
     </article>
     <article class="panel">
       <div class="panel-heading"><div><p class="eyebrow">Class Performance</p><h2>Completion Comparison</h2></div></div>
       <div class="bar-list">
         <div *ngFor="let section of state().classes"><span>{{ section.section }}</span><b [style.width.%]="classCompletionPercent(section)"></b><strong>{{ classCompletionPercent(section) }}%</strong></div>
+      </div>
+      <div *ngIf="!hasClasses()" class="empty-state compact-empty">
+        <span class="material-icons">stacked_bar_chart</span>
+        <strong>No class comparison yet</strong>
+        <p>Performance comparison needs assigned classes and grade entries.</p>
       </div>
     </article>
   </section>

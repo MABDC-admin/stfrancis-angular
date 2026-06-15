@@ -13,9 +13,10 @@ import {
   Quarter,
   ResourceType,
   TeacherClass,
+  TeacherPortalState,
   TeacherStudent,
 } from './teacher-portal.util';
-import { TeacherPortalService, TeacherPortalState } from './teacher-portal.service';
+import { TeacherPortalService } from './teacher-portal.service';
 
 type TeacherView =
   | 'dashboard'
@@ -45,7 +46,7 @@ export class TeacherPortalComponent implements OnInit {
 
   readonly state = signal<TeacherPortalState>(this.teacherStore.snapshot());
   readonly currentView = signal<TeacherView>('dashboard');
-  readonly selectedClassId = signal('class-g7-math');
+  readonly selectedClassId = signal('');
   readonly selectedQuarter = signal<Quarter>('Q1');
   readonly attendanceDate = signal(new Date().toISOString().slice(0, 10));
   readonly resourceSearch = signal('');
@@ -54,12 +55,20 @@ export class TeacherPortalComponent implements OnInit {
   resourceForm = { title: '', type: 'PDF' as ResourceType, subject: '' };
   dllForm = { objectives: '', activities: '', materials: '', remarks: '' };
   announcementForm = { audience: 'All students', title: '', body: '' };
-  messageForm: { thread: string; audience: 'Student' | 'Parent' | 'Admin'; message: string } = { thread: 'Admin Office', audience: 'Admin', message: '' };
+  messageForm: { thread: string; audience: 'Student' | 'Parent' | 'Admin'; message: string } = { thread: '', audience: 'Admin', message: '' };
   passwordForm = { current: '', next: '', confirm: '' };
   readonly toast = signal<{ show: boolean; type: 'success' | 'error'; message: string }>({ show: false, type: 'success', message: '' });
 
-  readonly selectedClass = computed(() => this.state().classes.find(section => section.id === this.selectedClassId()) ?? this.state().classes[0]);
+  readonly selectedClass = computed(() => this.state().classes.find(section => section.id === this.selectedClassId()) ?? this.state().classes[0] ?? null);
   readonly selectedClassStudents = computed(() => this.studentsForClass(this.selectedClass()?.id));
+  readonly hasClasses = computed(() => this.state().classes.length > 0);
+  readonly selectedClassSectionName = computed(() => this.selectedClass()?.section || 'No class selected');
+  readonly selectedClassSubjectName = computed(() => this.selectedClass()?.subject || 'Class');
+  readonly teacherMeta = computed(() => [
+    this.state().teacher.department || 'Department not set',
+    this.state().teacher.advisoryClass || 'No advisory class assigned',
+    'SFXSAI',
+  ].join(' • '));
   readonly dashboardSummary = computed(() =>
     buildTeacherDashboardSummary(this.state().classes, this.state().attendance, this.state().grades, this.attendanceDate()),
   );
@@ -169,7 +178,7 @@ export class TeacherPortalComponent implements OnInit {
     const form = this.resourceForm;
     const section = this.selectedClass();
     if (!section || !form.title.trim() || !form.subject.trim()) {
-      this.showToast('error', 'Resource title and subject are required.');
+      this.showToast('error', section ? 'Resource title and subject are required.' : 'Assign a class before adding resources.');
       return;
     }
 
@@ -182,7 +191,7 @@ export class TeacherPortalComponent implements OnInit {
     const form = this.dllForm;
     const section = this.selectedClass();
     if (!section || !form.objectives.trim() || !form.activities.trim()) {
-      this.showToast('error', 'Objectives and activities are required.');
+      this.showToast('error', section ? 'Objectives and activities are required.' : 'Assign a class before saving a DLL.');
       return;
     }
 
@@ -205,8 +214,8 @@ export class TeacherPortalComponent implements OnInit {
 
   sendMessage() {
     const form = this.messageForm;
-    if (!form.message.trim()) {
-      this.showToast('error', 'Message cannot be blank.');
+    if (!form.thread.trim() || !form.message.trim()) {
+      this.showToast('error', 'Recipient and message are required.');
       return;
     }
 

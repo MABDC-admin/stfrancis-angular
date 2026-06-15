@@ -71,7 +71,7 @@
               placeholder="Search name, LRN, student no., contact, address..." />
           </label>
           <select [(ngModel)]="hubGrade" name="hubGrade">
-            <option *ngFor="let grade of hubGrades" [value]="grade">{{ grade }}</option>
+            <option *ngFor="let grade of hubGrades" [value]="grade.value">{{ grade.label }}</option>
           </select>
           <select [(ngModel)]="hubFinanceStatus" name="hubFinanceStatus">
             <option *ngFor="let status of hubFinanceStatuses" [value]="status">{{ status }}</option>
@@ -114,7 +114,7 @@
           <div class="learner-card-details">
             <div>
               <span>Grade & Section</span>
-              <strong>{{ learner.gradeLevel }}<ng-container *ngIf="learner.section"> · {{ learner.section }}</ng-container></strong>
+              <strong>{{ displayGradeLevel(learner.gradeLevel) }}<ng-container *ngIf="learner.section"> · {{ learner.section }}</ng-container></strong>
             </div>
             <div>
               <span>Adviser</span>
@@ -214,7 +214,7 @@
       <div class="rounded-xl bg-violet-50/50 p-3 border border-violet-100/60 flex items-center justify-between">
         <div>
           <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Grade & Section</p>
-          <p class="mt-0.5 text-[15px] font-extrabold text-slate-800">{{ student.gradeLevel }} · {{ student.section }}</p>
+          <p class="mt-0.5 text-[15px] font-extrabold text-slate-800">{{ displayGradeLevel(student.gradeLevel) }} · {{ student.section }}</p>
         </div>
       </div>
       <div class="rounded-xl bg-violet-50/50 p-3 border border-violet-100/60 flex items-center justify-between">
@@ -374,7 +374,7 @@
             <div *ngFor="let sib of siblings" class="rounded-lg border border-slate-200 p-4 flex justify-between items-center">
               <div>
                 <p class="font-extrabold text-slate-900">{{ sib.siblingName }}</p>
-                <p class="mt-1 text-sm font-semibold text-slate-500">{{ sib.relationship }} · {{ sib.gradeLevel }}</p>
+                <p class="mt-1 text-sm font-semibold text-slate-500">{{ sib.relationship }} · {{ displayGradeLevel(sib.gradeLevel) }}</p>
               </div>
             </div>
             <p *ngIf="siblings.length === 0" class="text-sm font-semibold text-slate-500">No siblings registered.</p>
@@ -395,7 +395,7 @@
                 <div class="flex justify-between items-start mb-3">
                   <div>
                     <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">{{ record.schoolYear }}</p>
-                    <p class="font-bold text-slate-900 text-base mt-0.5">{{ record.gradeLevel }}</p>
+                    <p class="font-bold text-slate-900 text-base mt-0.5">{{ displayGradeLevel(record.gradeLevel) }}</p>
                   </div>
                   <span class="status-pill" [ngClass]="statusClass(record.status)">{{ record.status }}</span>
                 </div>
@@ -656,7 +656,7 @@
             <p class="edit-learner-kicker">Learner record</p>
             <h3 class="edit-learner-title">Edit Learner Info</h3>
             <p class="edit-learner-subtitle">
-              {{ student.studentNo || 'No student no.' }} · {{ student.gradeLevel || 'No grade' }}{{ student.section ? ' - ' + student.section : '' }}
+              {{ student.studentNo || 'No student no.' }} · {{ displayGradeLevel(student.gradeLevel) }}{{ student.section ? ' - ' + student.section : '' }}
             </p>
           </div>
         </div>
@@ -838,7 +838,7 @@
               <input type="text" [value]="student.section" class="w-full rounded-md border-slate-300 shadow-sm bg-slate-100 cursor-not-allowed sm:text-sm" disabled>
             </div>
             <div>
-              <label class="mb-1 block text-sm font-extrabold text-slate-700">New Section ({{ student.gradeLevel }})</label>
+              <label class="mb-1 block text-sm font-extrabold text-slate-700">New Section ({{ displayGradeLevel(student.gradeLevel) }})</label>
               <select [(ngModel)]="formData.newSection" class="w-full rounded-md border-slate-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 sm:text-sm">
                 <option value="">Select Target Section...</option>
                 <option *ngFor="let sec of availableSections" [value]="sec.id">{{ sec.sectionName }} ({{ sec.availableSlots }} slots)</option>
