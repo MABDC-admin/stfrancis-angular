@@ -19,9 +19,9 @@ const gradeLevelsList = ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11'
 const months = ['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'];
 
 export function buildRegistrarDashboardMetrics(
-  students: StudentRecord[],
-  sections: SectionRecord[],
-  documentRequests: DocumentRequest[]
+  students: StudentRecord[] = [],
+  sections: SectionRecord[] = [],
+  documentRequests: DocumentRequest[] = []
 ): RegistrarDashboardMetrics {
   const total = students.length;
 

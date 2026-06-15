@@ -9,7 +9,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { RegistrarApiService } from '../../core/services/registrar-api.service';
 import { FinanceApiService } from '../../core/services/finance-api.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { switchMap, filter } from 'rxjs/operators';
+import { catchError, filter, switchMap } from 'rxjs/operators';
 import { forkJoin, of } from 'rxjs';
 import { buildFinanceDashboard, FinanceDashboardModel, formatPeso } from './finance-dashboard.util';
 import { shouldShowRegistrarOverview } from './dashboard-visibility.util';
@@ -59,12 +59,12 @@ export class DashboardComponent implements OnInit {
         
         return forkJoin({
           academicYear: of(ay),
-          students: this.api.getStudents(ay.id),
-          assessments: this.role !== 'REGISTRAR' ? this.financeApi.getAssessments(ay.id) : of([]),
-          payments: this.role !== 'REGISTRAR' ? this.financeApi.getPayments(ay.id) : of([]),
-          sections: this.role === 'REGISTRAR' ? this.api.getSections(ay.id) : of([]),
-          documentRequests: this.role === 'REGISTRAR' ? this.api.getDocumentRequests(ay.id) : of([]),
-          calendarEvents: this.calendarService.getEvents()
+          students: this.api.getStudents(ay.id).pipe(catchError(() => of([]))),
+          assessments: this.role !== 'REGISTRAR' ? this.financeApi.getAssessments(ay.id).pipe(catchError(() => of([]))) : of([]),
+          payments: this.role !== 'REGISTRAR' ? this.financeApi.getPayments(ay.id).pipe(catchError(() => of([]))) : of([]),
+          sections: this.role === 'REGISTRAR' ? this.api.getSections(ay.id).pipe(catchError(() => of([]))) : of([]),
+          documentRequests: this.role === 'REGISTRAR' ? this.api.getDocumentRequests(ay.id).pipe(catchError(() => of([]))) : of([]),
+          calendarEvents: this.calendarService.getEvents(ay.id).pipe(catchError(() => of([])))
         });
       })
     ).subscribe(({ academicYear, students, assessments, payments, sections, documentRequests, calendarEvents }) => {
