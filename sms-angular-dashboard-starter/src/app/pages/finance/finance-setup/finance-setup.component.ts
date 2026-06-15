@@ -8,11 +8,12 @@ import { FinanceApiService } from '../../../core/services/finance-api.service';
 import { RegistrarApiService } from '../../../core/services/registrar-api.service';
 import { displayGradeLevel, gradeLevelOptions } from '../../../core/data/grade-levels';
 import { FinancePdfExportButtonComponent } from '../../../shared/pdf-export/finance-pdf-export-button.component';
+import { PortalVideoBackdropComponent } from '../../../shared/portal-video-backdrop/portal-video-backdrop.component';
 
 @Component({
   selector: 'app-finance-setup',
   standalone: true,
-  imports: [CommonModule, FormsModule, DecimalPipe, FinancePdfExportButtonComponent],
+  imports: [CommonModule, FormsModule, DecimalPipe, FinancePdfExportButtonComponent, PortalVideoBackdropComponent],
   templateUrl: './finance-setup.component.html',
   styleUrl: './finance-setup.component.scss'
 })

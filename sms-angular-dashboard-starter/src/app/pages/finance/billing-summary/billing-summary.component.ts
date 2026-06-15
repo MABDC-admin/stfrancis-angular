@@ -13,11 +13,12 @@ import {
 } from './billing-summary.util';
 import { FinancePdfExportButtonComponent } from '../../../shared/pdf-export/finance-pdf-export-button.component';
 import { displayGradeLevel } from '../../../core/data/grade-levels';
+import { PortalVideoBackdropComponent } from '../../../shared/portal-video-backdrop/portal-video-backdrop.component';
 
 @Component({
   selector: 'app-billing-summary',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, DecimalPipe, DatePipe, FinancePdfExportButtonComponent],
+  imports: [CommonModule, FormsModule, RouterLink, DecimalPipe, DatePipe, FinancePdfExportButtonComponent, PortalVideoBackdropComponent],
   templateUrl: './billing-summary.component.html',
   styleUrl: './billing-summary.component.scss',
 })

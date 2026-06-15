@@ -8,11 +8,12 @@ import { RegistrarApiService } from '../../../core/services/registrar-api.servic
 import { Payment, PaymentMethod, StudentAssessment } from '../../../core/models/finance.models';
 import { FinancePdfExportButtonComponent } from '../../../shared/pdf-export/finance-pdf-export-button.component';
 import { buildDiscountBreakdown } from '../finance-discount.util';
+import { PortalVideoBackdropComponent } from '../../../shared/portal-video-backdrop/portal-video-backdrop.component';
 
 @Component({
   selector: 'app-payments',
   standalone: true,
-  imports: [CommonModule, FormsModule, DecimalPipe, FinancePdfExportButtonComponent],
+  imports: [CommonModule, FormsModule, DecimalPipe, FinancePdfExportButtonComponent, PortalVideoBackdropComponent],
   templateUrl: './payments.component.html',
   styleUrl: './payments.component.scss'
 })

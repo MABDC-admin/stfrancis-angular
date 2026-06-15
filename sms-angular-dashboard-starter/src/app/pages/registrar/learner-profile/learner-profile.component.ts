@@ -10,11 +10,12 @@ import { buildRegistrarClearancePayload } from './learner-profile-clearance.util
 import { buildLearnerProfileHubStats, filterLearnerProfiles, learnerFullName } from './learner-profile-hub.util';
 import { shouldCloseModalOnKey } from './learner-profile-modal.util';
 import { displayGradeLevel, gradeLevelMatches, gradeLevelOptions } from '../../../core/data/grade-levels';
+import { PortalVideoBackdropComponent } from '../../../shared/portal-video-backdrop/portal-video-backdrop.component';
 
 @Component({
   selector: 'app-learner-profile',
   standalone: true,
-  imports: [NgFor, NgIf, NgClass, RouterLink, DatePipe, FormsModule],
+  imports: [NgFor, NgIf, NgClass, RouterLink, DatePipe, FormsModule, PortalVideoBackdropComponent],
   templateUrl: './learner-profile.component.html',
   styleUrl: './learner-profile.component.scss'
 })
