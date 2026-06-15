@@ -1,7 +1,8 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { filter } from 'rxjs';
+import { Component, DestroyRef, inject, signal, OnInit, HostListener } from '@angular/core';
+import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
+import { filter, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, of } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { RegistrarApiService } from '../../core/services/registrar-api.service';
 import { FormsModule } from '@angular/forms';
@@ -12,11 +13,11 @@ import { GlobalSearchService } from '../../core/services/global-search.service';
 @Component({
   selector: 'app-topbar',
   standalone: true,
-  imports: [FormsModule, NgFor, NgIf, NgClass],
+  imports: [FormsModule, NgFor, NgIf, NgClass, RouterModule],
   templateUrl: './topbar.component.html',
   styleUrl: './topbar.component.scss'
 })
-export class TopbarComponent {
+export class TopbarComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
@@ -39,6 +40,11 @@ export class TopbarComponent {
     message: '',
     type: 'success' as 'success' | 'error'
   };
+
+  // Search logic
+  private searchSubject = new Subject<string>();
+  searchResults: any[] = [];
+  isSearchFocused = false;
 
   constructor() {
     this.authService.currentUser$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(auth => {
@@ -72,8 +78,55 @@ export class TopbarComponent {
     });
   }
 
+  ngOnInit() {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(query => {
+        if (!query.trim()) {
+          this.searchResults = [];
+          return of([]);
+        }
+        return this.api.searchStudents(query.trim(), this.selectedAyId);
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(results => {
+      this.searchResults = results;
+    });
+  }
+
   onSearchChange(query: string) {
     this.globalSearch.setQuery(query);
+    this.searchSubject.next(query);
+  }
+
+  onSearchFocus() {
+    this.isSearchFocused = true;
+    if (this.searchText) {
+      this.searchSubject.next(this.searchText);
+    }
+  }
+
+  onSearchBlur() {
+    // Delay hiding dropdown so click events can register
+    setTimeout(() => {
+      this.isSearchFocused = false;
+    }, 200);
+  }
+
+  clearSearch() {
+    this.searchText = '';
+    this.searchResults = [];
+    this.isSearchFocused = false;
+    this.globalSearch.setQuery('');
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+      event.preventDefault();
+      document.getElementById('global-search-input')?.focus();
+    }
   }
 
   onAyChange(event: Event) {

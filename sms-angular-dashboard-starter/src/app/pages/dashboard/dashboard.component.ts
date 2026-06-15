@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, DestroyRef } from '@angular/core';
-import { NgFor, NgIf, LowerCasePipe, NgClass } from '@angular/common';
+import { NgFor, NgIf, LowerCasePipe, NgClass, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import {
   registrarStats
@@ -14,14 +14,15 @@ import { forkJoin, of } from 'rxjs';
 import { buildFinanceDashboard, FinanceDashboardModel, formatPeso } from './finance-dashboard.util';
 import { shouldShowRegistrarOverview } from './dashboard-visibility.util';
 import { buildUpcomingBirthdays, UpcomingBirthday } from './dashboard-birthdays.util';
-import { buildRegistrarDashboardMetrics } from './registrar-dashboard-metrics.util';
+import { buildRegistrarDashboardMetrics, RegistrarDashboardMetrics } from './registrar-dashboard-metrics.util';
 import { FinancePdfExportButtonComponent } from '../../shared/pdf-export/finance-pdf-export-button.component';
 import { displayGradeLevel } from '../../core/data/grade-levels';
+import { CalendarService } from '../../core/services/calendar.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [NgFor, NgIf, LowerCasePipe, NgClass, RouterLink, StatCardComponent, FinancePdfExportButtonComponent],
+  imports: [NgFor, NgIf, LowerCasePipe, NgClass, DatePipe, RouterLink, StatCardComponent, FinancePdfExportButtonComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
@@ -29,14 +30,17 @@ export class DashboardComponent implements OnInit {
   authService = inject(AuthService);
   api = inject(RegistrarApiService);
   financeApi = inject(FinanceApiService);
+  calendarService = inject(CalendarService);
   destroyRef = inject(DestroyRef);
   
   role: string | null = null;
   activeAcademicYearCode = 'Selected School Year';
 
   registrarStats = [...registrarStats];
+  registrarMetrics: RegistrarDashboardMetrics | null = null;
   financeDashboard: FinanceDashboardModel | null = null;
   upcomingBirthdays: UpcomingBirthday[] = [];
+  calendarEvents: any[] = [];
   formatPeso = formatPeso;
   shouldShowRegistrarOverview = shouldShowRegistrarOverview;
   readonly displayGradeLevel = displayGradeLevel;
@@ -57,11 +61,18 @@ export class DashboardComponent implements OnInit {
           academicYear: of(ay),
           students: this.api.getStudents(ay.id),
           assessments: this.role !== 'REGISTRAR' ? this.financeApi.getAssessments(ay.id) : of([]),
-          payments: this.role !== 'REGISTRAR' ? this.financeApi.getPayments(ay.id) : of([])
+          payments: this.role !== 'REGISTRAR' ? this.financeApi.getPayments(ay.id) : of([]),
+          sections: this.role === 'REGISTRAR' ? this.api.getSections(ay.id) : of([]),
+          documentRequests: this.role === 'REGISTRAR' ? this.api.getDocumentRequests(ay.id) : of([]),
+          calendarEvents: this.calendarService.getEvents()
         });
       })
-    ).subscribe(({ academicYear, students, assessments, payments }) => {
-      const registrarMetrics = buildRegistrarDashboardMetrics(students);
+    ).subscribe(({ academicYear, students, assessments, payments, sections, documentRequests, calendarEvents }) => {
+      this.calendarEvents = calendarEvents;
+      const registrarMetrics = buildRegistrarDashboardMetrics(students, sections, documentRequests);
+      
+      // We attach it to the component so template can access the new fields
+      this.registrarMetrics = registrarMetrics;
 
       // Update Registrar Stats
       this.registrarStats[0].value = registrarMetrics.totalStudents.toString();

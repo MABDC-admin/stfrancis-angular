@@ -34,9 +34,21 @@ export class StudentsService {
     });
   }
 
-  findAll(ayId?: string) {
+  findAll(ayId?: string, search?: string) {
+    const whereClause: Prisma.StudentWhereInput = {};
+    if (ayId) whereClause.academicYearId = ayId;
+    if (search) {
+      whereClause.OR = [
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+        { lrn: { contains: search, mode: 'insensitive' } },
+        { studentNo: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
     return this.prisma.student.findMany({
-      where: ayId ? { academicYearId: ayId } : undefined,
+      where: whereClause,
+      take: search ? 5 : undefined,
     });
   }
 

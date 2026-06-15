@@ -117,23 +117,25 @@ export class LearnerProfileComponent implements OnInit {
   }
 
   ngOnInit() {
-    const id = this.route.snapshot.paramMap.get('id');
-    this.isDetailMode = !!id;
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      const id = params.get('id');
+      this.isDetailMode = !!id;
 
-    if (id) {
-      this.api.getStudentById(id).subscribe(res => {
-        this.student = res;
-        this.loadRelatedData();
-      });
-      
-      // Fetch sections for the Move Section modal
-      this.api.getSections().subscribe(sections => {
-        this.sections = sections;
-      });
-      return;
-    }
-
-    this.loadLearnerHub();
+      if (id) {
+        this.api.getStudentById(id).subscribe(res => {
+          this.student = res;
+          this.loadRelatedData();
+        });
+        
+        // Fetch sections for the Move Section modal
+        this.api.getSections().subscribe(sections => {
+          this.sections = sections;
+        });
+      } else {
+        this.student = null;
+        this.loadLearnerHub();
+      }
+    });
   }
 
   get filteredHubStudents(): StudentRecord[] {

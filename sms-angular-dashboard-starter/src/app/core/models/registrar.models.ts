@@ -77,6 +77,27 @@ export interface SectionRecord {
   academicYearId?: string;
 }
 
+export interface AcademicYear {
+  id: string;
+  name: string;
+  status: 'Active' | 'Inactive';
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CalendarEvent {
+  id?: string;
+  title: string;
+  description?: string;
+  eventDate: string | Date;
+  endDate?: string | Date;
+  eventType: string; // 'Holiday', 'Exam', 'Meeting', 'Other'
+  color?: string;
+  academicYearId?: string;
+}
+
 export interface AcademicRecord {
   id: string;
   studentName: string;

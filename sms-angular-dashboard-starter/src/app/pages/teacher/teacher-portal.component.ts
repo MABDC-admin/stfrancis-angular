@@ -98,19 +98,43 @@ export class TeacherPortalComponent implements OnInit {
   readonly buildTeacherStudentInitials = buildTeacherStudentInitials;
   readonly learnerAvatarSource = teacherStudentAvatarSource;
   readonly monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  readonly modules = [
-    { label: 'Dashboard', route: 'dashboard', icon: 'space_dashboard' },
-    { label: 'Profile', route: 'profile', icon: 'badge' },
-    { label: 'My Classes', route: 'classes', icon: 'class' },
-    { label: 'Attendance', route: 'attendance', icon: 'fact_check' },
-    { label: 'Grades', route: 'grades', icon: 'leaderboard' },
-    { label: 'Schedule', route: 'schedule', icon: 'calendar_month' },
-    { label: 'Resources', route: 'resources', icon: 'folder' },
-    { label: 'DLL', route: 'dll', icon: 'menu_book' },
-    { label: 'Announcements', route: 'announcements', icon: 'campaign' },
-    { label: 'Messages', route: 'messages', icon: 'chat' },
-    { label: 'Analytics', route: 'analytics', icon: 'query_stats' },
-    { label: 'Settings', route: 'settings', icon: 'settings' },
+  readonly navGroups = [
+    {
+      title: 'Overview',
+      items: [
+        { label: 'Dashboard', route: 'dashboard', icon: 'space_dashboard' },
+      ]
+    },
+    {
+      title: 'Class Management',
+      items: [
+        { label: 'My Classes', route: 'classes', icon: 'class' },
+        { label: 'Attendance', route: 'attendance', icon: 'fact_check' },
+        { label: 'Grades', route: 'grades', icon: 'leaderboard' },
+      ]
+    },
+    {
+      title: 'Lesson Planning',
+      items: [
+        { label: 'Schedule', route: 'schedule', icon: 'calendar_month' },
+        { label: 'Resources', route: 'resources', icon: 'folder' },
+        { label: 'DLL', route: 'dll', icon: 'menu_book' },
+      ]
+    },
+    {
+      title: 'Communication',
+      items: [
+        { label: 'Announcements', route: 'announcements', icon: 'campaign' },
+        { label: 'Messages', route: 'messages', icon: 'chat' },
+      ]
+    },
+    {
+      title: 'Account',
+      items: [
+        { label: 'Profile', route: 'profile', icon: 'badge' },
+        { label: 'Settings', route: 'settings', icon: 'settings' },
+      ]
+    }
   ];
 
   ngOnInit(): void {
