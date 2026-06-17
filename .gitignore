@@ -24,6 +24,7 @@ storage/
 uploads/
 tmp/
 temp/
+.worktrees/
 
 .DS_Store
 Thumbs.db
