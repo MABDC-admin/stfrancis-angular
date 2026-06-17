@@ -130,6 +130,12 @@ export class FinanceController {
     });
   }
 
+  @Delete('payments/:id')
+  @Roles('FINANCE')
+  deletePayment(@Param('id') id: string) {
+    return this.financeService.deletePayment(id);
+  }
+
   @Patch('payments/:id/receipt')
   @Roles('FINANCE')
   updatePaymentReceipt(
