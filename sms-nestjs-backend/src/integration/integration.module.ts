@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '../prisma/prisma.module';
+import { DrizzleModule } from '../drizzle/drizzle.module';
 import { IntegrationController } from './integration.controller';
 import { IntegrationService } from './integration.service';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [DrizzleModule],
   controllers: [IntegrationController],
   providers: [IntegrationService],
   exports: [IntegrationService],

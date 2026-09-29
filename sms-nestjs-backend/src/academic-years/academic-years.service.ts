@@ -1,27 +1,36 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { eq } from 'drizzle-orm';
+import { DrizzleService } from '../drizzle/drizzle.service';
+import * as schema from '../drizzle/schema';
 
 @Injectable()
 export class AcademicYearsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private drizzle: DrizzleService) {}
 
-  create(data: any) {
-    return this.prisma.academicYear.create({ data });
+  async create(data: any) {
+    const [created] = await this.drizzle.db.insert(schema.academicYear).values(data).returning();
+    return created;
   }
 
-  findAll() {
-    return this.prisma.academicYear.findMany();
+  async findAll() {
+    return this.drizzle.db.query.academicYear.findMany();
   }
 
-  findOne(id: string) {
-    return this.prisma.academicYear.findUnique({ where: { id } });
+  async findOne(id: string) {
+    return this.drizzle.db.query.academicYear.findFirst({ where: eq(schema.academicYear.id, id) });
   }
 
-  update(id: string, data: any) {
-    return this.prisma.academicYear.update({ where: { id }, data });
+  async update(id: string, data: any) {
+    const [updated] = await this.drizzle.db
+      .update(schema.academicYear)
+      .set(data)
+      .where(eq(schema.academicYear.id, id))
+      .returning();
+    return updated;
   }
 
-  remove(id: string) {
-    return this.prisma.academicYear.delete({ where: { id } });
+  async remove(id: string) {
+    const [deleted] = await this.drizzle.db.delete(schema.academicYear).where(eq(schema.academicYear.id, id)).returning();
+    return deleted;
   }
 }

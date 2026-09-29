@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { DepedFormsService } from './deped-forms.service';
 import { DepedFormsController } from './deped-forms.controller';
-import { PrismaModule } from '../prisma/prisma.module';
+import { DrizzleModule } from '../drizzle/drizzle.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [DrizzleModule],
   controllers: [DepedFormsController],
   providers: [DepedFormsService],
 })

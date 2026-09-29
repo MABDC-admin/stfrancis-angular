@@ -68,7 +68,7 @@ export class AuthService {
     const userStr = localStorage.getItem('user');
     if (userStr) {
       try {
-        return JSON.parse(userStr).role;
+        return JSON.parse(userStr).role?.toUpperCase?.();
       } catch { return null; }
     }
     return null;

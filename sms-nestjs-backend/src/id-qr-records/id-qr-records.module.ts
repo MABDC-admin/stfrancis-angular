@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { IdQrRecordsService } from './id-qr-records.service';
 import { IdQrRecordsController } from './id-qr-records.controller';
-import { PrismaModule } from '../prisma/prisma.module';
+import { DrizzleModule } from '../drizzle/drizzle.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [DrizzleModule],
   controllers: [IdQrRecordsController],
   providers: [IdQrRecordsService],
 })

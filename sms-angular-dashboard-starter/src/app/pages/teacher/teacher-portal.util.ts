@@ -5,6 +5,8 @@ export type Quarter = 'Q1' | 'Q2' | 'Q3' | 'Q4';
 export const DEFAULT_FEMALE_LEARNER_AVATAR = 'assets/learner-default-female.png';
 export const DEFAULT_MALE_LEARNER_AVATAR = 'assets/learner-default-male.png';
 
+export type TeacherScheduleWeekday = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday';
+
 export interface AuthenticatedPortalUser {
   email?: string;
   name?: string;
@@ -18,11 +20,14 @@ export interface TeacherProfile {
   department: string;
   phone: string;
   advisoryClass: string;
+  assignedGradeLevel?: string | null;
 }
 
 export interface TeacherClass {
   id: string;
   section: string;
+  sectionName?: string;
+  gradeLevel?: number;
   subject: string;
   schedule: string;
   room: string;
@@ -32,12 +37,19 @@ export interface TeacherClass {
 export interface TeacherStudent {
   id: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   studentNo: string;
-  gradeLevel: string;
-  gender?: string;
-  guardian: string;
-  contact: string;
+  gender: string;
   photoUrl?: string;
+  gradeLevel?: number;
+  section?: string;
+  enrollmentStatus?: string;
+  birthdate?: string;
+  guardian?: string;
+  contactNo?: string;
+  adviser?: string;
+  lrn?: string;
 }
 
 export interface AttendanceRecord {
@@ -106,6 +118,7 @@ export interface TeacherPortalState {
   dlls: DailyLessonLog[];
   announcements: TeacherAnnouncement[];
   messages: TeacherMessage[];
+  scheduleEntries: any[];
 }
 
 export interface DashboardSummary {
@@ -253,7 +266,8 @@ export function buildTeacherPortalInitialState(user?: AuthenticatedPortalUser | 
       email: user?.email?.trim() || '',
       department: '',
       phone: '',
-      advisoryClass: 'No advisory class assigned',
+      advisoryClass: '',
+      assignedGradeLevel: null,
     },
     classes: [],
     students: [],
@@ -263,6 +277,7 @@ export function buildTeacherPortalInitialState(user?: AuthenticatedPortalUser | 
     dlls: [],
     announcements: [],
     messages: [],
+    scheduleEntries: [],
   };
 }
 
@@ -273,3 +288,5 @@ export function isLegacyTeacherSeedState(state: Pick<TeacherPortalState, 'teache
     state.students?.some(student => /^stu-\d{3}$/.test(student.id))
   );
 }
+
+

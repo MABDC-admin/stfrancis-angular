@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, signal, OnInit, HostListener } from '@angular/core';
+import { Component, DestroyRef, Injector, inject, signal, OnInit, HostListener, computed } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { filter, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -9,6 +9,12 @@ import { FormsModule } from '@angular/forms';
 import { NgClass, NgFor, NgIf } from '@angular/common';
 import { FinanceNotificationService } from '../../core/services/finance-notification.service';
 import { GlobalSearchService } from '../../core/services/global-search.service';
+import { FloatingChatService } from '../../core/services/floating-chat.service';
+import { TeacherPortalService } from '../../pages/teacher/teacher-portal.service';
+import { StudentPortalService } from '../../pages/student/student-portal.service';
+import { PrincipalPortalService } from '../../pages/principal/principal-portal.service';
+import { buildTopbarNotifications, dismissTopbarNotification } from './topbar-notifications.util';
+import type { TopbarNotification } from './topbar-notifications.util';
 
 @Component({
   selector: 'app-topbar',
@@ -21,13 +27,32 @@ export class TopbarComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
   private readonly authService = inject(AuthService);
   private readonly api = inject(RegistrarApiService);
   readonly financeNotifications = inject(FinanceNotificationService);
   readonly globalSearch = inject(GlobalSearchService);
+  readonly chat = inject(FloatingChatService);
 
   readonly pageTitle = signal('Dashboard');
   readonly pageSubtitle = signal('Overview of registrar and finance operations');
+  private readonly currentUrl = signal(this.router.url);
+  private readonly currentUserSignal = signal<any>(null);
+  private readonly announcementCount = signal(0);
+  private readonly dismissedStorageKey = 'sfxsai.topbar.dismissed-notifications.v1';
+  readonly dismissedNotificationIds = signal<string[]>(this.loadDismissedNotificationIds());
+  readonly isNotificationDropdownOpen = signal(false);
+  readonly notificationItems = computed(() => buildTopbarNotifications({
+    role: this.currentUserSignal()?.role,
+    portal: this.portalSegment(),
+    chatUnreadCount: this.chat.unreadCount(),
+    announcementCount: this.resolvedAnnouncementCount(),
+    dismissedIds: this.dismissedNotificationIds(),
+  }));
+  readonly notificationCount = computed(() =>
+    this.notificationItems().reduce((total, item) => total + item.count, 0),
+  );
+  readonly hasNotifications = computed(() => this.notificationCount() > 0);
 
   academicYears: any[] = [];
   selectedAyId: string = '';
@@ -45,10 +70,15 @@ export class TopbarComponent implements OnInit {
   private searchSubject = new Subject<string>();
   searchResults: any[] = [];
   isSearchFocused = false;
+  private teacherAnnouncementsBound = false;
+  private studentAnnouncementsBound = false;
+  private principalAnnouncementsBound = false;
 
   constructor() {
     this.authService.currentUser$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(auth => {
       this.currentUser = auth?.user || null;
+      this.currentUserSignal.set(this.currentUser);
+      this.bindAnnouncementSourceForRole(this.currentUser?.role);
     });
 
     this.syncPageMeta();
@@ -58,7 +88,10 @@ export class TopbarComponent implements OnInit {
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe(() => this.syncPageMeta());
+      .subscribe(() => {
+        this.currentUrl.set(this.router.url);
+        this.syncPageMeta();
+      });
 
     this.api.refreshAcademicYears();
 
@@ -123,9 +156,39 @@ export class TopbarComponent implements OnInit {
 
   @HostListener('document:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      this.closeNotifications();
+    }
+
     if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
       event.preventDefault();
       document.getElementById('global-search-input')?.focus();
+    }
+  }
+
+  @HostListener('document:click')
+  closeNotificationDropdownFromDocument(): void {
+    this.closeNotifications();
+  }
+
+  toggleNotifications(): void {
+    this.isNotificationDropdownOpen.update(isOpen => !isOpen);
+  }
+
+  closeNotifications(): void {
+    this.isNotificationDropdownOpen.set(false);
+  }
+
+  selectNotification(notification: TopbarNotification): void {
+    const dismissedIds = dismissTopbarNotification(this.dismissedNotificationIds(), notification.id);
+    this.dismissedNotificationIds.set(dismissedIds);
+    this.persistDismissedNotificationIds(dismissedIds);
+    this.closeNotifications();
+    
+    if (notification.type === 'chat') {
+      this.chat.open();
+    } else {
+      this.router.navigateByUrl(notification.destination);
     }
   }
 
@@ -148,6 +211,79 @@ export class TopbarComponent implements OnInit {
 
     this.pageTitle.set(route.snapshot?.data?.['pageTitle'] ?? 'Dashboard');
     this.pageSubtitle.set(route.snapshot?.data?.['pageSubtitle'] ?? 'Overview of registrar and finance operations');
+  }
+
+  private portalSegment(): string {
+    const path = this.currentUrl().split('?')[0].split('#')[0];
+    return path.split('/').filter(Boolean)[0] || (this.currentUserSignal()?.role || 'admin').toLowerCase();
+  }
+
+  private resolvedAnnouncementCount(): number {
+    const role = (this.currentUserSignal()?.role || '').toUpperCase();
+    if (role === 'FINANCE') {
+      return this.financeNotifications.learnersNeedingAssessmentCount();
+    }
+
+    return this.announcementCount();
+  }
+
+  private bindAnnouncementSourceForRole(role?: string): void {
+    const normalizedRole = (role || '').toUpperCase();
+
+    if (normalizedRole === 'TEACHER' && !this.teacherAnnouncementsBound) {
+      this.teacherAnnouncementsBound = true;
+      this.injector.get(TeacherPortalService).state$
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(state => {
+          this.announcementCount.set(Array.isArray(state.announcements) ? state.announcements.length : 0);
+        });
+      return;
+    }
+
+    if (normalizedRole === 'STUDENT' && !this.studentAnnouncementsBound) {
+      this.studentAnnouncementsBound = true;
+      this.injector.get(StudentPortalService).state$
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(state => {
+          const unread = Array.isArray(state.announcements)
+            ? state.announcements.filter(item => !item.read).length
+            : 0;
+          this.announcementCount.set(unread);
+        });
+      return;
+    }
+
+    if (normalizedRole === 'PRINCIPAL' && !this.principalAnnouncementsBound) {
+      this.principalAnnouncementsBound = true;
+      this.injector.get(PrincipalPortalService).state$
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(state => {
+          this.announcementCount.set(Array.isArray(state.announcements) ? state.announcements.length : 0);
+        });
+      return;
+    }
+
+    if (!['TEACHER', 'STUDENT', 'PRINCIPAL'].includes(normalizedRole)) {
+      this.announcementCount.set(0);
+    }
+  }
+
+  private loadDismissedNotificationIds(): string[] {
+    try {
+      const stored = localStorage.getItem(this.dismissedStorageKey);
+      const parsed = stored ? JSON.parse(stored) : [];
+      return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string') : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private persistDismissedNotificationIds(ids: string[]): void {
+    try {
+      localStorage.setItem(this.dismissedStorageKey, JSON.stringify(ids));
+    } catch {
+      // Notification dismissal should never block navigation.
+    }
   }
 
   logout() {

@@ -9,7 +9,7 @@ export function dashboardPathForRole(role: string | null | undefined): string {
     case 'REGISTRAR':
       return '/registrar/dashboard';
     case 'FINANCE':
-      return '/registrar-finance/dashboard';
+      return '/finance/dashboard';
     case 'ADMIN':
       return '/admin/dashboard';
     default:

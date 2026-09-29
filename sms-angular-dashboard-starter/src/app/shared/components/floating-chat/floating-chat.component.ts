@@ -14,6 +14,7 @@ export class FloatingChatComponent {
   readonly chat = inject(FloatingChatService);
   readonly error = signal('');
   draftText = '';
+  isBroadcastingTest = false;
 
   @ViewChild('messageList') private messageList?: ElementRef<HTMLDivElement>;
   @ViewChild('messageInput') private messageInput?: ElementRef<HTMLTextAreaElement>;
@@ -58,6 +59,25 @@ export class FloatingChatComponent {
     if (event.key === 'Escape') {
       this.chat.close();
     }
+  }
+
+  sendTestToAll(): void {
+    if (this.isBroadcastingTest) {
+      return;
+    }
+
+    this.isBroadcastingTest = true;
+    this.chat.sendTestMessageToAllUsers().subscribe({
+      next: result => {
+        this.isBroadcastingTest = false;
+        this.chat.refreshUnreadCount();
+        this.error.set(`Sent "${result.body}" to ${result.recipientCount} accounts.`);
+      },
+      error: () => {
+        this.isBroadcastingTest = false;
+        this.error.set('Only admin accounts can send a test message to all users.');
+      },
+    });
   }
 
   formatTime(value: string): string {

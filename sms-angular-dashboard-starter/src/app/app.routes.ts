@@ -16,7 +16,7 @@ import { DepedFormsComponent } from './pages/registrar/deped-forms/deped-forms.c
 import { IdQrManagementComponent } from './pages/registrar/id-qr-management/id-qr-management.component';
 import { RegistrarReportsComponent } from './pages/registrar/registrar-reports/registrar-reports.component';
 import { AcademicYearManagementComponent } from './pages/registrar/academic-year-management/academic-year-management';
-import { ComingSoonComponent } from './pages/coming-soon/coming-soon.component';
+import { TeacherManagementComponent } from './pages/admin/teacher-management/teacher-management.component';
 import { PaymentsComponent } from './pages/finance/payments/payments.component';
 import { BillingAssessmentComponent } from './pages/finance/billing-assessment/billing-assessment.component';
 import { BillingSummaryComponent } from './pages/finance/billing-summary/billing-summary.component';
@@ -293,6 +293,13 @@ export const appRoutes: Routes = [
         data: { roles: ['TEACHER'], teacherView: 'analytics', pageTitle: 'Performance Analytics', pageSubtitle: 'Attendance and class performance trends' }
       },
       {
+        path: 'teacher/profiles',
+        component: TeacherPortalComponent,
+        canActivate: [roleGuard],
+        title: 'Academic Profiles | SFXSAI',
+        data: { roles: ['TEACHER'], teacherView: 'profiles', pageTitle: 'Academic Profiles', pageSubtitle: 'View learner records and AI insights' }
+      },
+      {
         path: 'teacher/settings',
         component: TeacherPortalComponent,
         canActivate: [roleGuard],
@@ -347,7 +354,7 @@ export const appRoutes: Routes = [
         canActivate: [roleGuard],
         title: 'Learner Profile | SFXSAI',
         data: {
-          roles: ['REGISTRAR'],
+          roles: ['REGISTRAR', 'TEACHER', 'ADMIN'],
           pageTitle: 'Learner Profile',
           pageSubtitle: 'Complete student record and enrollment history'
         }
@@ -358,7 +365,7 @@ export const appRoutes: Routes = [
         canActivate: [roleGuard],
         title: 'Learner Profile | SFXSAI',
         data: {
-          roles: ['REGISTRAR'],
+          roles: ['REGISTRAR', 'TEACHER', 'ADMIN'],
           pageTitle: 'Learner Profile',
           pageSubtitle: 'Complete student record and enrollment history'
         }
@@ -509,6 +516,13 @@ export const appRoutes: Routes = [
         data: { roles: ['FINANCE'], pageTitle: 'Finance Setup', pageSubtitle: 'Manage fee types and fee templates' }
       },
       {
+        path: ':portal/teacher-management',
+        component: TeacherManagementComponent,
+        canActivate: [roleGuard],
+        title: 'Teacher Management | SFXSAI',
+        data: { roles: ['ADMIN'], pageTitle: 'Teacher Management', pageSubtitle: 'Manage teacher accounts, assignments, and profiles' }
+      },
+      {
         path: ':portal/academic-years',
         component: AcademicYearManagementComponent,
         canActivate: [roleGuard],
@@ -523,11 +537,6 @@ export const appRoutes: Routes = [
         data: { roles: ['ADMIN', 'REGISTRAR', 'PRINCIPAL', 'TEACHER', 'STUDENT'], pageTitle: 'School Calendar', pageSubtitle: 'View and manage holidays, exams, and events' }
       },
       {
-        path: ':portal',
-        pathMatch: 'full',
-        redirectTo: ':portal/dashboard'
-      },
-      {
         path: '',
         pathMatch: 'full',
         redirectTo: 'admin/dashboard'
@@ -539,5 +548,3 @@ export const appRoutes: Routes = [
     redirectTo: 'admin/dashboard'
   }
 ];
-
-// Trigger rebuild

@@ -41,13 +41,20 @@ model Student {
   academicYearId   String?
   academicYear     AcademicYear? @relation(fields: [academicYearId], references: [id])
 
-  // New relations
+  // Relations
   user             User?
   behaviorRecords  BehaviorRecord[]
   fees             StudentFee[]
   siblings         StudentSibling[] @relation("StudentSiblings")
   assessments      StudentAssessment[]
   payments         Payment[]
+  academicRecords  AcademicRecord[]
+  coreValues       StudentCoreValues[]
+  healthProfiles   StudentHealthProfile[]
+
+  @@index([academicYearId])
+  @@index([academicYearId, gradeLevel])
+  @@index([academicYearId, enrollmentStatus])
 }
 
 model EnrollmentApplication {
@@ -55,6 +62,7 @@ model EnrollmentApplication {
   applicationNo  String   @unique
   studentName    String
   gradeLevel     String
+  section        String?
   studentType    String
   status         String
   documentStatus String
@@ -64,6 +72,9 @@ model EnrollmentApplication {
   remarks        String?
   academicYearId String?
   academicYear   AcademicYear? @relation(fields: [academicYearId], references: [id])
+
+  @@index([academicYearId])
+  @@index([academicYearId, status])
 }
 
 model DocumentRequirement {
@@ -93,10 +104,15 @@ model Section {
   academicYear   AcademicYear? @relation(fields: [academicYearId], references: [id])
 
   teacherClassAssignments TeacherClassAssignment[]
+
+  @@index([academicYearId])
+  @@index([academicYearId, gradeLevel, sectionName])
 }
 
 model AcademicRecord {
   id             String   @id @default(uuid())
+  studentId      String?
+  student        Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
   studentName    String
   gradeLevel     String
   section        String?
@@ -132,6 +148,9 @@ model DocumentRequest {
   releaseDate   DateTime?
   academicYearId String?
   academicYear   AcademicYear? @relation(fields: [academicYearId], references: [id])
+
+  @@index([academicYearId])
+  @@index([academicYearId, requestStatus])
 }
 
 model DepEdForm {
@@ -208,6 +227,7 @@ model User {
   teacherLessonLogs     TeacherLessonLog[] @relation("TeacherLessonLogTeacher")
   teacherAnnouncements  TeacherAnnouncement[] @relation("TeacherAnnouncementTeacher")
   teacherDirectMessages TeacherDirectMessage[] @relation("TeacherDirectMessageTeacher")
+  teacherScheduleEntries TeacherScheduleEntry[] @relation("TeacherScheduleEntryTeacher")
 }
 
 model TeacherProfile {
@@ -220,6 +240,13 @@ model TeacherProfile {
   phone              String?
   advisoryClass      String?
   assignedGradeLevel String?
+  accountStatus      String   @default("Active")
+  adminRole          String   @default("Teacher")
+  sectionAssignment  String?
+  subjects           String   @default("")
+  totalClassesHandled Int     @default(0)
+  numberOfStudents   Int      @default(0)
+  weeklyHours        Int      @default(0)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }
@@ -335,6 +362,20 @@ model TeacherDirectMessage {
   createdAt      DateTime @default(now())
 
   @@index([teacherUserId, sentAt])
+}
+
+model TeacherScheduleEntry {
+  id             String   @id @default(uuid())
+  teacherUserId  String
+  teacher        User     @relation("TeacherScheduleEntryTeacher", fields: [teacherUserId], references: [id], onDelete: Cascade)
+  weekday        String
+  weekdaySort    Int
+  title          String
+  startTime      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([teacherUserId, weekdaySort])
 }
 
 model StoredFile {
@@ -455,6 +496,8 @@ model StudentAssessment {
   payments  Payment[]
 
   @@unique([studentId, academicYearId])
+  @@index([academicYearId])
+  @@index([academicYearId, financeStatus])
 }
 
 model StudentAssessmentLineItem {
@@ -490,6 +533,8 @@ model Payment {
   receiptAudits PaymentReceiptAudit[]
 
   @@unique([academicYearId, receiptNumber])
+  @@index([academicYearId])
+  @@index([academicYearId, paymentDate])
 }
 
 model PaymentReceiptAudit {
@@ -560,4 +605,41 @@ model CalendarEvent {
   academicYear   AcademicYear? @relation(fields: [academicYearId], references: [id])
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+
+  @@index([academicYearId])
+  @@index([academicYearId, eventDate])
+}
+
+model StudentCoreValues {
+  id             String   @id @default(uuid())
+  studentId      String
+  student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  schoolYear     String
+  quarter        String   // Q1, Q2, Q3, Q4
+  makaDiyos      String   // AO, SO, RO, NO
+  makatao        String
+  makakalikasan  String
+  makabansa      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([studentId, schoolYear, quarter])
+  @@index([studentId])
+}
+
+model StudentHealthProfile {
+  id             String   @id @default(uuid())
+  studentId      String
+  student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  schoolYear     String
+  recordType     String   // BoSY or EoSY
+  heightMeters   Float
+  weightKg       Float
+  bmi            Float
+  bmiCategory    String   // Severely Wasted, Wasted, Normal, Overweight, Obese
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([studentId, schoolYear, recordType])
+  @@index([studentId])
 }

@@ -38,6 +38,15 @@
           </h2>
           <p class="text-xs font-semibold text-slate-500 mt-0.5">Select a class section below to view its enrolled learners.</p>
         </div>
+        <div class="classes-campus-tabs inline-flex rounded-2xl border border-violet-100 bg-white p-1 shadow-sm">
+          <button *ngFor="let tab of campusTabs"
+                  type="button"
+                  (click)="setCampusTab(tab)"
+                  [ngClass]="activeCampusTab === tab ? 'bg-violet-600 text-white shadow-sm' : 'text-slate-600 hover:bg-violet-50 hover:text-violet-700'"
+                  class="px-4 py-2 rounded-xl text-[12px] font-extrabold transition-all">
+            {{ tab }}
+          </button>
+        </div>
       </div>
 
       <!-- Sections Grid -->

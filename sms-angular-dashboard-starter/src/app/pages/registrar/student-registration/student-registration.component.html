@@ -81,8 +81,18 @@
 
             <label>
               <span class="form-label">🎓 Grade Level <span class="text-rose-400">*</span></span>
-              <select class="form-input" [(ngModel)]="draft.gradeLevel" name="gradeLevel">
+              <select class="form-input" [(ngModel)]="draft.gradeLevel" name="gradeLevel" (ngModelChange)="onGradeLevelChange()">
                 <option *ngFor="let grade of gradeLevels" [value]="grade.value">{{ grade.label }}</option>
+              </select>
+            </label>
+
+            <label>
+              <span class="form-label">🏫 Section <span class="text-rose-400">*</span></span>
+              <select class="form-input" [(ngModel)]="draft.section" name="section">
+                <option *ngFor="let section of availableSectionsForSelectedGrade" [value]="section.sectionName">
+                  {{ section.sectionName }} · {{ section.availableSlots }} slots
+                </option>
+                <option *ngIf="!availableSectionsForSelectedGrade.length" value="SFXSAI">SFXSAI</option>
               </select>
             </label>
 

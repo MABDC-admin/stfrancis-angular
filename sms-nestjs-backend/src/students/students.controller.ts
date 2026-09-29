@@ -22,13 +22,13 @@ export class StudentsController {
   }
 
   @Get()
-  @Roles('REGISTRAR', 'FINANCE')
+  @Roles('REGISTRAR', 'FINANCE', 'TEACHER')
   findAll(@Query('ayId') ayId?: string, @Query('search') search?: string) {
     return this.studentsService.findAll(ayId, search);
   }
 
   @Get(':id')
-  @Roles('REGISTRAR', 'FINANCE')
+  @Roles('REGISTRAR', 'FINANCE', 'TEACHER')
   findOne(@Param('id') id: string) {
     return this.studentsService.findOne(id);
   }

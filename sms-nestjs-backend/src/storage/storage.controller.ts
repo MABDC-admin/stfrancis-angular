@@ -7,6 +7,7 @@ import {
   Post,
   Query,
   Req,
+  Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -14,6 +15,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { mkdirSync } from 'fs';
 import { diskStorage } from 'multer';
 import { join } from 'path';
+import { Public } from '../auth/public.decorator';
 import { Roles } from '../auth/roles.decorator';
 import { StorageService } from './storage.service';
 
@@ -140,6 +142,15 @@ export class StorageController {
     @Query('category') category?: string,
   ) {
     return this.storageService.listFiles({ ownerType, ownerId, category });
+  }
+
+  @Public()
+  @Get('files/:id/content')
+  async getFileContent(@Param('id') id: string, @Res() res: any) {
+    const { file, buffer } = await this.storageService.getFileContent(id);
+    res.setHeader('Content-Type', file.mimeType);
+    res.setHeader('Content-Length', String(buffer.length));
+    res.end(buffer);
   }
 
   @Delete('files/:id')

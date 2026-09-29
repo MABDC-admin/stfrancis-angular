@@ -23,6 +23,27 @@ export interface BackendChatConversation {
   messages?: BackendChatMessage[];
 }
 
+export interface BackendUnreadCount {
+  unreadCount: number;
+}
+
+export interface BackendBroadcastResult {
+  body: string;
+  recipientCount: number;
+  messageCount: number;
+}
+
+export interface FloatingChatStaffContact {
+  id: string;
+  email: string;
+  role: string;
+  displayName: string;
+  assignedGradeLevel?: string;
+  advisoryClass?: string;
+  accountStatus?: string;
+  unreadCount?: number;
+}
+
 export interface BuildChatMessageInput {
   body: string;
   senderName: string;

@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { LearnerMovementsService } from './learner-movements.service';
 import { LearnerMovementsController } from './learner-movements.controller';
-import { PrismaModule } from '../prisma/prisma.module';
+import { DrizzleModule } from '../drizzle/drizzle.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [DrizzleModule],
   controllers: [LearnerMovementsController],
   providers: [LearnerMovementsService],
 })

@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, asc, count, desc, eq, isNull, ne, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, ne } from 'drizzle-orm';
 import * as crypto from 'crypto';
 import { DrizzleService } from '../drizzle/drizzle.service';
 import * as schema from '../drizzle/schema';
@@ -121,6 +121,7 @@ export class FinanceService {
           ? { description: input.description.trim() || null }
           : {}),
         ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
+        updatedAt: new Date().toISOString(),
       })
       .where(eq(schema.feeType.id, id))
       .returning();
@@ -131,7 +132,7 @@ export class FinanceService {
   async deactivateFeeType(id: string) {
     const [updated] = await this.drizzle.db
       .update(schema.feeType)
-      .set({ isActive: false })
+      .set({ isActive: false, updatedAt: new Date().toISOString() })
       .where(eq(schema.feeType.id, id))
       .returning();
     return updated;
@@ -458,69 +459,71 @@ export class FinanceService {
   }
 
   async deletePayment(paymentId: string) {
-    const payment = await this.drizzle.db.query.payment.findFirst({
-      where: eq(schema.payment.id, paymentId),
-    });
-    if (!payment) {
-      throw new NotFoundException('Payment was not found.');
-    }
+    return this.drizzle.db.transaction(async (tx) => {
+      const payment = await tx.query.payment.findFirst({
+        where: eq(schema.payment.id, paymentId),
+      });
+      if (!payment) {
+        throw new NotFoundException('Payment was not found.');
+      }
 
-    const assessment = await this.drizzle.db.query.studentAssessment.findFirst({
-      where: eq(schema.studentAssessment.id, payment.studentAssessmentId),
-    });
-    if (!assessment) {
-      throw new NotFoundException('Student assessment was not found.');
-    }
-    if (payment.academicYearId !== assessment.academicYearId) {
-      throw new BadRequestException(
-        'Payment academic year must match assessment academic year.',
+      const assessment = await tx.query.studentAssessment.findFirst({
+        where: eq(schema.studentAssessment.id, payment.studentAssessmentId),
+      });
+      if (!assessment) {
+        throw new NotFoundException('Student assessment was not found.');
+      }
+      if (payment.academicYearId !== assessment.academicYearId) {
+        throw new BadRequestException(
+          'Payment academic year must match assessment academic year.',
+        );
+      }
+
+      const [deletedPayment] = await tx
+        .delete(schema.payment)
+        .where(eq(schema.payment.id, paymentId))
+        .returning();
+
+      const remainingPayments = await tx.query.payment.findMany({
+        where: and(
+          eq(schema.payment.studentAssessmentId, assessment.id),
+          eq(schema.payment.academicYearId, assessment.academicYearId),
+        ),
+      });
+
+      const paidAmount = remainingPayments.reduce(
+        (sum, entry) => sum + Number(entry.amount ?? 0),
+        0,
       );
-    }
+      const balance = Number(assessment.netAmount) - paidAmount;
+      const financeStatus = balance === 0 ? 'Cleared' : 'With Balance';
+      const now = new Date().toISOString();
 
-    const [deletedPayment] = await this.drizzle.db
-      .delete(schema.payment)
-      .where(eq(schema.payment.id, paymentId))
-      .returning();
-
-    const remainingPayments = await this.drizzle.db.query.payment.findMany({
-      where: and(
-        eq(schema.payment.studentAssessmentId, assessment.id),
-        eq(schema.payment.academicYearId, assessment.academicYearId),
-      ),
-    });
-
-    const paidAmount = remainingPayments.reduce(
-      (sum, entry) => sum + Number(entry.amount ?? 0),
-      0,
-    );
-    const balance = Number(assessment.netAmount) - paidAmount;
-    const financeStatus = balance === 0 ? 'Cleared' : 'With Balance';
-    const now = new Date().toISOString();
-
-    const [updatedAssessment] = await this.drizzle.db
-      .update(schema.studentAssessment)
-      .set({
-        paidAmount,
-        balance,
-        financeStatus,
-        updatedAt: now,
-      })
-      .where(eq(schema.studentAssessment.id, assessment.id))
-      .returning();
-
-    const academicYear = await this.drizzle.db.query.academicYear.findFirst({
-      where: eq(schema.academicYear.id, assessment.academicYearId),
-    });
-    if (academicYear?.isActive) {
-      await this.drizzle.db
-        .update(schema.student)
+      const [updatedAssessment] = await tx
+        .update(schema.studentAssessment)
         .set({
-          financeStatus: updatedAssessment.financeStatus,
+          paidAmount,
+          balance,
+          financeStatus,
+          updatedAt: now,
         })
-        .where(eq(schema.student.id, assessment.studentId));
-    }
+        .where(eq(schema.studentAssessment.id, assessment.id))
+        .returning();
 
-    return { deletedPayment, assessment: updatedAssessment };
+      const academicYear = await tx.query.academicYear.findFirst({
+        where: eq(schema.academicYear.id, assessment.academicYearId),
+      });
+      if (academicYear?.isActive) {
+        await tx
+          .update(schema.student)
+          .set({
+            financeStatus: updatedAssessment.financeStatus,
+          })
+          .where(eq(schema.student.id, assessment.studentId));
+      }
+
+      return { deletedPayment, assessment: updatedAssessment };
+    });
   }
 
   async updatePaymentReceipt(input: {

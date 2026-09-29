@@ -28,3 +28,9 @@ temp/
 
 .DS_Store
 Thumbs.db
+
+restore-points/
+playwright-report/
+diff.txt
+opencv_analysis.py
+patch-hero.js

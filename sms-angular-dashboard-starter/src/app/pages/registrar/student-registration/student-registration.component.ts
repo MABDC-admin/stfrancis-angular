@@ -1,10 +1,11 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, NgClass, NgFor } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { requiredDocumentChecklist, studentTypes } from '../../../core/data/registrar.mock';
-import { gradeLevelOptions } from '../../../core/data/grade-levels';
+import { gradeLevelOptions, gradeLevelMatches } from '../../../core/data/grade-levels';
 import { RegistrarApiService } from '../../../core/services/registrar-api.service';
 import { Router } from '@angular/router';
+import { SectionRecord } from '../../../core/models/registrar.models';
 
 @Component({
   selector: 'app-student-registration',
@@ -13,13 +14,14 @@ import { Router } from '@angular/router';
   templateUrl: './student-registration.component.html',
   styleUrl: './student-registration.component.scss'
 })
-export class StudentRegistrationComponent {
+export class StudentRegistrationComponent implements OnInit {
   private api = inject(RegistrarApiService);
   private router = inject(Router);
 
   readonly gradeLevels = gradeLevelOptions;
   readonly studentTypes = studentTypes;
   readonly requiredDocuments = requiredDocumentChecklist;
+  sections: SectionRecord[] = [];
 
   draft = {
     studentNo: 'Auto-generated',
@@ -31,6 +33,7 @@ export class StudentRegistrationComponent {
     birthdate: '',
     gender: '',
     gradeLevel: 'G7',
+    section: 'SFXSAI',
     studentType: 'New',
     guardianName: '',
     guardianRelation: '',
@@ -60,6 +63,14 @@ export class StudentRegistrationComponent {
     }, 4000);
   }
 
+  ngOnInit() {
+    this.loadSections();
+  }
+
+  get availableSectionsForSelectedGrade() {
+    return this.sections.filter(section => gradeLevelMatches(section.gradeLevel, this.draft.gradeLevel));
+  }
+
   get calculatedAge(): number | string {
     if (!this.draft.birthdate) return '';
     const birthDate = new Date(this.draft.birthdate);
@@ -83,6 +94,7 @@ export class StudentRegistrationComponent {
       birthdate: '2012-06-14',
       gender: 'Male',
       gradeLevel: 'G7',
+      section: 'SFXSAI',
       studentType: 'New',
       guardianName: 'Maria Dela Cruz',
       guardianRelation: 'Mother',
@@ -117,6 +129,7 @@ export class StudentRegistrationComponent {
       birthdate: this.draft.birthdate ? new Date(this.draft.birthdate).toISOString() : undefined,
       gender: this.draft.gender,
       gradeLevel: this.draft.gradeLevel,
+      section: this.draft.section,
       studentType: this.draft.studentType,
       guardian: this.draft.guardianName,
       contactNo: this.draft.guardianContact,
@@ -134,6 +147,7 @@ export class StudentRegistrationComponent {
         const appPayload = {
           studentName: fullName,
           gradeLevel: this.draft.gradeLevel,
+          section: this.draft.section,
           studentType: this.draft.studentType,
           status: 'Pending',
           documentStatus: 'Incomplete',
@@ -158,5 +172,39 @@ export class StudentRegistrationComponent {
         this.isSubmitting = false;
       }
     });
+  }
+
+  private loadSections() {
+    let activeAyId: string | undefined;
+    this.api.activeAcademicYear$.subscribe(ay => {
+      if (ay) activeAyId = ay.id;
+    }).unsubscribe();
+
+    this.api.getSections(activeAyId).subscribe({
+      next: sections => {
+        this.sections = sections;
+        this.ensureSelectedSection();
+      },
+      error: () => {
+        this.sections = [];
+        this.draft.section = 'SFXSAI';
+      }
+    });
+  }
+
+  onGradeLevelChange() {
+    this.ensureSelectedSection();
+  }
+
+  private ensureSelectedSection() {
+    const matchingSections = this.availableSectionsForSelectedGrade;
+    if (!matchingSections.length) {
+      this.draft.section = 'SFXSAI';
+      return;
+    }
+
+    if (!matchingSections.some(section => section.sectionName === this.draft.section)) {
+      this.draft.section = matchingSections[0].sectionName;
+    }
   }
 }

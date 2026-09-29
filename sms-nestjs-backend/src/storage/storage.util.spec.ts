@@ -1,11 +1,17 @@
 import {
   buildStoredFileName,
+  getStorageProvider,
   isAllowedStorageMimeType,
   normalizeStorageToken,
+  toStoredFileContentUrl,
   toPublicStorageUrl,
 } from './storage.util';
 
 describe('storage utilities', () => {
+  afterEach(() => {
+    delete process.env.STORAGE_PROVIDER;
+  });
+
   it('normalizes unsafe owner/category tokens for path buckets', () => {
     expect(normalizeStorageToken('Learner Documents / 2026')).toBe(
       'learner-documents-2026',
@@ -38,5 +44,20 @@ describe('storage utilities', () => {
     ).toBe(
       'http://localhost:3000/storage/learner-document/student-1/file.pdf',
     );
+  });
+
+  it('defaults to the local storage provider', () => {
+    expect(getStorageProvider()).toBe('local');
+  });
+
+  it('detects the r2 storage provider from env', () => {
+    process.env.STORAGE_PROVIDER = 'r2';
+    expect(getStorageProvider()).toBe('r2');
+  });
+
+  it('creates content URLs using the stored file id', () => {
+    expect(
+      toStoredFileContentUrl('http://localhost:3000/', 'stored-file-1'),
+    ).toBe('http://localhost:3000/storage/files/stored-file-1/content');
   });
 });

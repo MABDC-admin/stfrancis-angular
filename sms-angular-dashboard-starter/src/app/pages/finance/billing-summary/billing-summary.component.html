@@ -140,6 +140,7 @@
                 <div>
                   <strong>{{ payment.receiptNumber }}</strong>
                   <small>{{ payment.paymentDate | date:'mediumDate' }} · {{ payment.method }}</small>
+                  <small>{{ payment.remarks || 'No payee name recorded' }}</small>
                 </div>
                 <span>₱{{ payment.amount | number:'1.2-2' }}</span>
               </div>

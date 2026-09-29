@@ -8,6 +8,12 @@ const ALLOWED_MIME_TYPES = new Set([
   'image/webp',
 ]);
 
+export type StorageProvider = 'local' | 'r2';
+
+export function getStorageProvider(): StorageProvider {
+  return process.env.STORAGE_PROVIDER?.toLowerCase() === 'r2' ? 'r2' : 'local';
+}
+
 export function normalizeStorageToken(value: string | null | undefined): string {
   const normalized = (value || 'uncategorized')
     .toLowerCase()
@@ -37,4 +43,9 @@ export function buildStoredFileName(originalName: string, id: string): string {
 export function toPublicStorageUrl(apiOrigin: string, relativePath: string): string {
   const origin = apiOrigin.replace(/\/+$/, '');
   return `${origin}/storage/${relativePath.replace(/^\/+/, '')}`;
+}
+
+export function toStoredFileContentUrl(apiOrigin: string, fileId: string): string {
+  const origin = apiOrigin.replace(/\/+$/, '');
+  return `${origin}/storage/files/${fileId}/content`;
 }

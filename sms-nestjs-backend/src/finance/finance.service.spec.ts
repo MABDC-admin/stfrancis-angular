@@ -28,12 +28,22 @@ describe('FinanceService academic-year-safe rules', () => {
         studentAssessmentLineItem: {},
       },
     });
+    (db as any).transaction = jest.fn(async (callback: (tx: typeof db) => unknown) => callback(db));
 
     return {
       db,
       service: new FinanceService({ db } as never),
     };
   }
+
+  it('rejects deleting a payment that does not exist', async () => {
+    const { db, service } = createService();
+    (db.query.payment.findFirst as jest.Mock).mockResolvedValue(null);
+
+    await expect(service.deletePayment('payment-missing')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+  });
 
   it('rejects discounts that exceed 100% total', async () => {
     const { service } = createService();

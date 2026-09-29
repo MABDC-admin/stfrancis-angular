@@ -1,29 +1,40 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { eq } from 'drizzle-orm';
+import { DrizzleService } from '../drizzle/drizzle.service';
+import * as schema from '../drizzle/schema';
 
 @Injectable()
 export class DocumentRequirementsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private drizzle: DrizzleService) {}
 
-  create(data: any) {
-    return this.prisma.documentRequirement.create({ data });
+  async create(data: any) {
+    const [created] = await this.drizzle.db.insert(schema.documentRequirement).values(data).returning();
+    return created;
   }
 
-  findAll(ayId?: string) {
-    return this.prisma.documentRequirement.findMany({
-      where: ayId ? { academicYearId: ayId } : undefined,
+  async findAll(ayId?: string) {
+    return this.drizzle.db.query.documentRequirement.findMany({
+      where: ayId ? eq(schema.documentRequirement.academicYearId, ayId) : undefined,
     });
   }
 
-  findOne(id: string) {
-    return this.prisma.documentRequirement.findUnique({ where: { id } });
+  async findOne(id: string) {
+    return this.drizzle.db.query.documentRequirement.findFirst({
+      where: eq(schema.documentRequirement.id, id),
+    });
   }
 
-  update(id: string, data: any) {
-    return this.prisma.documentRequirement.update({ where: { id }, data });
+  async update(id: string, data: any) {
+    const [updated] = await this.drizzle.db
+      .update(schema.documentRequirement)
+      .set(data)
+      .where(eq(schema.documentRequirement.id, id))
+      .returning();
+    return updated;
   }
 
-  remove(id: string) {
-    return this.prisma.documentRequirement.delete({ where: { id } });
+  async remove(id: string) {
+    const [deleted] = await this.drizzle.db.delete(schema.documentRequirement).where(eq(schema.documentRequirement.id, id)).returning();
+    return deleted;
   }
 }

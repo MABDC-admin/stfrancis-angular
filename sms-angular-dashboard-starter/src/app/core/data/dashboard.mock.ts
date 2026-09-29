@@ -60,6 +60,7 @@ export const sidebarSections: NavSection[] = [
       { label: 'Announcements', icon: 'campaign', route: 'announcements' },
       { label: 'Messages', icon: 'chat', route: 'messages' },
       { label: 'Analytics', icon: 'query_stats', route: 'analytics' },
+      { label: 'Academic Profiles', icon: 'account_box', route: 'profiles' },
       { label: 'Settings', icon: 'settings', route: 'settings' }
     ]
   },
@@ -83,6 +84,7 @@ export const sidebarSections: NavSection[] = [
   {
     label: 'Settings',
     items: [
+      { label: 'Teacher Management', icon: 'manage_accounts', route: 'teacher-management' },
       { label: 'Academic Years', icon: 'date_range', route: 'academic-years' }
     ]
   }

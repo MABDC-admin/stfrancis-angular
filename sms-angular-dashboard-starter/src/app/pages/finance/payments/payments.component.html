@@ -64,7 +64,7 @@
         <label class="field"><span>Amount</span><input type="number" min="0" [(ngModel)]="amount" /></label>
       </div>
 
-      <label class="field"><span>Remarks</span><textarea [(ngModel)]="remarks"></textarea></label>
+      <label class="field"><span>Remarks / Payee Name</span><textarea [(ngModel)]="remarks" placeholder="Record the name of the payee or any payment note"></textarea></label>
 
       <div class="button-row">
         <button class="secondary-btn" (click)="fillExactBalance()" [disabled]="!selectedAssessment">Use Exact Balance</button>
@@ -78,16 +78,20 @@
   <section class="finance-panel" style="margin-top:1rem">
     <h2 class="finance-title">Payment History</h2>
     <table class="finance-table">
-      <thead><tr><th>Student</th><th>Date</th><th>Receipt / Reference</th><th>Method</th><th>Amount</th></tr></thead>
+      <thead><tr><th>Student</th><th>Date</th><th>Receipt / Reference</th><th>Method</th><th>Payee / Remarks</th><th>Amount</th><th>Actions</th></tr></thead>
       <tbody>
         <tr *ngFor="let payment of payments">
           <td>{{ payment.student?.lastName }}, {{ payment.student?.firstName }}</td>
           <td>{{ payment.paymentDate | date:'mediumDate' }}</td>
           <td>{{ payment.receiptNumber }}</td>
           <td>{{ payment.method }}</td>
+          <td>{{ payment.remarks || 'No payee name recorded' }}</td>
           <td>₱{{ payment.amount | number:'1.2-2' }}</td>
+          <td class="actions-cell">
+            <button class="danger-btn" type="button" (click)="deletePayment(payment)" [disabled]="loading">Delete</button>
+          </td>
         </tr>
-        <tr *ngIf="!payments.length"><td colspan="5">No payments recorded for this academic year.</td></tr>
+        <tr *ngIf="!payments.length"><td colspan="7">No payments recorded for this academic year.</td></tr>
       </tbody>
     </table>
   </section>

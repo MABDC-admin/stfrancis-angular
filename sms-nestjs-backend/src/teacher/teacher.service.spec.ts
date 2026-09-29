@@ -6,6 +6,7 @@ type MockFn = jest.Mock;
 describe('TeacherService', () => {
   function createPrisma(overrides: Record<string, unknown> = {}) {
     return {
+      withTransientRetry: jest.fn((operation: () => Promise<unknown>) => operation()),
       user: {
         findUnique: jest.fn().mockResolvedValue({
           id: 'teacher-user-1',
@@ -51,6 +52,11 @@ describe('TeacherService', () => {
       teacherDirectMessage: {
         findMany: jest.fn().mockResolvedValue([]),
         create: jest.fn(),
+      },
+      teacherScheduleEntry: {
+        findMany: jest.fn().mockResolvedValue([]),
+        create: jest.fn(),
+        deleteMany: jest.fn(),
       },
       ...overrides,
     };
@@ -122,6 +128,97 @@ describe('TeacherService', () => {
         photoUrl: '/storage/students/student-1/photo.jpg',
       }),
     );
+  });
+
+  it('includes teacher-owned custom weekday schedule entries in the portal snapshot', async () => {
+    const prisma = createPrisma();
+    (prisma.teacherScheduleEntry as { findMany: MockFn }).findMany.mockResolvedValue([
+      {
+        id: 'slot-1',
+        weekday: 'Monday',
+        title: 'Homeroom Check-in',
+        startTime: '07:30',
+      },
+    ]);
+
+    const result = await service(prisma).getPortalState({
+      userId: 'teacher-user-1',
+      email: 'teacher1@sfxsai.com',
+      role: 'TEACHER',
+    });
+
+    expect(result.scheduleEntries).toEqual([
+      {
+        id: 'slot-1',
+        weekday: 'Monday',
+        title: 'Homeroom Check-in',
+        startTime: '07:30',
+      },
+    ]);
+    expect((prisma.teacherScheduleEntry as { findMany: MockFn }).findMany).toHaveBeenCalledWith({
+      where: { teacherUserId: 'teacher-user-1' },
+      orderBy: [{ weekdaySort: 'asc' }, { startTime: 'asc' }, { title: 'asc' }],
+    });
+  });
+
+  it('creates validated Monday to Friday schedule entries owned by the teacher', async () => {
+    const prisma = createPrisma();
+    (prisma.teacherScheduleEntry as { create: MockFn }).create.mockResolvedValue({
+      id: 'slot-1',
+      teacherUserId: 'teacher-user-1',
+      weekday: 'Tuesday',
+      weekdaySort: 2,
+      title: 'Science Lab',
+      startTime: '10:30',
+    });
+
+    await service(prisma).createScheduleEntry('teacher-user-1', {
+      weekday: 'Tuesday',
+      title: ' Science Lab ',
+      startTime: '10:30',
+    });
+
+    expect((prisma.teacherScheduleEntry as { create: MockFn }).create).toHaveBeenCalledWith({
+      data: {
+        teacherUserId: 'teacher-user-1',
+        weekday: 'Tuesday',
+        weekdaySort: 2,
+        title: 'Science Lab',
+        startTime: '10:30',
+      },
+    });
+  });
+
+  it('rejects weekend or incomplete teacher schedule entries', async () => {
+    const prisma = createPrisma();
+
+    await expect(
+      service(prisma).createScheduleEntry('teacher-user-1', {
+        weekday: 'Saturday',
+        title: 'Weekend Class',
+        startTime: '09:00',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    await expect(
+      service(prisma).createScheduleEntry('teacher-user-1', {
+        weekday: 'Monday',
+        title: '',
+        startTime: '09:00',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('wraps portal snapshot reads in transient database retry handling', async () => {
+    const prisma = createPrisma();
+
+    await service(prisma).getPortalState({
+      userId: 'teacher-user-1',
+      email: 'teacher1@sfxsai.com',
+      role: 'TEACHER',
+    });
+
+    expect(prisma.withTransientRetry).toHaveBeenCalledTimes(1);
   });
 
   it('upserts attendance by teacher, class, student, and date', async () => {

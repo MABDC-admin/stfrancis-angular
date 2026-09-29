@@ -72,6 +72,12 @@ export class FinanceApiService {
     return this.http.post<{ payment: Payment; assessment: StudentAssessment }>(`${this.baseUrl}/payments`, payload);
   }
 
+  deletePayment(id: string): Observable<{ deletedPayment: Payment; assessment: StudentAssessment }> {
+    return this.http.delete<{ deletedPayment: Payment; assessment: StudentAssessment }>(
+      `${this.baseUrl}/payments/${id}`,
+    );
+  }
+
   updatePaymentReceipt(id: string, receiptNumber: string): Observable<Payment> {
     return this.http.patch<Payment>(`${this.baseUrl}/payments/${id}/receipt`, { receiptNumber });
   }

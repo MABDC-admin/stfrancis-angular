@@ -5,11 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { FinanceApiService } from '../../../core/services/finance-api.service';
 import { RegistrarApiService } from '../../../core/services/registrar-api.service';
-import { StudentAssessment } from '../../../core/models/finance.models';
+import { Payment, StudentAssessment } from '../../../core/models/finance.models';
 import { StudentRecord } from '../../../core/models/registrar.models';
 import { FinancePdfExportButtonComponent } from '../../../shared/pdf-export/finance-pdf-export-button.component';
 import { buildDiscountBreakdown } from '../finance-discount.util';
 import { displayGradeLevel } from '../../../core/data/grade-levels';
+import { sortLedgerStudentsByLastName } from './student-ledger-sort.util';
 
 @Component({
   selector: 'app-student-ledger',
@@ -31,6 +32,7 @@ export class StudentLedgerComponent implements OnInit {
   ledger: StudentAssessment | null = null;
   message = '';
   error = '';
+  loading = false;
   readonly displayGradeLevel = displayGradeLevel;
 
   ngOnInit() {
@@ -51,7 +53,7 @@ export class StudentLedgerComponent implements OnInit {
         this.academicYear = ay;
         this.registrar.getStudents(ay.id).subscribe({
           next: (students) => {
-            this.students = students;
+            this.students = sortLedgerStudentsByLastName(students);
             if (this.pendingStudentId) {
               this.selectedStudentId = this.pendingStudentId;
               this.loadLedger();
@@ -67,8 +69,10 @@ export class StudentLedgerComponent implements OnInit {
     this.error = '';
     this.ledger = null;
     if (!this.selectedStudentId || !this.academicYear?.id) return;
+    this.loading = true;
     this.finance.getLedger(this.selectedStudentId, this.academicYear.id).subscribe({
       next: (ledger) => {
+        this.loading = false;
         this.ledger = ledger;
         if (!ledger) this.message = 'No assessment found for this student and academic year.';
       },
@@ -80,7 +84,33 @@ export class StudentLedgerComponent implements OnInit {
     return this.ledger ? buildDiscountBreakdown(this.ledger).summary : 'No discount';
   }
 
+  deletePayment(payment: Payment) {
+    this.message = '';
+    this.error = '';
+    if (!this.selectedStudentId) {
+      this.error = 'Select a learner first.';
+      return;
+    }
+    const confirmed = window.confirm(
+      `Delete payment ${payment.receiptNumber} from this ledger?`,
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    this.loading = true;
+    this.finance.deletePayment(payment.id).subscribe({
+      next: () => {
+        this.loading = false;
+        this.message = 'Payment deleted and ledger updated.';
+        this.loadLedger();
+      },
+      error: (err) => this.fail(err)
+    });
+  }
+
   private fail(err: any) {
+    this.loading = false;
     this.error = err?.error?.message || 'Ledger request failed.';
   }
 }

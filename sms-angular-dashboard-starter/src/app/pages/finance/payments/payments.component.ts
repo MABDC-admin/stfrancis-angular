@@ -105,6 +105,27 @@ export class PaymentsComponent implements OnInit {
     });
   }
 
+  deletePayment(payment: Payment) {
+    this.message = '';
+    this.error = '';
+    const confirmed = window.confirm(
+      `Delete payment ${payment.receiptNumber} for ${payment.student?.lastName || 'this learner'}?`,
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    this.loading = true;
+    this.finance.deletePayment(payment.id).subscribe({
+      next: () => {
+        this.loading = false;
+        this.message = 'Payment deleted and finance clearance updated.';
+        this.loadAssessments();
+      },
+      error: (err) => this.fail(err)
+    });
+  }
+
   private fail(err: any) {
     this.loading = false;
     this.error = err?.error?.message || 'Payment request failed.';

@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { EnrollmentApplicationsController } from './enrollment-applications.controller';
 import { EnrollmentApplicationsService } from './enrollment-applications.service';
 
-import { PrismaModule } from '../prisma/prisma.module';
+import { DrizzleModule } from '../drizzle/drizzle.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [DrizzleModule],
   controllers: [EnrollmentApplicationsController],
   providers: [EnrollmentApplicationsService],
 })

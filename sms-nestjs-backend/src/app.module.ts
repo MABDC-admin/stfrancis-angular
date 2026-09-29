@@ -4,7 +4,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesGuard } from './auth/roles.guard';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PrismaModule } from './prisma/prisma.module';
+import { DrizzleModule } from './drizzle/drizzle.module';
 import { StudentsModule } from './students/students.module';
 import { EnrollmentApplicationsModule } from './enrollment-applications/enrollment-applications.module';
 import { SectionsModule } from './sections/sections.module';
@@ -22,10 +22,11 @@ import { StorageModule } from './storage/storage.module';
 import { ChatModule } from './chat/chat.module';
 import { TeacherModule } from './teacher/teacher.module';
 import { CalendarEventsModule } from './calendar-events/calendar-events.module';
+import { DashboardSummaryModule } from './dashboard-summary/dashboard-summary.module';
 
 @Module({
   imports: [
-    PrismaModule,
+    DrizzleModule,
     StudentsModule,
     EnrollmentApplicationsModule,
     SectionsModule,
@@ -43,6 +44,7 @@ import { CalendarEventsModule } from './calendar-events/calendar-events.module';
     ChatModule,
     TeacherModule,
     CalendarEventsModule,
+    DashboardSummaryModule,
   ],
   controllers: [AppController],
   providers: [

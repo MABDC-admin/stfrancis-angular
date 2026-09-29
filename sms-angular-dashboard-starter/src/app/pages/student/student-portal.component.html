@@ -4,18 +4,37 @@
     {{ toast().message }}
   </div>
 
-  <section class="student-hero">
-    <div>
-      <p class="eyebrow">Learner Portal</p>
-      <h1>{{ state().profile.name }}</h1>
-      <p>{{ displayGradeLevel(state().profile.gradeLevel) }} - {{ state().profile.section }} • Adviser: {{ state().profile.adviser }}</p>
+  <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-800 to-indigo-900 p-4 sm:p-6 flex items-center shadow-lg border border-violet-700 mb-6">
+    <div class="absolute inset-y-0 right-0 w-[40%] max-w-[300px] pointer-events-none" 
+         style="-webkit-mask-image: linear-gradient(to right, transparent 0%, black 50%); mask-image: linear-gradient(to right, transparent 0%, black 50%);">
+      <video autoplay loop muted playsinline [muted]="true" [autoplay]="true" class="w-full h-full object-cover object-center opacity-80 mix-blend-luminosity">
+        <source src="/assets/hero-banner.mp4" type="video/mp4" />
+      </video>
     </div>
-    <div class="hero-actions">
-      <a routerLink="/student/classes"><span class="material-icons">class</span> View Classes</a>
-      <a routerLink="/student/submissions"><span class="material-icons">upload_file</span> Submit Work</a>
-      <a routerLink="/student/resources"><span class="material-icons">folder</span> Open Resources</a>
+    
+    <div class="relative z-10 w-full flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="max-w-xl">
+        <p class="text-[10px] font-extrabold uppercase tracking-widest text-violet-300">Learner Portal</p>
+        <h1 class="mt-1 text-2xl font-extrabold tracking-tight text-white sm:text-3xl drop-shadow-sm">
+          {{ state().profile.name }}
+        </h1>
+        <p class="text-violet-100 text-sm font-semibold mt-1">
+          {{ displayGradeLevel(state().profile.gradeLevel) }} - {{ state().profile.section }} • Adviser: {{ state().profile.adviser }}
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-2 relative z-10">
+        <a routerLink="/student/classes" class="rounded-xl bg-white/10 border border-white/20 px-3 py-2 text-xs font-extrabold text-white hover:bg-white/20 transition-colors flex items-center gap-1.5 shadow-sm no-underline">
+          <span class="material-icons text-[16px]">class</span> View Classes
+        </a>
+        <a routerLink="/student/submissions" class="rounded-xl bg-white/10 border border-white/20 px-3 py-2 text-xs font-extrabold text-white hover:bg-white/20 transition-colors flex items-center gap-1.5 shadow-sm no-underline">
+          <span class="material-icons text-[16px]">upload_file</span> Submit Work
+        </a>
+        <a routerLink="/student/resources" class="rounded-xl bg-white border border-transparent px-3 py-2 text-xs font-extrabold text-violet-800 hover:bg-violet-50 transition-colors flex items-center gap-1.5 shadow-sm no-underline">
+          <span class="material-icons text-[16px]">folder</span> Open Resources
+        </a>
+      </div>
     </div>
-  </section>
+  </div>
 
   <nav class="module-strip">
     <a *ngFor="let module of modules" [routerLink]="['/student', module.route]" [ngClass]="{ active: currentView() === module.route }">
@@ -243,18 +262,42 @@
     </div>
   </section>
 
-  <section *ngIf="currentView() === 'messages'" class="panel">
-    <div class="panel-heading"><div><p class="eyebrow">Messages</p><h2>Teachers and Adviser</h2></div></div>
-    <form class="message-form" (ngSubmit)="sendMessage()">
-      <input [(ngModel)]="messageForm.thread" name="messageThread" placeholder="Teacher or adviser" />
-      <input [(ngModel)]="messageForm.message" name="messageText" placeholder="Type your message..." />
-      <button class="primary" type="submit"><span class="material-icons">send</span> Send</button>
-    </form>
-    <div class="chat-list">
-      <div *ngFor="let message of state().messages" [ngClass]="{ mine: message.mine }">
-        <strong>{{ message.thread }}</strong>
-        <p>{{ message.message }}</p>
-        <span>{{ message.sentAt }}</span>
+  <section *ngIf="currentView() === 'messages'" class="chat-layout">
+    <div class="chat-sidebar">
+      <div class="chat-sidebar-header">Conversations</div>
+      <div class="chat-contact-list">
+        <button type="button" class="chat-contact active">
+          <strong>Adviser & Teachers</strong>
+          <span>General Communication</span>
+        </button>
+        <button type="button" class="chat-contact">
+          <strong>Guidance Office</strong>
+          <span>Support & Counseling</span>
+        </button>
+      </div>
+    </div>
+    
+    <div class="chat-main">
+      <div class="chat-header">
+        <strong>Active Conversation</strong>
+        <span>Student Messaging</span>
+      </div>
+      <div class="chat-messages">
+        <div *ngFor="let message of state().messages" class="chat-bubble-wrap" [ngClass]="{ 'mine': message.mine, 'theirs': !message.mine }">
+          <div class="chat-bubble">
+            <p>{{ message.message }}</p>
+            <span>{{ message.thread }} • {{ message.sentAt }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <form class="chat-form" (ngSubmit)="sendMessage()">
+          <div class="input-wrap">
+            <input [(ngModel)]="messageForm.thread" name="messageThread" placeholder="Recipient (Teacher/Adviser)" required />
+            <input [(ngModel)]="messageForm.message" name="messageText" placeholder="Type your message..." required />
+          </div>
+          <button type="submit"><span class="material-icons">send</span></button>
+        </form>
       </div>
     </div>
   </section>

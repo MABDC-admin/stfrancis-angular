@@ -5,6 +5,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { filter, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RegistrarApiService } from '../../../core/services/registrar-api.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { StudentRecord } from '../../../core/models/registrar.models';
 import { buildRegistrarClearancePayload } from './learner-profile-clearance.util';
 import { buildLearnerProfileHubStats, filterLearnerProfiles, learnerFullName } from './learner-profile-hub.util';
@@ -21,9 +22,11 @@ import { displayGradeLevel, gradeLevelMatches, gradeLevelOptions } from '../../.
 export class LearnerProfileComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly api = inject(RegistrarApiService);
+  private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
   student: any | null = null;
+  currentPortal = 'registrar';
   isDetailMode = false;
   hubStudents: StudentRecord[] = [];
   hubSearch = '';
@@ -119,6 +122,8 @@ export class LearnerProfileComponent implements OnInit {
   ngOnInit() {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       const id = params.get('id');
+      const portal = params.get('portal') || 'registrar';
+      this.currentPortal = portal;
       this.isDetailMode = !!id;
 
       if (id) {
@@ -151,8 +156,36 @@ export class LearnerProfileComponent implements OnInit {
   }
 
   detailLinkFor(learner: StudentRecord): string[] {
-    const portal = this.route.snapshot.paramMap.get('portal') || 'registrar';
-    return [`/${portal}/learner-profile`, learner.id || ''];
+    return [`/${this.currentPortal}/learner-profile`, learner.id || ''];
+  }
+
+  get isTeacherPortal() {
+    return this.currentPortal === 'teacher';
+  }
+
+  get currentUserRole() {
+    return this.auth.getUserRole();
+  }
+
+  get showRegistrationQuickActions() {
+    return this.currentPortal === 'registrar';
+  }
+
+  get canUseRegistrarActions() {
+    return this.currentUserRole === 'REGISTRAR' || this.currentUserRole === 'ADMIN';
+  }
+
+  get masterlistRoute() {
+    if (this.isTeacherPortal) return '/teacher/classes';
+    return this.currentPortal === 'admin' ? '/admin/learner-profile' : `/${this.currentPortal}/student-masterlist`;
+  }
+
+  get backRoute() {
+    if (this.isTeacherPortal) return '/teacher/classes';
+    if (this.currentPortal === 'admin') return '/admin/dashboard';
+    return this.currentPortal === 'registrar'
+      ? '/registrar/student-masterlist'
+      : `/${this.currentPortal}/learner-profile`;
   }
 
   private loadLearnerHub() {

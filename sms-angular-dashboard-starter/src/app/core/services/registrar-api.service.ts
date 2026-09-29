@@ -2,7 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { Observable, BehaviorSubject, Subject, tap } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { StudentRecord, EnrollmentApplication, SectionRecord, AcademicRecord, DocumentRequirement, LearnerMovement, DocumentRequest, DepEdFormRecord, IdQrRecord } from '../models/registrar.models';
+import { normalizeGradeLevel } from '../data/grade-levels';
 
 @Injectable({
   providedIn: 'root'
@@ -47,6 +49,12 @@ export class RegistrarApiService {
     return this.http.get<any[]>(`${this.baseUrl}/academic-years`);
   }
 
+  getDashboardOverview(academicYearId: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/dashboard-summary/overview`, {
+      params: { academicYearId },
+    });
+  }
+
   createAcademicYear(payload: any): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/academic-years`, payload);
   }
@@ -70,21 +78,46 @@ export class RegistrarApiService {
 
   // Get data
   getStudents(ayId?: string): Observable<StudentRecord[]> {
-    return this.http.get<StudentRecord[]>(`${this.baseUrl}/students`, this.buildParams(ayId));
+    return this.http
+      .get<StudentRecord[]>(`${this.baseUrl}/students`, this.buildParams(ayId))
+      .pipe(
+        map(students => students.map((student) => ({
+          ...student,
+          gradeLevel: normalizeGradeLevel(student.gradeLevel),
+        }))),
+      );
   }
 
   searchStudents(query: string, ayId?: string): Observable<StudentRecord[]> {
     let params: any = { search: query };
     if (ayId) params.ayId = ayId;
-    return this.http.get<StudentRecord[]>(`${this.baseUrl}/students`, { params });
+    return this.http
+      .get<StudentRecord[]>(`${this.baseUrl}/students`, { params })
+      .pipe(
+        map(students => students.map((student) => ({
+          ...student,
+          gradeLevel: normalizeGradeLevel(student.gradeLevel),
+        }))),
+      );
   }
 
   getStudentById(id: string): Observable<StudentRecord> {
-    return this.http.get<StudentRecord>(`${this.baseUrl}/students/${id}`);
+    return this.http
+      .get<StudentRecord>(`${this.baseUrl}/students/${id}`)
+      .pipe(
+        map((student) => ({
+          ...student,
+          gradeLevel: normalizeGradeLevel(student.gradeLevel),
+        })),
+      );
   }
 
   updateStudent(id: string, payload: Partial<StudentRecord>): Observable<StudentRecord> {
     return this.http.patch<StudentRecord>(`${this.baseUrl}/students/${id}`, payload).pipe(
+      map((student) => ({
+        ...student,
+        gradeLevel: normalizeGradeLevel(student.gradeLevel),
+      })),
       tap((student) => this.studentUpdatedSubj.next(student))
     );
   }
@@ -160,7 +193,14 @@ export class RegistrarApiService {
   }
 
   getSections(ayId?: string): Observable<SectionRecord[]> {
-    return this.http.get<SectionRecord[]>(`${this.baseUrl}/sections`, this.buildParams(ayId));
+    return this.http
+      .get<SectionRecord[]>(`${this.baseUrl}/sections`, this.buildParams(ayId))
+      .pipe(
+        map(sections => sections.map((section) => ({
+          ...section,
+          gradeLevel: normalizeGradeLevel(section.gradeLevel),
+        }))),
+      );
   }
 
   createSection(payload: Partial<SectionRecord>): Observable<SectionRecord> {

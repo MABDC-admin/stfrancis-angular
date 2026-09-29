@@ -6,13 +6,52 @@
       </div>
       <div>
         <p class="chat-kicker">SFXSAI Live Chat</p>
-        <h3>Support Desk</h3>
-        <span class="chat-status"><i></i> Online now</span>
+        <h3>{{ chat.chatTitle() }}</h3>
+        <span class="chat-status"><i></i> {{ chat.chatSubtitle() }}</span>
       </div>
       <button type="button" class="icon-button" (click)="chat.close()" aria-label="Close chat">
         <span class="material-icons">close</span>
       </button>
     </header>
+
+    <div class="chat-tools" *ngIf="chat.canBroadcastTest()">
+      <button type="button" (click)="sendTestToAll()" [disabled]="isBroadcastingTest">
+        <span class="material-icons">{{ isBroadcastingTest ? 'hourglass_empty' : 'campaign' }}</span>
+        {{ isBroadcastingTest ? 'Sending...' : 'Send test to all' }}
+      </button>
+    </div>
+
+    <div class="chat-recipient" *ngIf="chat.contacts().length">
+      <span>Chat with</span>
+      <div class="chat-contact-list" role="listbox" aria-label="Chat contacts">
+        <button
+          type="button"
+          class="chat-contact-button"
+          [ngClass]="{ active: chat.selectedRecipientId() === '' }"
+          (click)="chat.selectRecipient('')"
+        >
+          <span class="contact-avatar"><span class="material-icons">support_agent</span></span>
+          <span class="contact-main">
+            <strong>SFXSAI Support Desk</strong>
+            <small>General support</small>
+          </span>
+        </button>
+        <button
+          type="button"
+          class="chat-contact-button"
+          *ngFor="let contact of chat.contacts()"
+          [ngClass]="{ active: chat.selectedRecipientId() === contact.id, unread: contact.unreadCount }"
+          (click)="chat.selectRecipient(contact.id)"
+        >
+          <span class="contact-avatar">{{ contact.displayName.slice(0, 1) }}</span>
+          <span class="contact-main">
+            <strong>{{ contact.displayName }}</strong>
+            <small>{{ contact.role }}<ng-container *ngIf="contact.assignedGradeLevel"> • {{ contact.assignedGradeLevel }}</ng-container></small>
+          </span>
+          <b class="contact-badge" *ngIf="contact.unreadCount">{{ contact.unreadCount }}</b>
+        </button>
+      </div>
+    </div>
 
     <div #messageList class="chat-messages">
       <article

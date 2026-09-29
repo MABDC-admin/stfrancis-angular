@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { SectionsController } from './sections.controller';
 import { SectionsService } from './sections.service';
 
-import { PrismaModule } from '../prisma/prisma.module';
+import { DrizzleModule } from '../drizzle/drizzle.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [DrizzleModule],
   controllers: [SectionsController],
   providers: [SectionsService],
 })

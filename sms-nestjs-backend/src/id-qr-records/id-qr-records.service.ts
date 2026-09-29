@@ -1,29 +1,40 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { eq } from 'drizzle-orm';
+import { DrizzleService } from '../drizzle/drizzle.service';
+import * as schema from '../drizzle/schema';
 
 @Injectable()
 export class IdQrRecordsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private drizzle: DrizzleService) {}
 
-  create(data: any) {
-    return this.prisma.idQrRecord.create({ data });
+  async create(data: any) {
+    const [created] = await this.drizzle.db.insert(schema.idQrRecord).values(data).returning();
+    return created;
   }
 
-  findAll(ayId?: string) {
-    return this.prisma.idQrRecord.findMany({
-      where: ayId ? { academicYearId: ayId } : undefined,
+  async findAll(ayId?: string) {
+    return this.drizzle.db.query.idQrRecord.findMany({
+      where: ayId ? eq(schema.idQrRecord.academicYearId, ayId) : undefined,
     });
   }
 
-  findOne(id: string) {
-    return this.prisma.idQrRecord.findUnique({ where: { id } });
+  async findOne(id: string) {
+    return this.drizzle.db.query.idQrRecord.findFirst({
+      where: eq(schema.idQrRecord.id, id),
+    });
   }
 
-  update(id: string, data: any) {
-    return this.prisma.idQrRecord.update({ where: { id }, data });
+  async update(id: string, data: any) {
+    const [updated] = await this.drizzle.db
+      .update(schema.idQrRecord)
+      .set(data)
+      .where(eq(schema.idQrRecord.id, id))
+      .returning();
+    return updated;
   }
 
-  remove(id: string) {
-    return this.prisma.idQrRecord.delete({ where: { id } });
+  async remove(id: string) {
+    const [deleted] = await this.drizzle.db.delete(schema.idQrRecord).where(eq(schema.idQrRecord.id, id)).returning();
+    return deleted;
   }
 }

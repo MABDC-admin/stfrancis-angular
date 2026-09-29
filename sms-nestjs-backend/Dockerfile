@@ -1,10 +1,10 @@
 FROM node:22-alpine AS build
 
 WORKDIR /app
-RUN apk add --no-cache openssl
+RUN apk add --no-cache openssl python3 make g++
 
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 COPY prisma ./prisma
 RUN npx prisma generate
@@ -19,7 +19,7 @@ ENV NODE_ENV=production
 RUN apk add --no-cache openssl
 
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --omit=dev
 
 COPY prisma ./prisma
 RUN npx prisma generate

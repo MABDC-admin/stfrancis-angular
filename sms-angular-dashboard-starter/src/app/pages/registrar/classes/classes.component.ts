@@ -5,6 +5,8 @@ import { RegistrarApiService } from '../../../core/services/registrar-api.servic
 import { SectionRecord, StudentRecord } from '../../../core/models/registrar.models';
 import { displayGradeLevel, gradeLevelMatches, gradeLevelOptions } from '../../../core/data/grade-levels';
 
+type CampusTab = 'SFXSAI' | 'MABDC';
+
 @Component({
   selector: 'app-classes',
   standalone: true,
@@ -18,6 +20,8 @@ export class ClassesComponent implements OnInit {
   gradeLevels = gradeLevelOptions;
   activeGrade = 'G7';
   readonly displayGradeLevel = displayGradeLevel;
+  readonly campusTabs = ['SFXSAI', 'MABDC'] as const;
+  activeCampusTab: CampusTab = 'SFXSAI';
 
   allSections: SectionRecord[] = [];
   filteredSections: SectionRecord[] = [];
@@ -46,7 +50,9 @@ export class ClassesComponent implements OnInit {
 
   filterByGrade(grade: string) {
     this.activeGrade = grade;
-    this.filteredSections = this.allSections.filter(s => gradeLevelMatches(s.gradeLevel, grade));
+    this.filteredSections = this.allSections.filter(s =>
+      gradeLevelMatches(s.gradeLevel, grade) && this.sectionBelongsToCampus(s, this.activeCampusTab)
+    );
     this.selectedSection = this.filteredSections.length > 0 ? this.filteredSections[0] : null;
     if (this.selectedSection) {
       this.loadLearners(this.selectedSection.id);
@@ -68,8 +74,20 @@ export class ClassesComponent implements OnInit {
 
     const ayId = this.api.getActiveAcademicYearId();
     this.api.getStudents(ayId).subscribe(students => {
-      this.sectionLearners = students.filter(s => s.section === this.selectedSection?.sectionName || s.section === this.selectedSection?.id);
+      this.sectionLearners = students.filter(s => {
+        const assignedToSection = s.section === this.selectedSection?.sectionName || s.section === this.selectedSection?.id;
+        return assignedToSection && gradeLevelMatches(s.gradeLevel, this.selectedSection?.gradeLevel);
+      });
     });
+  }
+
+  setCampusTab(tab: CampusTab) {
+    this.activeCampusTab = tab;
+    this.filterByGrade(this.activeGrade);
+  }
+
+  private sectionBelongsToCampus(section: SectionRecord, tab: CampusTab): boolean {
+    return section.sectionName?.trim().toUpperCase() === tab;
   }
 
   usage(section: SectionRecord): number {
@@ -88,6 +106,7 @@ export class ClassesComponent implements OnInit {
     this.modalMode = 'create';
     this.formData = {
       gradeLevel: this.activeGrade,
+      sectionName: this.activeCampusTab,
       status: 'Open',
       enrolled: 0,
       capacity: 40,

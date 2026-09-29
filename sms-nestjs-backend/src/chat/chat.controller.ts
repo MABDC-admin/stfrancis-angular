@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
 import { Roles } from '../auth/roles.decorator';
 import { ChatService } from './chat.service';
 import type { SendChatMessageDto } from './chat.service';
@@ -19,6 +19,38 @@ export class ChatController {
   @Get('my-conversation')
   getMyConversation(@Req() req: AuthenticatedRequest) {
     return this.chatService.getMyConversation(req.user);
+  }
+
+  @Get('staff-contacts')
+  getStaffContacts(@Req() req: AuthenticatedRequest) {
+    return this.chatService.getStaffContacts(req.user);
+  }
+
+  @Get('conversations/:recipientUserId')
+  getConversationWithRecipient(
+    @Req() req: AuthenticatedRequest,
+    @Param('recipientUserId') recipientUserId: string,
+  ) {
+    return this.chatService.getConversationWithRecipient(req.user, recipientUserId);
+  }
+
+  @Get('unread-count')
+  getUnreadCount(@Req() req: AuthenticatedRequest) {
+    return this.chatService.getUnreadCount(req.user);
+  }
+
+  @Patch('conversations/:conversationId/read')
+  markConversationRead(
+    @Req() req: AuthenticatedRequest,
+    @Param('conversationId') conversationId: string,
+  ) {
+    return this.chatService.markConversationRead(req.user, conversationId);
+  }
+
+  @Post('test-broadcast')
+  @Roles('ADMIN')
+  sendTestMessageToAllUsers(@Req() req: AuthenticatedRequest) {
+    return this.chatService.sendTestMessageToAllUsers(req.user);
   }
 
   @Post('messages')

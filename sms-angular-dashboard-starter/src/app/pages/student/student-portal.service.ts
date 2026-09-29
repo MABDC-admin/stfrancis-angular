@@ -9,6 +9,7 @@ import {
   StudentResource,
   StudentResourceType,
 } from './student-portal.util';
+import { getSubjectsForGradeLevel } from '../../shared/utils/curriculum.util';
 
 export interface StudentProfile {
   name: string;
@@ -86,12 +87,14 @@ const initialState: StudentPortalState = {
     guardian: 'Elygen Ruado',
     address: 'Brgy. Maljo, Inopacan, Leyte',
   },
-  classes: [
-    { id: 'class-math', subject: 'Mathematics', teacher: 'Ms. Maria Santos', schedule: 'Mon/Wed/Fri 8:00 AM', room: 'Room 201', progress: 72 },
-    { id: 'class-science', subject: 'Science', teacher: 'Mr. Carlo Reyes', schedule: 'Tue/Thu 9:30 AM', room: 'Science Lab', progress: 64 },
-    { id: 'class-english', subject: 'English', teacher: 'Ms. Ana Lim', schedule: 'Mon/Wed 1:00 PM', room: 'Room 305', progress: 81 },
-    { id: 'class-filipino', subject: 'Filipino', teacher: 'Mr. Noel Cruz', schedule: 'Tue/Fri 2:00 PM', room: 'Room 204', progress: 58 },
-  ],
+  classes: getSubjectsForGradeLevel('Grade 7').map((subject, index) => ({
+    id: `class-${index}`,
+    subject,
+    teacher: 'TBA Teacher',
+    schedule: 'Mon/Wed/Fri 8:00 AM',
+    room: `Room ${201 + index}`,
+    progress: 50 + Math.floor(Math.random() * 40)
+  })),
   lessons: [
     { id: 'lesson-1', classId: 'class-math', title: 'Equivalent Fractions', description: 'Compare, simplify, and order fractions.', status: 'Viewed' },
     { id: 'lesson-2', classId: 'class-science', title: 'Cell Structure', description: 'Identify parts of plant and animal cells.', status: 'New' },

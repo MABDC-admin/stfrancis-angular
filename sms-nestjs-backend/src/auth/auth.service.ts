@@ -3,18 +3,23 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '../prisma/prisma.service';
+import { DrizzleService } from '../drizzle/drizzle.service';
+import { eq } from 'drizzle-orm';
+import * as schema from '../drizzle/schema';
 import * as bcrypt from 'bcrypt';
 
 @InjectableDecorator()
 export class AuthService {
   constructor(
-    private prisma: PrismaService,
+    private drizzle: DrizzleService,
     private jwtService: JwtService,
   ) {}
 
   async login(email: string, pass: string) {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const user = await this.drizzle.db.query.user.findFirst({
+      where: eq(schema.user.email, email)
+    });
+    
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }

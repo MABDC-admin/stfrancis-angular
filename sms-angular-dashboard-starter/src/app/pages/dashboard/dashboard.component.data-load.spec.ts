@@ -8,3 +8,9 @@ assert.match(
   /this\.api\.refreshAcademicYears\(\);/,
   'Dashboard should initialize the active academic year when opened directly',
 );
+
+assert.match(
+  source,
+  /this\.api\.getDashboardOverview\(ay\.id\)/,
+  'Dashboard should load page data through the composite dashboard summary endpoint',
+);

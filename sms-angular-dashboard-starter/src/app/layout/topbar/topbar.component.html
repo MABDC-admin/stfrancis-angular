@@ -90,20 +90,64 @@
       </select>
     </label>
 
-    <button
-      class="notification-bell relative flex h-12 w-12 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
-      [ngClass]="{ 'has-finance-alert': financeNotifications.hasAssessmentNotifications() }"
-      title="Finance assessment notifications"
-      aria-label="Finance assessment notifications"
-    >
-      <span class="material-icons">notifications_none</span>
-      <span
-        *ngIf="financeNotifications.hasAssessmentNotifications()"
-        class="notification-count absolute -right-2 -top-2 grid h-6 min-w-6 place-items-center rounded-full bg-red-500 px-1.5 text-xs font-extrabold text-white ring-4 ring-white"
+    <div class="notification-shell relative" (click)="$event.stopPropagation()">
+      <button
+        type="button"
+        class="notification-bell relative flex h-12 w-12 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
+        [ngClass]="{ 'has-finance-alert': hasNotifications(), 'is-open': isNotificationDropdownOpen() }"
+        [title]="'Notifications: ' + notificationCount() + ' total'"
+        [attr.aria-label]="'Notifications: ' + notificationCount() + ' total'"
+        [attr.aria-expanded]="isNotificationDropdownOpen()"
+        aria-haspopup="menu"
+        (click)="toggleNotifications()"
       >
-        {{ financeNotifications.learnersNeedingAssessmentCount() }}
-      </span>
-    </button>
+        <span class="material-icons">notifications_none</span>
+        <span
+          *ngIf="hasNotifications()"
+          class="notification-count absolute -right-2 -top-2 grid h-6 min-w-6 place-items-center rounded-full bg-red-500 px-1.5 text-xs font-extrabold text-white ring-4 ring-white"
+        >
+          {{ notificationCount() }}
+        </span>
+      </button>
+
+      <div *ngIf="isNotificationDropdownOpen()" class="notification-dropdown" role="menu" aria-label="Notifications">
+        <div class="notification-dropdown-header">
+          <div>
+            <span>Notification Center</span>
+            <small>{{ notificationCount() }} new item{{ notificationCount() === 1 ? '' : 's' }}</small>
+          </div>
+          <button type="button" class="material-icons" aria-label="Close notifications" (click)="closeNotifications()">close</button>
+        </div>
+
+        <button
+          *ngFor="let notification of notificationItems()"
+          type="button"
+          class="notification-item"
+          [ngClass]="{
+            'notification-item--chat': notification.type === 'chat',
+            'notification-item--announcement': notification.type === 'announcement'
+          }"
+          role="menuitem"
+          (click)="selectNotification(notification)"
+        >
+          <span class="notification-type-icon material-icons">
+            {{ notification.type === 'chat' ? 'forum' : 'campaign' }}
+          </span>
+          <span class="notification-copy">
+            <strong>{{ notification.title }}</strong>
+            <small>{{ notification.type === 'chat' ? 'Chat message' : 'Announcement' }}</small>
+            <p>{{ notification.detail }}</p>
+          </span>
+          <span class="notification-pill">{{ notification.count }}</span>
+        </button>
+
+        <div *ngIf="notificationItems().length === 0" class="notification-empty">
+          <span class="material-icons">notifications_off</span>
+          <strong>No new notifications</strong>
+          <p>Chat messages and announcements will appear here.</p>
+        </div>
+      </div>
+    </div>
 
     <div class="flex items-center gap-3 border-l border-slate-200 pl-4 ml-2">
       <div class="flex items-center gap-3">

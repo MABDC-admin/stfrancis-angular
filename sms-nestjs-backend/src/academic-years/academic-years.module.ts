@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { AcademicYearsService } from './academic-years.service';
 import { AcademicYearsController } from './academic-years.controller';
-import { PrismaModule } from '../prisma/prisma.module';
+import { DrizzleModule } from '../drizzle/drizzle.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [DrizzleModule],
   controllers: [AcademicYearsController],
   providers: [AcademicYearsService],
 })

@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { DocumentRequirementsService } from './document-requirements.service';
 import { DocumentRequirementsController } from './document-requirements.controller';
-import { PrismaModule } from '../prisma/prisma.module';
+import { DrizzleModule } from '../drizzle/drizzle.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [DrizzleModule],
   controllers: [DocumentRequirementsController],
   providers: [DocumentRequirementsService],
 })

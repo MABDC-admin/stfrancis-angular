@@ -1,0 +1,220 @@
+<div class="teacher-admin-page">
+  <div class="admin-toast" [class.show]="toast()">{{ toast() }}</div>
+
+  <section class="teacher-hero">
+    <div>
+      <p class="eyebrow">Admin Portal</p>
+      <h1>Teacher Management</h1>
+      <p>Manage teacher accounts, grade assignments, advisory classes, subjects, status controls, and load reports.</p>
+    </div>
+    <div class="hero-actions">
+      <button type="button" (click)="exportTeachers()"><span class="material-icons">ios_share</span> Export Teacher List</button>
+      <button type="button" class="primary" onclick="document.getElementById('bulkTeacherImport')?.click()"><span class="material-icons">upload_file</span> Bulk Import</button>
+      <input id="bulkTeacherImport" type="file" accept=".csv" (change)="importCsv($event)" hidden />
+    </div>
+  </section>
+
+  <section class="stats-row">
+    <article>
+      <span class="material-icons">groups</span>
+      <div><small>Total Teachers</small><strong>{{ totals().total }}</strong></div>
+    </article>
+    <article>
+      <span class="material-icons">verified_user</span>
+      <div><small>Active Accounts</small><strong>{{ totals().active }}</strong></div>
+    </article>
+    <article>
+      <span class="material-icons">assignment_ind</span>
+      <div><small>Advisers</small><strong>{{ totals().advisory }}</strong></div>
+    </article>
+    <article>
+      <span class="material-icons">lock</span>
+      <div><small>Locked</small><strong>{{ totals().locked }}</strong></div>
+    </article>
+  </section>
+
+  <section class="control-grid">
+    <article class="panel form-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Create Account</p>
+          <h2>Add New Teacher</h2>
+        </div>
+        <button type="button" class="ghost" (click)="setGeneratedPassword()">Generate Password</button>
+      </div>
+
+      <div class="error-stack" *ngIf="errors().length">
+        <p *ngFor="let error of errors()">{{ error }}</p>
+      </div>
+
+      <form class="teacher-form" (ngSubmit)="createTeacher()">
+        <label>Full Name <input [(ngModel)]="form.fullName" name="fullName" placeholder="Teacher full name" /></label>
+        <label>Email Address <input [(ngModel)]="form.email" name="email" type="email" placeholder="name@sfxsai.com" /></label>
+        <label>Contact Number <input [(ngModel)]="form.contactNumber" name="contactNumber" placeholder="09xxxxxxxxx" /></label>
+        <label>Password <input [(ngModel)]="form.password" name="password" placeholder="Auto-generated or custom" /></label>
+        <label>Role
+          <select [(ngModel)]="form.role" name="role">
+            <option *ngFor="let role of roles">{{ role }}</option>
+          </select>
+        </label>
+        <label>Grade Level Assignment
+          <select [(ngModel)]="form.assignedGradeLevel" name="assignedGradeLevel">
+            <option *ngFor="let grade of gradeLevels" [value]="grade">{{ displayGradeLevel(grade) }}</option>
+          </select>
+        </label>
+        <label>Section Assignment <input [(ngModel)]="form.sectionAssignment" name="sectionAssignment" placeholder="Optional section" /></label>
+        <label>Advisory Class <input [(ngModel)]="form.advisoryClass" name="advisoryClass" placeholder="Optional advisory" /></label>
+
+        <div class="subject-box">
+          <span>Subjects</span>
+          <label *ngFor="let subject of availableSubjects">
+            <input type="checkbox" [checked]="form.subjects.includes(subject)" (change)="toggleSubject(subject, $any($event.target).checked)" />
+            {{ subject }}
+          </label>
+        </div>
+
+        <label class="photo-picker">
+          <span class="avatar-preview">
+            <img *ngIf="form.profilePhotoUrl; else emptyPhoto" [src]="form.profilePhotoUrl" alt="Teacher profile preview" />
+            <ng-template #emptyPhoto><span class="material-icons">add_a_photo</span></ng-template>
+          </span>
+          <span>Profile Photo <small>Optional</small></span>
+          <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
+        </label>
+
+        <button type="submit" class="submit-button"><span class="material-icons">person_add</span> Create Account</button>
+      </form>
+    </article>
+
+    <article class="panel directory-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Teacher Directory</p>
+          <h2>All Teacher Accounts</h2>
+        </div>
+        <div class="filters">
+          <input [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" placeholder="Search teacher, email, grade, subject..." />
+          <select [ngModel]="selectedStatus()" (ngModelChange)="selectedStatus.set($event)">
+            <option>All</option>
+            <option>Active</option>
+            <option>Inactive</option>
+            <option>Locked</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="teacher-table">
+        <div class="table-head">
+          <span>Full Name</span>
+          <span>Email</span>
+          <span>Contact</span>
+          <span>Grade</span>
+          <span>Advisory</span>
+          <span>Subjects</span>
+          <span>Status</span>
+          <span>Role</span>
+          <span>Created</span>
+        </div>
+        <button type="button" class="table-row" *ngFor="let teacher of filteredTeachers()" (click)="selectedTeacherId.set(teacher.id)" [class.selected]="selectedTeacherId() === teacher.id">
+          <span class="teacher-name">
+            <span class="avatar-mini">
+              <img *ngIf="teacher.profilePhotoUrl" [src]="teacher.profilePhotoUrl" alt="" />
+              <span *ngIf="!teacher.profilePhotoUrl">{{ teacher.fullName.slice(0, 1) }}</span>
+            </span>
+            <b>{{ teacher.fullName }}</b>
+          </span>
+          <span>{{ teacher.email }}</span>
+          <span>{{ teacher.contactNumber || 'No contact' }}</span>
+          <span>{{ displayGradeLevel(teacher.assignedGradeLevel) }}</span>
+          <span>{{ teacher.advisoryClass || 'None' }}</span>
+          <span>{{ teacher.subjects.join(', ') }}</span>
+          <span><mark [class.locked]="teacher.accountStatus === 'Locked'" [class.inactive]="teacher.accountStatus === 'Inactive'">{{ teacher.accountStatus }}</mark></span>
+          <span>{{ teacher.role }}</span>
+          <span>{{ teacher.dateCreated }}</span>
+        </button>
+      </div>
+    </article>
+  </section>
+
+  <section class="bottom-grid">
+    <article class="panel assignment-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Teacher Assignment Panel</p>
+          <h2>Update Workload</h2>
+        </div>
+      </div>
+
+      <div class="assignment-card" *ngIf="selectedTeacher() as teacher">
+        <div class="selected-teacher">
+          <span class="avatar-large">{{ teacher.fullName.slice(0, 1) }}</span>
+          <div>
+            <h3>{{ teacher.fullName }}</h3>
+            <p>{{ teacher.email }}</p>
+          </div>
+        </div>
+        <div class="assignment-form">
+          <label>Assigned Grade
+            <select [ngModel]="teacher.assignedGradeLevel" (ngModelChange)="updateAssignment(teacher, { assignedGradeLevel: $event })">
+              <option *ngFor="let grade of gradeLevels" [value]="grade">{{ displayGradeLevel(grade) }}</option>
+            </select>
+          </label>
+          <label>Advisory Class
+            <input [ngModel]="teacher.advisoryClass" (ngModelChange)="updateAssignment(teacher, { advisoryClass: $event })" placeholder="No advisory class" />
+          </label>
+          <label>Weekly Teaching Load
+            <input type="number" [ngModel]="teacher.weeklyHours" (ngModelChange)="updateAssignment(teacher, { weeklyHours: +$event })" min="0" />
+          </label>
+          <label>Student Count
+            <input type="number" [ngModel]="teacher.numberOfStudents" (ngModelChange)="updateAssignment(teacher, { numberOfStudents: +$event })" min="0" />
+          </label>
+        </div>
+        <div class="status-actions">
+          <button type="button" (click)="setStatus(teacher, 'Active')">Activate</button>
+          <button type="button" (click)="setStatus(teacher, 'Inactive')">Deactivate</button>
+          <button type="button" (click)="setStatus(teacher, 'Locked')">Lock Account</button>
+          <button type="button" (click)="resetPassword(teacher)">Reset Password</button>
+          <select [ngModel]="teacher.role" (ngModelChange)="promote(teacher, $event)">
+            <option *ngFor="let role of roles">{{ role }}</option>
+          </select>
+        </div>
+        <div class="login-history">
+          <h4>Login / Security History</h4>
+          <p *ngFor="let entry of teacher.loginHistory">{{ entry }}</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel load-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Class Load Summary</p>
+          <h2>Teacher Load Cards</h2>
+        </div>
+        <button type="button" class="ghost" (click)="generateLoadReport()">Generate Load Report</button>
+      </div>
+      <div class="load-cards">
+        <div class="load-card" *ngFor="let summary of loadSummaries()">
+          <div>
+            <h3>{{ summary.fullName }}</h3>
+            <p>{{ summary.subjectsAssigned }}</p>
+          </div>
+          <dl>
+            <div><dt>Classes</dt><dd>{{ summary.totalClassesHandled }}</dd></div>
+            <div><dt>Advisory</dt><dd>{{ summary.hasAdvisoryClass ? 'Yes' : 'No' }}</dd></div>
+            <div><dt>Students</dt><dd>{{ summary.numberOfStudents }}</dd></div>
+            <div><dt>Load</dt><dd>{{ summary.weeklyTeachingLoad }}</dd></div>
+          </dl>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="quick-panel panel">
+    <button type="button" onclick="document.querySelector('.teacher-form input')?.focus()"><span class="material-icons">add</span> Add Teacher</button>
+    <button type="button" onclick="document.getElementById('bulkTeacherImport')?.click()"><span class="material-icons">sync</span> Bulk Import CSV</button>
+    <button type="button" (click)="exportTeachers()"><span class="material-icons">file_upload</span> Export Teacher List</button>
+    <button type="button" (click)="resetAllPasswords()"><span class="material-icons">lock_reset</span> Reset All Passwords</button>
+    <button type="button" (click)="generateLoadReport()"><span class="material-icons">bar_chart</span> Generate Load Report</button>
+  </section>
+</div>

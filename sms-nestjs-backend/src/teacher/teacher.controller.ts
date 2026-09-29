@@ -21,10 +21,15 @@ interface AuthenticatedRequest {
   };
 }
 
+import { AiService } from '../ai/ai.service';
+
 @Controller('teacher')
 @Roles('TEACHER')
 export class TeacherController {
-  constructor(private readonly teacherService: TeacherService) {}
+  constructor(
+    private readonly teacherService: TeacherService,
+    private readonly aiService: AiService
+  ) {}
 
   private teacherUserId(req: AuthenticatedRequest): string {
     return this.teacherService.requireTeacherUserId(req.user ?? {});
@@ -126,5 +131,30 @@ export class TeacherController {
   async sendMessage(@Req() req: AuthenticatedRequest, @Body() body: Parameters<TeacherService['sendMessage']>[1]) {
     await this.teacherService.sendMessage(this.teacherUserId(req), body);
     return this.teacherService.getPortalState(req.user ?? {});
+  }
+
+  @Get('students/:studentId/academic-profile')
+  async getStudentAcademicProfile(
+    @Req() req: AuthenticatedRequest,
+    @Param('studentId') studentId: string
+  ) {
+    return this.teacherService.getStudentAcademicProfile(this.teacherUserId(req), studentId);
+  }
+
+  @Get('students/:studentId/academic-insights')
+  async getStudentAcademicInsights(
+    @Req() req: AuthenticatedRequest,
+    @Param('studentId') studentId: string
+  ) {
+    const profile = await this.teacherService.getStudentAcademicProfile(this.teacherUserId(req), studentId);
+    const insights = await this.aiService.getStudentAcademicInsights(profile);
+    return { insights };
+  }
+
+  @Get('analytics/insights')
+  async getAnalyticsInsights(@Req() req: AuthenticatedRequest) {
+    const state = await this.teacherService.getPortalState(req.user ?? {});
+    const insights = await this.aiService.getTeacherAnalyticsInsights(state);
+    return { insights };
   }
 }

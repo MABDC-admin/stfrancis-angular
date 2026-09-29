@@ -1,8 +1,11 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, DestroyRef } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CalendarService } from '../../core/services/calendar.service';
 import { CalendarEvent } from '../../core/models/registrar.models';
+import { RegistrarApiService } from '../../core/services/registrar-api.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-calendar-page',
@@ -13,7 +16,9 @@ import { CalendarEvent } from '../../core/models/registrar.models';
 })
 export class CalendarPageComponent implements OnInit {
   private calendarService = inject(CalendarService);
+  private api = inject(RegistrarApiService);
   private fb = inject(FormBuilder);
+  private destroyRef = inject(DestroyRef);
 
   currentDate = new Date();
   daysInMonth: Date[] = [];
@@ -33,7 +38,13 @@ export class CalendarPageComponent implements OnInit {
   ngOnInit() {
     this.initForm();
     this.generateCalendar();
-    this.loadEvents();
+    this.api.refreshAcademicYears();
+    this.api.activeAcademicYear$
+      .pipe(
+        filter((academicYear) => !!academicYear),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.loadEvents());
   }
 
   initForm() {
@@ -92,7 +103,7 @@ export class CalendarPageComponent implements OnInit {
   }
 
   loadEvents() {
-    this.calendarService.getEvents().subscribe(res => {
+    this.calendarService.getEvents(this.api.getActiveAcademicYearId()).subscribe(res => {
       this.events = res;
     });
   }
@@ -144,6 +155,7 @@ export class CalendarPageComponent implements OnInit {
       ...val,
       eventDate: formattedEventDate,
       endDate: formattedEndDate,
+      academicYearId: this.api.getActiveAcademicYearId(),
       color: typeObj?.color || '#8b5cf6'
     };
 

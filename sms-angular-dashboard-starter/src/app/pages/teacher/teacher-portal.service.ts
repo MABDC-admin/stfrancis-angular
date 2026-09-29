@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, catchError, of, tap } from 'rxjs';
+import { BehaviorSubject, catchError, of, tap, Observable } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { environment } from '../../../environments/environment';
 import {
@@ -12,6 +12,7 @@ import {
   ResourceType,
   TeacherMessage,
   TeacherPortalState,
+  TeacherScheduleWeekday,
 } from './teacher-portal.util';
 
 const LEGACY_STORAGE_KEY = 'sfxsai.teacher.portal.state.v1';
@@ -26,6 +27,9 @@ export class TeacherPortalService {
   );
   readonly state$ = this.stateSubject.asObservable();
 
+  private readonly aiInsightsSubject = new BehaviorSubject<string>('');
+  readonly aiInsights$ = this.aiInsightsSubject.asObservable();
+
   constructor() {
     localStorage.removeItem(LEGACY_STORAGE_KEY);
     this.loadPortal();
@@ -33,6 +37,17 @@ export class TeacherPortalService {
 
   snapshot(): TeacherPortalState {
     return this.stateSubject.value;
+  }
+
+  loadAnalyticsInsights() {
+    this.aiInsightsSubject.next('Analyzing class data...');
+    this.http.get<{ insights: string }>(`${this.apiUrl}/analytics/insights`).pipe(
+      tap(res => this.aiInsightsSubject.next(res.insights)),
+      catchError(() => {
+        this.aiInsightsSubject.next('Failed to load AI insights. Please try again later.');
+        return of(null);
+      })
+    ).subscribe();
   }
 
   updateTeacherProfile(profile: TeacherPortalState['teacher']) {
@@ -76,6 +91,14 @@ export class TeacherPortalService {
     this.mutate('post', 'messages', { thread, audience, message });
   }
 
+  addScheduleEntry(weekday: TeacherScheduleWeekday, title: string, startTime: string) {
+    this.mutate('post', 'schedule-entries', { weekday, title, startTime });
+  }
+
+  deleteScheduleEntry(id: string) {
+    this.deleteAndRefresh(`schedule-entries/${id}`);
+  }
+
   loadPortal() {
     this.http.get<TeacherPortalState>(`${this.apiUrl}/portal`).pipe(
       tap(state => this.stateSubject.next(this.normalizeState(state, this.snapshot()))),
@@ -116,6 +139,7 @@ export class TeacherPortalService {
       dlls: Array.isArray(state.dlls) ? state.dlls : [],
       announcements: Array.isArray(state.announcements) ? state.announcements : [],
       messages: Array.isArray(state.messages) ? state.messages : [],
+      scheduleEntries: Array.isArray(state.scheduleEntries) ? state.scheduleEntries : [],
     };
   }
 
@@ -130,5 +154,13 @@ export class TeacherPortalService {
     } catch {
       return null;
     }
+  }
+
+  getStudentAcademicProfile(studentId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/students/${studentId}/academic-profile`);
+  }
+
+  getStudentAcademicInsights(studentId: string): Observable<{ insights: string }> {
+    return this.http.get<{ insights: string }>(`${this.apiUrl}/students/${studentId}/academic-insights`);
   }
 }

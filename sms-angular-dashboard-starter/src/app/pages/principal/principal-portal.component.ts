@@ -49,7 +49,7 @@ export class PrincipalPortalComponent implements OnInit {
   profileForm = { ...this.state().principal };
   announcementForm = { audience: 'Entire school' as PrincipalAudience, title: '', body: '', pinned: false, scheduledFor: '2026-06-17 08:00' };
   messageForm = { recipient: 'Faculty Group', channel: 'Teacher' as const, body: '' };
-  settingsForm = { academicYear: 'SY2026-2027', gradeConfig: 'Nursery, Kindergarten 2, Grade 1-Grade 12', roleMode: 'View and audit only' };
+  settingsForm = { academicYear: 'SY2026-2027', gradeConfig: 'Nursery, Kindergarten, Grade 1-Grade 12', roleMode: 'View and audit only' };
 
   readonly modules = [
     { label: 'Executive Dashboard', route: 'dashboard', icon: 'space_dashboard' },

@@ -10,6 +10,8 @@ import { displayGradeLevel, gradeLevelMatches, gradeLevelOptions, normalizeGrade
 
 import { FormsModule } from '@angular/forms';
 
+type CampusTab = 'SFXSAI' | 'MABDC';
+
 @Component({
   selector: 'app-section-assignment',
   standalone: true,
@@ -43,6 +45,9 @@ export class SectionAssignmentComponent implements OnInit {
   enrolledStudents: StudentRecord[] = [];
   readonly gradeLevels = gradeLevelOptions;
   readonly displayGradeLevel = displayGradeLevel;
+  readonly campusTabs = ['SFXSAI', 'MABDC'] as const;
+  activeCampusTab: CampusTab = 'SFXSAI';
+  showEmptySections = false;
 
   ngOnInit() {
     this.api.getTeachers().subscribe(t => this.teachers = t);
@@ -58,43 +63,12 @@ export class SectionAssignmentComponent implements OnInit {
       })
     ).subscribe({
       next: ([sections, students]) => {
-        this.sections = sections;
         this.allStudents = students;
-        this.unassignedStudents = students.filter(s => !s.section && (s.enrollmentStatus === 'Officially Enrolled' || s.enrollmentStatus === 'Pending Review')).slice(0, 4);
-        
-        if (this.unassignedStudents.length === 0) {
-          this.unassignedStudents = [
-            { id: '1', firstName: 'Mia', lastName: 'Santos', gradeLevel: 'G7', studentType: 'Transferee', enrollmentStatus: 'Pending Review' } as StudentRecord,
-            { id: '2', firstName: 'Liam', lastName: 'Reyes', gradeLevel: 'G7', studentType: 'Regular', enrollmentStatus: 'Officially Enrolled' } as StudentRecord,
-            { id: '3', firstName: 'Noah', lastName: 'Garcia', gradeLevel: 'G1', studentType: 'Regular', enrollmentStatus: 'Pending Review' } as StudentRecord,
-          ];
-        }
-
-        // Ensure we have mock sections for the unassigned students' grade levels if the DB is empty
-        const missingGrades = new Set(this.unassignedStudents.map(s => normalizeGradeLevel(s.gradeLevel)));
-        this.sections.forEach(section => {
-          for (const grade of Array.from(missingGrades)) {
-            if (gradeLevelMatches(section.gradeLevel, grade)) {
-              missingGrades.delete(grade);
-            }
-          }
-        });
-        
-        if (missingGrades.size > 0) {
-          missingGrades.forEach(grade => {
-            this.sections.push({
-              id: `mock-sec-${grade.replace(/\s+/g, '-')}`,
-              sectionName: `${displayGradeLevel(grade)} - Newton`,
-              gradeLevel: grade,
-              adviser: 'TBA',
-              room: 'TBA',
-              capacity: 40,
-              enrolled: 10,
-              availableSlots: 30,
-              status: 'Open'
-            } as SectionRecord);
-          });
-        }
+        this.sections = this.applySectionMetrics(sections, students);
+        this.unassignedStudents = students.filter(s =>
+          !this.studentHasSection(s) &&
+          (s.enrollmentStatus === 'Officially Enrolled' || s.enrollmentStatus === 'Pending Review')
+        );
       },
       error: (err) => console.error('Failed to load data', err)
     });
@@ -103,14 +77,186 @@ export class SectionAssignmentComponent implements OnInit {
   refreshSections() {
     const ayId = this.api.getActiveAcademicYearId();
     if (ayId) {
-      this.api.getSections(ayId).subscribe(sections => {
-        this.sections = sections;
+      this.api.getSections(ayId).subscribe({
+        next: (sections) => {
+          this.sections = this.applySectionMetrics(sections, this.allStudents);
+        },
+        error: (err) => console.error('Failed to refresh sections', err),
       });
     }
   }
 
   getInitials(first: string, last: string): string {
     return `${first?.charAt(0) || ''}${last?.charAt(0) || ''}`;
+  }
+
+  setCampusTab(tab: CampusTab) {
+    this.activeCampusTab = tab;
+    this.assignSectionId = '';
+    this.selectedStudentIds = {};
+  }
+
+  get filteredSections(): SectionRecord[] {
+    return this.sections.filter(section => {
+      if (!this.sectionBelongsToCampus(section, this.activeCampusTab)) {
+        return false;
+      }
+
+      if (this.showEmptySections) {
+        return true;
+      }
+
+      return (section.enrolled ?? 0) > 0;
+    });
+  }
+
+  get hiddenEmptySectionCount(): number {
+    const campusSections = this.sections.filter(section => this.sectionBelongsToCampus(section, this.activeCampusTab));
+    return campusSections.filter(section => (section.enrolled ?? 0) === 0).length;
+  }
+
+  campusSectionCount(tab: CampusTab): number {
+    return this.sections.filter(section => this.sectionBelongsToCampus(section, tab)).length;
+  }
+
+  campusLearnerCount(tab: CampusTab): number {
+    const campusSections = this.sections.filter(section =>
+      this.sectionBelongsToCampus(section, tab),
+    );
+
+    return this.allStudents.filter(student =>
+      campusSections.some(section => this.studentAssignedToSection(student, section)),
+    ).length;
+  }
+
+  private sectionBelongsToCampus(section: SectionRecord, tab: CampusTab): boolean {
+    const sectionName = this.normalizeSectionValue(section.sectionName);
+    return sectionName === tab
+      || sectionName.startsWith(`${tab} `)
+      || sectionName.startsWith(`${tab}-`)
+      || sectionName.startsWith(`${tab}_`)
+      || sectionName.startsWith(`${tab}/`)
+      || sectionName.endsWith(` ${tab}`)
+      || sectionName.endsWith(`-${tab}`)
+      || sectionName.endsWith(`_${tab}`)
+      || sectionName.endsWith(`/${tab}`)
+      || this.hasCampusBoundary(sectionName, tab);
+  }
+
+  private sectionStatusFromCapacity(capacity = 0, enrolled = 0): string {
+    const available = Math.max(capacity - enrolled, 0);
+
+    if (available <= 0) return 'Closed';
+    if (available <= 5) return 'Nearly Full';
+    return 'Open';
+  }
+
+  private computeSectionEnrollmentCount(section: SectionRecord, students: StudentRecord[]): number {
+    return students.filter(student => this.studentAssignedToSection(student, section)).length;
+  }
+
+  private applySectionMetrics(rawSections: SectionRecord[], students: StudentRecord[]): SectionRecord[] {
+    return rawSections.map((section) => {
+      const enrolled = this.computeSectionEnrollmentCount(section, students);
+      const availableSlots = Math.max((section.capacity ?? 0) - enrolled, 0);
+
+      return {
+        ...section,
+        enrolled,
+        availableSlots,
+        status: this.sectionStatusFromCapacity(section.capacity, enrolled),
+      };
+    });
+  }
+
+  private normalizeSectionValue(value?: string): string {
+    return (value ?? '').trim().toUpperCase();
+  }
+
+  private hasCampusBoundary(value: string, tab: CampusTab): boolean {
+    const token = new RegExp(`(^|[\\s_/-])${tab}([\\s_/-]|$)`, 'i');
+    return token.test(value);
+  }
+
+  private extractSectionCampus(value?: string): CampusTab | undefined {
+    const normalized = this.normalizeSectionValue(value);
+    if (!normalized) return undefined;
+    const campusMatch = normalized.match(/(^|[\s_/-])(SFXSAI|MABDC)([\s_/-]|$)/i);
+    if (!campusMatch) {
+      return undefined;
+    }
+
+    const campus = campusMatch[2].toUpperCase();
+    if (campus === 'SFXSAI') {
+      return 'SFXSAI';
+    }
+    if (campus === 'MABDC') {
+      return 'MABDC';
+    }
+    return undefined;
+  }
+
+  private studentHasSection(student: StudentRecord): boolean {
+    return this.normalizeSectionValue(student.section).length > 0;
+  }
+
+  private matchesSectionIdentifier(studentSection: string | undefined, section: SectionRecord): boolean {
+    const normalizedStudentSection = this.normalizeSectionValue(studentSection);
+    if (!normalizedStudentSection) {
+      return false;
+    }
+
+    const normalizedSectionName = this.normalizeSectionValue(section.sectionName);
+    const normalizedSectionId = this.normalizeSectionValue(section.id);
+    const normalizedSectionGrade = this.normalizeSectionValue(section.gradeLevel);
+
+    if (
+      normalizedStudentSection === normalizedSectionName ||
+      normalizedStudentSection === normalizedSectionId
+    ) {
+      return true;
+    }
+
+    return (
+      normalizedStudentSection === `${normalizedSectionName}-${normalizedSectionGrade}` ||
+      normalizedStudentSection === `${normalizedSectionName} ${normalizedSectionGrade}` ||
+      normalizedStudentSection.endsWith(`-${normalizedSectionName}`) ||
+      normalizedStudentSection.endsWith(` ${normalizedSectionName}`) ||
+      normalizedStudentSection === normalizedSectionName ||
+      normalizedStudentSection.startsWith(`${normalizedSectionName}-`) ||
+      normalizedStudentSection.startsWith(`${normalizedSectionName} `) ||
+      normalizedStudentSection.includes(`-${normalizedSectionName}-`) ||
+      normalizedStudentSection.includes(` ${normalizedSectionName}-`) ||
+      normalizedStudentSection.includes(` ${normalizedSectionName} `) ||
+      normalizedStudentSection.includes(`-${normalizedSectionName} `)
+    );
+  }
+
+  private isCampusOnlySectionName(sectionName?: string): boolean {
+    const normalized = this.normalizeSectionValue(sectionName);
+    return normalized === 'SFXSAI' || normalized === 'MABDC';
+  }
+
+  private studentAssignedToSection(student: StudentRecord, section: SectionRecord): boolean {
+    if (!student.section || !section?.gradeLevel) {
+      return false;
+    }
+    const studentMatchesGrade = gradeLevelMatches(student.gradeLevel, section.gradeLevel);
+    if (!studentMatchesGrade) {
+      return false;
+    }
+
+    if (this.matchesSectionIdentifier(student.section, section)) {
+      return true;
+    }
+
+    const studentCampus = this.extractSectionCampus(student.section);
+    const sectionCampus = this.extractSectionCampus(section.sectionName);
+    if (!studentCampus || !sectionCampus || studentCampus !== sectionCampus) {
+      return false;
+    }
+
+    return gradeLevelMatches(student.gradeLevel, section.gradeLevel);
   }
 
   // --- Assign Learners Logic ---
@@ -121,7 +267,7 @@ export class SectionAssignmentComponent implements OnInit {
   }
 
   get assignableSections(): SectionRecord[] {
-    return this.sections.filter(s => gradeLevelMatches(s.gradeLevel, this.assignGradeLevel));
+    return this.filteredSections.filter(s => gradeLevelMatches(s.gradeLevel, this.assignGradeLevel));
   }
 
   get assignableStudents(): StudentRecord[] {
@@ -151,7 +297,10 @@ export class SectionAssignmentComponent implements OnInit {
   toggleAllStudents(event: any) {
     const checked = event.target.checked;
     this.assignableStudents.forEach(s => {
-      this.selectedStudentIds[s.id || s.firstName] = checked;
+      if (!s.id) {
+        return;
+      }
+      this.selectedStudentIds[s.id] = checked;
     });
   }
 
@@ -159,54 +308,41 @@ export class SectionAssignmentComponent implements OnInit {
     if (!this.assignSectionId || this.selectedCount === 0) return;
 
     const section = this.sections.find(s => s.id === this.assignSectionId);
-    if (section && section.id) {
-      const selectedIds = Object.entries(this.selectedStudentIds)
-        .filter(([_, isSelected]) => isSelected)
-        .map(([id]) => id);
+      if (section && section.id) {
+        const selectedIds = Object.entries(this.selectedStudentIds)
+          .filter(([_, isSelected]) => isSelected)
+          .map(([id]) => id);
 
-      const doAssign = (secId: string) => {
-        this.api.batchAssignStudentsToSection(secId, selectedIds).subscribe({
-          next: () => {
-            // Re-fetch all data to show live DB state
-            this.refreshSections();
-            
-            // Re-fetch students and update the lists
-            const ayId = this.api.getActiveAcademicYearId();
-            if (ayId) {
-              this.api.getStudents(ayId).subscribe(students => {
-                this.allStudents = students;
-                this.unassignedStudents = students.filter(s => !s.section && (s.enrollmentStatus === 'Officially Enrolled' || s.enrollmentStatus === 'Pending Review'));
-              });
-            }
-            
-            this.closeAssignModal();
-          },
-          error: (err) => console.error('Failed to assign students', err)
-        });
-      };
-
-      if (section.id.startsWith('mock-sec-')) {
-        // Create the section first
-        const payload: Partial<SectionRecord> = {
-          gradeLevel: section.gradeLevel,
-          sectionName: section.sectionName,
-          adviser: 'TBA',
-          room: 'TBA',
-          capacity: 40,
-          enrolled: 0,
-          availableSlots: 40,
-          status: 'Open',
-          academicYearId: this.api.getActiveAcademicYearId()
+        const doAssign = (secId: string) => {
+          this.api.batchAssignStudentsToSection(secId, selectedIds).subscribe({
+            next: () => {
+              const ayId = this.api.getActiveAcademicYearId();
+              if (ayId) {
+                combineLatest([
+                  this.api.getSections(ayId),
+                  this.api.getStudents(ayId),
+                ]).subscribe({
+                  next: ([sections, students]) => {
+                    this.allStudents = students;
+                    this.sections = this.applySectionMetrics(sections, students);
+                    this.unassignedStudents = students.filter(s =>
+                      !this.studentHasSection(s) &&
+                      (s.enrollmentStatus === 'Officially Enrolled' || s.enrollmentStatus === 'Pending Review')
+                    );
+                  },
+                  error: (err) => console.error('Failed to refresh assignment data', err),
+                });
+              } else {
+                this.refreshSections();
+              }
+              
+              this.closeAssignModal();
+            },
+            error: (err) => console.error('Failed to assign students', err)
+          });
         };
-        this.api.createSection(payload).subscribe({
-          next: (newSec) => {
-            if (newSec.id) doAssign(newSec.id);
-          },
-          error: (err) => console.error('Failed to auto-create section', err)
-        });
-      } else {
-        doAssign(section.id);
-      }
+
+      doAssign(section.id);
     }
   }
 
@@ -231,7 +367,7 @@ export class SectionAssignmentComponent implements OnInit {
       this.editingSectionId = null;
       this.sectionFormData = {
         gradeLevel: 'G7',
-        sectionName: '',
+        sectionName: this.activeCampusTab,
         adviser: '',
         room: '',
         capacity: 40,
@@ -301,7 +437,9 @@ export class SectionAssignmentComponent implements OnInit {
   
   openViewSectionModal(section: SectionRecord) {
     this.viewingSection = section;
-    this.enrolledStudents = this.allStudents.filter(s => s.section === section.sectionName || s.section === section.id);
+    this.enrolledStudents = this.allStudents.filter((student) =>
+      this.studentAssignedToSection(student, section),
+    );
     this.isViewSectionModalOpen = true;
   }
 

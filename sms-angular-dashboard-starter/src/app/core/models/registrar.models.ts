@@ -44,6 +44,7 @@ export interface EnrollmentApplication {
   applicationNo: string;
   studentName: string;
   gradeLevel: string;
+  section?: string;
   studentType: string;
   status: string;
   documentStatus: string;
